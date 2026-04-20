@@ -12,7 +12,7 @@
   <img src="https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white" alt="CSS3" />
 </p>
 
-<div align="center">
+<div>
 
 Ballers is a web-based football application focused on **interaction, squad building, and gameplay systems**, heavily inspired by modern football games like EA FC/FIFA Ultimate Team. Combining high-quality UI/UX with a growing custom match engine, Ballers aims to deliver an immersive browser experience.
 
