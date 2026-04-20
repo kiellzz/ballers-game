@@ -3,7 +3,7 @@ import { useState, useRef } from "react";
 import Home from "./pages/Home";
 import PackOpeningPage from "./pages/PackOpeningPage";
 import Lineup from "./pages/Lineup";
-import PreMatch from "./pages/PreMatch"; // 1. Importar a nova página (crie este arquivo!)
+import PreMatch from "./pages/PreMatch";
 import WelcomePage from "./pages/WelcomePage";
 import MusicPlayer from "./components/music-player/MusicPlayer";
 import Settings from "./components/settings/Settings";
