@@ -777,7 +777,7 @@
   }
 }
 
-/* scrollbar oculta */
+/* scrollbar hidden */
 .prematch-sidebar::-webkit-scrollbar {
   width: 0;
 }
