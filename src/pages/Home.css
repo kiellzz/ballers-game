@@ -94,44 +94,33 @@
 }
 
 /* ============================================================
-   AJUSTE DE HOME PARA RESPONSIVIDADE (MOBILE)
+  RESPONSIVITY (MOBILE)
    ============================================================ */
 
 @media (max-width: 768px) {
-
-  /* Remove o padding externo que empurra tudo para dentro */
   .home {
     padding: 10px 0 60px !important;
   }
 
-  /* Remove o padding interno do container para o grid usar a largura total */
   .home__container {
     padding: 15px 0 30px !important;
     border-radius: 0;
-    /* Opcional: remove arredondamento nas bordas da tela */
     background: transparent;
-    /* Remove o fundo escuro que pode marcar o corte */
     backdrop-filter: none;
     box-shadow: none;
   }
 
-  /* Garante que o conteúdo (Header + Grid) ocupe 100% */
   .home__content {
     width: 100%;
     gap: 15px;
-    /* Diminui o espaço entre header e grid */
   }
 
-  /* Ajuste na arte do topo para não sumir ou bugar o layout */
   .home__frame {
     height: 140px;
-    /* Reduz a altura da arte no mobile */
     opacity: 0.8;
   }
 
-  /* Ajuste nas ações (botões de show more) */
   .home__actions {
     padding: 0 20px;
-    /* Aqui mantemos padding para os botões não colarem na borda */
   }
 }
