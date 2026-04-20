@@ -1,6 +1,6 @@
 import type { Position } from '../types/PlayerTypes';
 
-// 1. Exportando o tipo explicitamente para evitar erros de importação no Vite
+// 1. Exporting type to avoid importing errors on Vite
 export type FormationKey =
   | '4-3-3'
   | '4-3-3 (2)'
