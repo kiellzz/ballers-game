@@ -1,4 +1,4 @@
-<div align="center">
+<div>
 
 > ⚠️ **Project Status:** In development (Match engine to be added soon)
 # ⚽ Ballers Game • Interactive Football Experience
