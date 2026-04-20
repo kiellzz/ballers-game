@@ -107,7 +107,7 @@ Want to test your pack luck on your own machine? Follow these steps:
 
 **1. Clone the repository**
 ```bash
-git clone [https://github.com/kiellzz/ballers-next.git](https://github.com/kiellzz/ballers-game.git)
+git clone [https://github.com/kiellzz/ballers-game.git](https://github.com/kiellzz/ballers-game.git)
 cd ballers-game
 ```
 
