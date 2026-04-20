@@ -1,4 +1,4 @@
-/* Animação do Brilho Pulsante */
+
 @keyframes fieldGlow {
   0% {
     box-shadow: 0 0 10px rgba(255, 255, 255, 0.05);
@@ -77,7 +77,7 @@
   z-index: 0;
 }
 
-/* ================= POSICIONAMENTO DOS SLOTS ================= */
+/* ================= SLOTS POSITIONING ================= */
 .player-slot {
   position: absolute;
   width: 80px;
@@ -122,7 +122,7 @@
   pointer-events: none;
 }
 
-/* ================= SIDEBAR DE AÇÕES (FIXED) ================= */
+/* ================= SIDEBAR ================= */
 .lineup__actions-sidebar {
   position: absolute;
   right: 0;
@@ -136,10 +136,8 @@
   width: auto;
 }
 
-/* Overrides do FeatureButton exclusivos para a sidebar */
 .lineup__actions-sidebar .feature-button {
   width: 320px;
-  /* ← era 180px, aqui é o que vale */
   min-height: 72px;
   border-radius: 999px 0 0 999px;
   justify-content: flex-start;
