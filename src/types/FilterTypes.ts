@@ -5,7 +5,7 @@ export interface FilterState {
   positions: string[];
   nationalities: string[];
   onlyFavorites: boolean;
-  sortBy?: 'asc' | 'desc'; // O '?' é fundamental aqui
+  sortBy?: 'asc' | 'desc'; 
 }
 
 export const defaultFilters: FilterState = {
