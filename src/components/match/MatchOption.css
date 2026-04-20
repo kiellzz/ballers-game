@@ -1,0 +1,43 @@
+.opt-btn {
+  background: linear-gradient(135deg, #4c1d95 0%, #7c3aed 100%);
+  border: none;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  min-width: 120px;
+  justify-content: center;
+  position: relative;
+}
+
+.opt-btn:hover:not(:disabled) {
+  transform: scale(1.05);
+  filter: brightness(1.2);
+}
+
+.opt-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.opt-check {
+  background: rgba(255, 255, 255, 0.2);
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 0.7rem;
+}
+
+/* Variante caso queira botões de cores diferentes depois */
+.opt-btn--secondary {
+  background: linear-gradient(135deg, #333 0%, #555 100%);
+}

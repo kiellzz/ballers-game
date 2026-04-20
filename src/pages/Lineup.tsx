@@ -56,9 +56,7 @@ export default function Lineup() {
         if (parsed.pitch) setPitchPlayers(parsed.pitch);
         if (parsed.bench) setBenchPlayers(parsed.bench);
         if (parsed.formation) setCurrentFormation(parsed.formation);
-        console.log("✅ Squad restored from storage");
       } catch (err) {
-        console.error("Failed to load squad from localStorage", err);
       }
     }
   }, []);
@@ -85,7 +83,6 @@ export default function Lineup() {
 
     if (success) {
       addToast("Match", "Ready", "success", true);
-      console.log("Squad Validated. Navigating to Match...");
       navigate('/PreMatch');
     }
   };

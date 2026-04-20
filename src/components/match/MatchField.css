@@ -1,0 +1,318 @@
+/* src/components/match/MatchField.css */
+
+.match-visual-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px;
+  padding-top: 40px;
+  background-image:
+    linear-gradient(rgba(0, 0, 0, 0.42), rgba(0, 0, 0, 0.42)),
+    url('/images/matchstadium.jpg');
+  background-size: cover;
+  background-position: center;
+  position: relative;
+  min-height: 500px;
+  overflow: hidden;
+}
+
+.situation-box {
+  background: rgba(0, 0, 0, 0.82);
+  padding: 12px 20px;
+  border-radius: 8px;
+  border-left: 4px solid #bfff00;
+  color: white;
+  font-family: 'Montserrat', sans-serif;
+  z-index: 10;
+  max-width: 84%;
+  text-align: center;
+}
+
+.versus-display {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  flex: 1;
+  gap: 70px;
+  position: relative;
+  transition:
+    opacity 0.3s ease,
+    filter 0.3s ease,
+    transform 0.3s ease;
+}
+
+.side-stack {
+  position: relative;
+  width: 260px;
+  height: 340px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.card-container {
+  transition:
+    transform 0.42s ease,
+    opacity 0.42s ease,
+    filter 0.42s ease;
+  will-change: transform, opacity, filter;
+}
+
+.main-card {
+  position: relative;
+  z-index: 3;
+}
+
+.back-card {
+  position: absolute;
+  top: -6px;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.back-card-left {
+  left: -34px;
+}
+
+.back-card-right {
+  right: -34px;
+}
+
+/* ESTADO PADRÃO */
+.side-stack.mode-main .main-card {
+  opacity: 1;
+  transform: translateY(18px) scale(1);
+  filter: none;
+  z-index: 3;
+}
+
+.side-stack.mode-main .back-card {
+  opacity: 0.3;
+  transform: translateY(4px) scale(0.84);
+  filter: blur(1px) grayscale(0.28);
+  z-index: 1;
+}
+
+/* GOLEIRO PROTAGONISTA */
+.side-stack.mode-gk-protagonist .main-card {
+  opacity: 1;
+  transform: translateY(14px) scale(1.02);
+  filter: none;
+  z-index: 4;
+}
+
+.side-stack.mode-gk-protagonist .back-card {
+  opacity: 0.32;
+  transform: translateY(2px) scale(0.83);
+  filter: blur(1.2px) grayscale(0.35);
+  z-index: 1;
+}
+
+/* leve deslocamento extra quando o goleiro está na frente */
+.side-stack.left-side.mode-gk-protagonist .main-card {
+  transform: translateY(14px) translateX(8px) scale(1.02);
+}
+
+.side-stack.right-side.mode-gk-protagonist .main-card {
+  transform: translateY(14px) translateX(-8px) scale(1.02);
+}
+
+.side-stack.left-side.mode-gk-protagonist .back-card {
+  transform: translateY(2px) translateX(-16px) scale(0.83);
+}
+
+.side-stack.right-side.mode-gk-protagonist .back-card {
+  transform: translateY(2px) translateX(16px) scale(0.83);
+}
+
+.versus-display.is-idle .main-card,
+.versus-display.is-idle .back-card,
+.versus-display.is-idle .vs-logo {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.versus-display.is-idle .main-card {
+  transform: translateY(18px) scale(0.88);
+  filter: blur(6px);
+}
+
+.versus-display.is-idle .back-card {
+  transform: scale(0.72);
+  filter: blur(10px) grayscale(0.5);
+}
+
+.versus-display.is-transitioning .main-card,
+.versus-display.is-transitioning .back-card,
+.versus-display.is-transitioning .vs-logo {
+  opacity: 0;
+}
+
+.versus-display.is-transitioning .main-card-left {
+  transform: translateX(-20px) translateY(18px) scale(0.92);
+  filter: blur(8px);
+}
+
+.versus-display.is-transitioning .main-card-right {
+  transform: translateX(20px) translateY(18px) scale(0.92);
+  filter: blur(8px);
+}
+
+.versus-display.is-transitioning .back-card-left {
+  transform: translateX(-28px) translateY(-4px) scale(0.76);
+  filter: blur(10px) grayscale(0.5);
+}
+
+.versus-display.is-transitioning .back-card-right {
+  transform: translateX(28px) translateY(-4px) scale(0.76);
+  filter: blur(10px) grayscale(0.5);
+}
+
+.vs-logo {
+  position: relative;
+  z-index: 5;
+  flex-shrink: 0;
+
+  font-size: clamp(4rem, 6vw, 6.8rem);
+  font-weight: 950;
+  font-style: italic;
+  letter-spacing: -0.08em;
+  line-height: 1;
+
+  background: linear-gradient(180deg, #ff4d8d 0%, #ff0055 50%, #8b0034 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: #ff0055;
+
+  -webkit-text-stroke: 1.5px rgba(255, 255, 255, 0.15);
+
+  text-shadow:
+    0 0 6px rgba(255, 0, 85, 0.7),
+    0 0 16px rgba(255, 0, 85, 0.5),
+    0 6px 16px rgba(0, 0, 0, 0.6);
+
+  filter: drop-shadow(0 0 10px rgba(255, 0, 85, 0.5));
+  transform: skewX(-10deg);
+
+  opacity: 1;
+  visibility: visible;
+  animation: none;
+}
+
+.action-options {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 30px;
+  z-index: 10;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.action-options:has(button:disabled) {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+@media (max-width: 1100px) {
+  .versus-display {
+    gap: 36px;
+  }
+
+  .side-stack {
+    width: 220px;
+    height: 310px;
+  }
+
+  .vs-logo {
+    font-size: 4rem;
+  }
+
+  .back-card-left {
+    left: -26px;
+  }
+
+  .back-card-right {
+    right: -26px;
+  }
+
+  .side-stack.left-side.mode-gk-protagonist .back-card {
+    transform: translateY(2px) translateX(-12px) scale(0.82);
+  }
+
+  .side-stack.right-side.mode-gk-protagonist .back-card {
+    transform: translateY(2px) translateX(12px) scale(0.82);
+  }
+}
+
+@media (max-width: 800px) {
+  .versus-display {
+    gap: 20px;
+  }
+
+  .side-stack {
+    width: 180px;
+    height: 280px;
+  }
+
+  .vs-logo {
+    font-size: 3.2rem;
+  }
+
+  .side-stack.mode-main .back-card {
+    transform: translateY(4px) scale(0.76);
+    opacity: 0.24;
+  }
+
+  .side-stack.mode-gk-protagonist .main-card {
+    transform: translateY(14px) scale(0.94);
+  }
+
+  .side-stack.left-side.mode-gk-protagonist .main-card {
+    transform: translateY(14px) translateX(4px) scale(0.94);
+  }
+
+  .side-stack.right-side.mode-gk-protagonist .main-card {
+    transform: translateY(14px) translateX(-4px) scale(0.94);
+  }
+
+  .side-stack.mode-gk-protagonist .back-card {
+    transform: translateY(4px) scale(0.76);
+    opacity: 0.26;
+  }
+
+  .side-stack.left-side.mode-gk-protagonist .back-card {
+    transform: translateY(4px) translateX(-10px) scale(0.76);
+  }
+
+  .side-stack.right-side.mode-gk-protagonist .back-card {
+    transform: translateY(4px) translateX(10px) scale(0.76);
+  }
+}
+
+.main-card {
+  position: relative;
+}
+
+.match-ball-icon {
+  position: absolute;
+  width: 50px;
+  height: 50px;
+  z-index: 999;
+  pointer-events: none;
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.35));
+}
+
+.ball-left {
+  right: -14px;
+  bottom: 18px;
+}
+
+.ball-right {
+  left: -14px;
+  bottom: 18px;
+}

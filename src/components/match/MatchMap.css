@@ -1,0 +1,124 @@
+/* src/components/match/MatchMap.css */
+
+/* Container flutuante no canto */
+.map-overlay-container {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 100px;
+  height: 150px;
+  z-index: 50;
+  pointer-events: none;
+  transition: filter 0.25s ease, box-shadow 0.25s ease;
+}
+
+/* Box principal do mapa */
+.map-relative-box {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border: 2px solid #22c55e;
+  border-radius: 4px;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.5);
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+/* Imagem do campo */
+.map-bg-img {
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  display: block;
+  opacity: 0.9;
+  transition: filter 0.25s ease;
+}
+
+/* Bola */
+.map-ball-sprite {
+  position: absolute;
+  left: 50%;
+  width: 12px;
+  height: 12px;
+  transform: translate(-50%, -50%);
+  z-index: 1001;
+  transition: top 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  filter: drop-shadow(0 0 5px #bfff00);
+}
+
+/* ========================= */
+/* POSSE DO USUÁRIO (VERDE) */
+/* ========================= */
+
+.map-overlay-container.user-possession .map-relative-box {
+  border-color: #22c55e;
+  box-shadow:
+    0 0 0 1px rgba(34, 197, 94, 0.18),
+    0 0 18px rgba(34, 197, 94, 0.35);
+}
+
+.map-overlay-container.user-possession .map-bg-img {
+  filter: none;
+}
+
+/* ============================ */
+/* POSSE DO OPONENTE (VERMELHO) */
+/* ============================ */
+
+.map-overlay-container.opponent-possession .map-relative-box {
+  border-color: #ef4444;
+  box-shadow:
+    0 0 0 1px rgba(239, 68, 68, 0.22),
+    0 0 20px rgba(239, 68, 68, 0.5),
+    inset 0 0 18px rgba(239, 68, 68, 0.16);
+}
+
+.map-overlay-container.opponent-possession .map-bg-img {
+  filter: brightness(0.82) saturate(1.25);
+}
+
+/* Overlay vermelho animado */
+.danger-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(239, 68, 68, 0.22);
+  pointer-events: none;
+  z-index: 1000;
+  animation: dangerPulse 1s infinite alternate;
+}
+
+/* Animação de perigo */
+@keyframes dangerPulse {
+  from {
+    opacity: 0.1;
+  }
+  to {
+    opacity: 0.28;
+  }
+}
+
+/* ================================== */
+/* ZONA DE PERIGO (PULSAÇÃO DA BORDA) */
+/* ================================== */
+
+.map-overlay-container.opponent-possession.danger-zone .map-relative-box {
+  animation: dangerMapPulse 0.75s infinite alternate;
+}
+
+@keyframes dangerMapPulse {
+  from {
+    border-color: #ef4444;
+    box-shadow:
+      0 0 0 1px rgba(239, 68, 68, 0.25),
+      0 0 18px rgba(239, 68, 68, 0.45),
+      inset 0 0 14px rgba(239, 68, 68, 0.14);
+  }
+
+  to {
+    border-color: #ff1f1f;
+    box-shadow:
+      0 0 0 1px rgba(255, 31, 31, 0.45),
+      0 0 30px rgba(255, 31, 31, 0.8),
+      inset 0 0 24px rgba(255, 31, 31, 0.28);
+  }
+}

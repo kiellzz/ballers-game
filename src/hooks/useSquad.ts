@@ -37,7 +37,6 @@ export function useSquad(
       localStorage.setItem('ballers_saved_progress', JSON.stringify(squadData));
       playSelect(0.5);
 
-      console.log("💾 Squad progress saved with", pitch.filter(p => p).length, "players on pitch.");
       return true;
     } catch (error) {
       console.error("Failed to save progress:", error);

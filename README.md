@@ -1,6 +1,10 @@
+
 <div>
 
-> ⚠️ **Project Status:** In development (Match engine to be added soon)
+> 🚧 **Project Status:** In active development  
+> ✅ Core match engine implemented  
+> 🔄 Currently refining gameplay balance, UI synchronization, and interactions
+
 # ⚽ Ballers Game • Interactive Football Experience
 
 </div>
@@ -14,9 +18,11 @@
 
 <div>
 
-Ballers is a web-based football application focused on **interaction, squad building, and gameplay systems**, heavily inspired by modern football games like EA FC/FIFA Ultimate Team. Combining high-quality UI/UX with a growing custom match engine, Ballers aims to deliver an immersive browser experience.
+Ballers is a web-based football application focused on **interaction, squad building, and gameplay systems**, inspired by modern football games like EA FC/FIFA Ultimate Team.
 
-[Features](#-features) • [Preview](#-preview) • [Running Locally](#%EF%B8%8F-running-locally) • [Roadmap](#-roadmap)
+It combines high-quality UI/UX with a **custom-built interactive match engine**, delivering a dynamic and immersive football experience directly in the browser.
+
+[Features](#-features) • [Match Engine](#-interactive-match-engine) • [Preview](#-preview) • [Running Locally](#%EF%B8%8F-running-locally) • [Roadmap](#-roadmap)
 
 </div>
 
@@ -24,52 +30,10 @@ Ballers is a web-based football application focused on **interaction, squad buil
 
 ## 🎯 Project Goal
 
-* Simulate a engaging football squad-building experience.
+* Simulate an engaging football squad-building and gameplay experience.
 * Practice advanced frontend architecture with **React + TypeScript**.
-* Implement state-driven UI/UX concepts inspired by real AAA sports titles.
-* Build a robust foundation for a **custom interactive match engine**.
-
----
-
-## 📸 Preview
-
-### 🏠 Home & Navigation
-<div align="center">
-  <img src="./media/home1.png" width="49%" alt="Home Screen">
-  <img src="./media/home2.png" width="49%" alt="Home Navigation">
-</div>
-
-### 🎴 Pack Opening & Filters
-<div align="center">
-  <img src="./media/packopening.gif" width="49%" alt="Pack Opening Animation">
-  <img src="./media/filtermodal.png" width="49%" alt="Search Filters">
-</div>
-
-### 👥 Squad & Lineup System
-<div align="center">
-  <img src="./media/lineup.gif" width="49%" alt="Lineup Drag and Drop">
-  <img src="./media/lineup.png" width="49%" alt="Static Lineup View">
-</div>
-
-### 🎯 Player Interaction
-<div align="center">
-  <img src="./media/playermodal.png" width="49%" alt="Player Details">
-  <img src="./media/playermodalLineup.png" width="49%" alt="Lineup Player Options">
-</div>
-
-### 🆚 Pre-Match
-<div align="center">
-  <img src="./media/prematch.png" width="49%" alt="Pre-Match Opponent Selection">
-  <img src="./media/prematch_opplineup.png" width="49%" alt="Opponent Squad Reveal">
-</div>
-
----
-
-## 🛠 Architecture
-
-* **Component-based structure:** Highly reusable UI elements (player cards, modals).
-* **Custom Hooks:** Clean separation of business logic from the presentation layer.
-* **Utility-driven systems:** Dedicated modules for formations, pack probability weights, and validation.
+* Build a **state-driven interactive system**, not just static UI.
+* Develop a scalable foundation for complex gameplay mechanics.
 
 ---
 
@@ -77,60 +41,230 @@ Ballers is a web-based football application focused on **interaction, squad buil
 
 * 🎴 **Dynamic Pack Opening System**
     * Tier-based cards (Legend, Gold, Silver, Bronze).
-    * Weighted probability algorithms for realistic drop rates.
-    * Engaging, animated card reveals.
+    * Weighted probability algorithms.
+    * Animated card reveals.
+
 * 👥 **Advanced Squad Building**
     * Multiple tactical formations.
-    * Drag & drop player positioning.
-    * Full bench and substitution management.
+    * Drag & drop positioning.
+    * Bench and substitutions.
+
 * 🎯 **Deep Player Interaction**
-    * Detailed stat modals for every player.
-    * Quick-swap and remove mechanics.
+    * Detailed stat modals.
+    * Quick swap/remove.
     * Favorites system.
+
 * 🔎 **Robust Filtering**
-    * Filter database by overall rating, tier, position, and nationality.
-    * Dynamic, real-time search.
-* 🆚 **Pre-Match Preparation**
-    * Opponent selection flow.
-    * Predefined challenger teams.
+    * Filter by rating, tier, position, nationality.
+    * Real-time updates.
+
+* 🆚 **Pre-Match System**
+    * Opponent selection
+    * Squad reveal
+
+* ⚽ **Interactive Match Engine**
+    * Player-driven decisions (attack & defense)
+    * Duel-based gameplay system
+    * Zone-based match progression
+    * Real-time event resolution
+
 * 🔊 **Audio & Immersion**
-    * 🎵 **Integrated Music Player:** Curated soundtrack for a complete game atmosphere.
-    * 🔉 **Dynamic SFX:** Sound effects for pack openings, clicks, and transitions.
-    * ⚡ **Tactile Feedback:** Audio-visual synchronization for UI interactions.
-    * 🔘 **User Control:** Audio and music can be toggled on/off at any time via the **top-left controls**.
+    * Music player
+    * SFX feedback
+    * Toggle controls
+
+---
+
+## ⚽ Interactive Match Engine
+
+Ballers features a **custom-built interactive match engine** where the user actively participates in every phase of the game.
+
+### 🎮 Core Concept
+
+Instead of passive simulation:
+
+- You choose **offensive actions** when attacking  
+- You choose **defensive reactions** when defending  
+- Every moment is resolved through **player vs player duels**
+
+---
+
+### 🧠 Engine Systems
+
+- **Zone-based gameplay**
+  - Midfield, final third, box, big chances, etc.
+
+- **Duel Engine**
+  - Resolves attacker vs defender using player stats
+
+- **Event Resolver**
+  - Determines outcomes (success, fail, rebound, etc.)
+
+- **Set Piece Engine**
+  - Penalty
+  - Free Kick (interactive + quick flow)
+  - Corner kicks
+
+- **Player Selector**
+  - Context-aware player selection
+  - Position-based filtering (no secondary position abuse)
+
+---
+
+### ⚡ Gameplay Flow
+
+- Continuous chain of **duels**
+- Context-sensitive actions
+- Real-time progression
+- Player decisions directly influence outcomes
+
+---
+
+### 📜 Match Event Log
+
+A real-time duel-based log system
+Examples:
+```
+
+User Player vs GK Opponent → Finish → Goal
+Opponent Winger vs User CB → Sprint → Stopped
+FK taker vs GK → Free Kick → Saved
+
+````
+
+Features:
+
+- Fully **duel-based structure**
+- Includes:
+  - Open play
+  - Penalty
+  - Free Kick
+  - Corner
+- Compact horizontal layout
+- Uses player mini-cards (UI consistency with lineup)
+- Smart name formatting (`getDisplayName`)
+- Scrollable + customizable UI
+- Optional visibility (can be hidden for cleaner gameplay)
+
+---
+
+### 🎯 UI & Interaction
+
+- Interactive modals:
+  - Penalty
+  - Free Kick
+  - Corner
+
+- Visual feedback:
+  - Action → Outcome transitions
+  - Ball animations
+  - Goal modal
+  - Goal scorers & assisters in the sidebar
+
+- Strong UI consistency:
+  - Same card system across lineup + match
+  - Mini cards in event log
+
+---
+
+### ⚖️ Balancing & Realism
+
+- Tuned probabilities for:
+  - Goals
+  - Rebounds
+  - Clearances
+  - Fouls
+
+- Improvements:
+  - Reduced unrealistic rebounds
+  - More realistic corner generation
+  - Better possession retention
+  - Goalkeeper logic adjustments
+
+---
+
+## 📸 Preview
+
+### 🏠 Home & Navigation
+<div align="center">
+  <img src="./media/home1.png" width="49%">
+  <img src="./media/home2.png" width="49%">
+</div>
+
+### 🎴 Pack Opening & Filters
+<div align="center">
+  <img src="./media/packopening.gif" width="49%">
+  <img src="./media/filtermodal.png" width="49%">
+</div>
+
+### 👥 Squad & Lineup System
+<div align="center">
+  <img src="./media/lineup.gif" width="49%">
+  <img src="./media/lineup.png" width="49%">
+</div>
+
+### 🎯 Player Interaction
+<div align="center">
+  <img src="./media/playermodal.png" width="49%">
+  <img src="./media/playermodalLineup.png" width="49%">
+</div>
+
+### 🆚 Pre-Match
+<div align="center">
+  <img src="./media/prematch.png" width="49%">
+  <img src="./media/prematch_opplineup.png" width="49%">
+</div>
+
+---
+
+### ⚽ Match Engine & Gameplay
+
+Interactive, decision-based match flow powered by a custom engine.
+
+<div align="center">
+  <img src="./media/match1.png" width="49%">
+  <img src="./media/match2.png" width="49%">
+</div>
+
+---
+
+## 🛠 Architecture
+
+* **Component-based UI**
+* **Custom hooks for logic separation**
+* **Utility-driven systems**
+* **Game Engine Layer:**
+  - matchEngine
+  - duelEngine
+  - eventResolver
+  - setPieceEngine
+* **Separation of concerns:**
+  - Engine logic vs UI layer
+* **State-driven gameplay loop**
 
 ---
 
 ## ⚙️ Running Locally
 
-Want to test your pack luck on your own machine? Follow these steps:
-
-**1. Clone the repository**
 ```bash
-git clone [https://github.com/kiellzz/ballers-game.git](https://github.com/kiellzz/ballers-game.git)
+git clone https://github.com/kiellzz/ballers-game.git
 cd ballers-game
-```
-
-**2. Install dependencies**
-```bash
 npm install
-```
-
-**3. Fire it up**
-```bash
 npm run dev
 ```
-> 📍 App will be running at: `http://localhost:5173`
+
+> App: [http://localhost:5173](http://localhost:5173)
 
 ---
 
 ## 🗺 Roadmap
 
-The journey doesn't stop here. Here is what is planned for future updates:
-
-- [ ] ⚔️ **Interactive Match Engine:** Move beyond squad building into actual simulated gameplay.
-- [ ] 🎲 **Stat-Driven Outcomes:** Player attributes (SPD, SHO, PHY) directly impacting match results.
-- [ ] 🎮 **Draft Mode:** Build a team on the fly from random selections.
+* [x] ⚔️ Interactive Match Engine 
+* [ ] 🏗 Improve frontend architecture 
+* [ ] 📊 Match statistics (xG, possession, shots)
+* [ ] 🎙 Commentary system
+* [ ] 💾 Backend integration 
+* [ ] 🎮 Draft Mode
 
 ---
 
@@ -138,7 +272,9 @@ The journey doesn't stop here. Here is what is planned for future updates:
 
 Developed by **Ezequiel Borges**
 
-* **GitHub:** [@kiellzz](https://github.com/kiellzz)
-* **LinkedIn:** [Ezequiel Borges](https://www.linkedin.com/in/ezequielborgesdev)
+* GitHub: [https://github.com/kiellzz](https://github.com/kiellzz)
+* LinkedIn: [https://www.linkedin.com/in/ezequielborgesdev](https://www.linkedin.com/in/ezequielborgesdev)
 
-> *This project represents a transition from building standard web applications to engineering interactive systems with real gameplay structure, focusing heavily on robust technical architecture and polished user experience.*
+---
+
+> This project represents the transition from building UI applications to designing interactive systems with real gameplay structure, focusing on architecture, logic, and user experience.

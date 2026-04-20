@@ -44,8 +44,6 @@ export default function PreMatch() {
   const handleStartMatch = () => {
     if (!selectedOpponent || !mySquad) return;
 
-    console.log("Iniciando partida contra:", selectedOpponent.name);
-
     navigate('/match', {
       state: {
         opponent: selectedOpponent,

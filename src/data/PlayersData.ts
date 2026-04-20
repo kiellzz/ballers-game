@@ -448,7 +448,7 @@ export const playersData: Player[] = [
   {
     id: 27,
     name: "Virgil van Dijk",
-    overall: 87,
+    overall: 88,
     position: "CB",
     nationality: "Netherlands",
     stats: {
@@ -2180,7 +2180,7 @@ export const playersData: Player[] = [
   {
     id: 131,
     name: "Jonathan Tah",
-    overall: 83,
+    overall: 86,
     position: "CB",
     nationality: "Germany",
     stats: {
@@ -2188,8 +2188,8 @@ export const playersData: Player[] = [
       shooting: 48,
       passing: 66,
       dribbling: 62,
-      defending: 83,
-      physical: 82
+      defending: 86,
+      physical: 88
     },
     height: 197,
   },
@@ -2949,7 +2949,7 @@ export const playersData: Player[] = [
   {
     id: 179,
     name: "Rúben Dias",
-    overall: 88,
+    overall: 87,
     position: "CB",
     nationality: "Portugal",
     stats: {
@@ -4674,5 +4674,5 @@ export const playersData: Player[] = [
       physical: 75
     },
     height: 172,
-  }
+  },
 ];

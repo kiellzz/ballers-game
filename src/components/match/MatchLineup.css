@@ -1,0 +1,135 @@
+/* components/match/MatchLineup.css */
+
+.match-column {
+  width: 20%;
+  background: linear-gradient(180deg, rgba(20, 20, 20, 0.8) 0%, rgba(0, 0, 0, 1) 100%);
+  padding: 20px 10px;
+  border-right: 1px solid #333;
+  overflow-y: auto;
+}
+
+/* Você pode adicionar essa classe dinamicamente no componente se a prop isOpponent for true */
+.match-column.is-opponent {
+  border-right: none;
+  border-left: 1px solid #333;
+}
+
+.lineup-title {
+  font-size: 1.2rem;
+  text-transform: uppercase;
+  margin-bottom: 20px;
+  color: #fff;
+  border-bottom: 2px solid #8b5cf6;
+  display: inline-block;
+}
+
+.lineup-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 5px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 0.85rem;
+}
+
+.lineup-pos {
+  font-weight: bold;
+  color: #fbbf24;
+  width: 30px;
+}
+
+.lineup-name {
+  flex: 1;
+  min-width: 0;
+  margin-left: 10px;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.lineup-stats {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.lineup-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.lineup-badge--goal {
+  background: rgba(250, 204, 21, 0.16);
+  color: #fde68a;
+}
+
+.lineup-badge--assist {
+  background: rgba(59, 130, 246, 0.16);
+  color: #bfdbfe;
+}
+
+.lineup-badge__icon {
+  width: 14px;
+  height: 14px;
+  display: block;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.lineup-ovr {
+  background: #222;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: bold;
+}
+
+.lineup-flag {
+  width: 20px;
+  height: auto;
+  border-radius: 2px;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.5);
+  object-fit: contain;
+}
+
+.lineup-badge--goal {
+  background: linear-gradient(135deg, #a855f7 0%, #6b21a8 100%);
+  color: #fff;
+  border: 1.5px solid #ffffff;
+}
+
+.lineup-badge--assist {
+  background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+  color: #fff;
+  border: 1.5px solid #ffffff;
+}
+
+/* Atualize na sua classe base existente */
+.lineup-badge {
+display: inline-flex;
+align-items: center;
+gap: 4px; /* Aumentado de 3px */
+padding: 3px 8px; /* Aumentado de 2px 6px */
+border-radius: 999px;
+font-size: 0.75rem; /* Levemente maior */
+font-weight: 700;
+line-height: 1;
+white-space: nowrap;
+}
+
+.match-column {
+  width: 20%;
+  /* Um roxo muito profundo que se funde ao preto no final */
+  background: linear-gradient(180deg, #120e1a 0%, #000000 100%);
+  padding: 20px 10px;
+  border-right: 1px solid #2d2a3d; /* Border levemente arroxeado também */
+  overflow-y: auto;
+}

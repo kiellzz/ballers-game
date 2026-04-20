@@ -1,0 +1,776 @@
+/* ============================================================
+   FkModal.css
+   Follows the same visual language as PenModal (purple palette,
+   match-modal__btn, badges), adapted for 2 target zones + distance.
+   ============================================================ */
+
+.fk-modal__body {
+  min-height: 0;
+}
+
+.fk-modal__footer {
+  display: flex;
+  align-items: center;
+}
+
+/* ---------- Stage ---------- */
+.fk-stage {
+  position: relative;
+  margin: 0 22px;
+  border-radius: 14px;
+  overflow: visible;
+  aspect-ratio: 16 / 10;
+  background: #050810;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.fk-stage-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  user-select: none;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ---------- Zones ---------- */
+.fk-zones {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+}
+
+/* FIX #6 — removed hardcoded width/height (10px) that conflicted with
+   the inline percentage sizes set in JSX. Size is now 100% controlled
+   by the style prop to avoid layout flash during hydration. */
+.fk-zone {
+  position: absolute;
+  background: rgba(15, 23, 42, 0.32);
+  border: 2px dashed rgba(255, 255, 255, 0.55);
+  border-radius: 200px;
+  color: #ffffff;
+  font-weight: 700;
+  cursor: pointer;
+  backdrop-filter: blur(2px);
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    transform 180ms ease,
+    box-shadow 180ms ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 6px 8px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
+  overflow: hidden;
+}
+
+.fk-zone:hover:not(:disabled) {
+  background: rgba(255, 207, 61, 0.22);
+  border-color: #ffcf3d;
+  transform: scale(1.02);
+  box-shadow: 0 0 0 3px rgba(255, 207, 61, 0.18);
+}
+
+.fk-zone:disabled {
+  cursor: default;
+}
+
+.fk-zone-label {
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.fk-zone-label__main {
+  font-size: 13px;
+  letter-spacing: 0.02em;
+}
+
+.fk-zone-label__sub {
+  font-size: 10px;
+  font-weight: 500;
+  color: #cbd5e1;
+  letter-spacing: 0.02em;
+}
+
+.fk-zone.is-selected {
+  background: rgba(59, 130, 246, 0.28);
+  border-color: #60a5fa;
+  border-style: solid;
+}
+
+.fk-zone.is-goal {
+  background: rgba(34, 197, 94, 0.38);
+  border-color: #22c55e;
+  border-style: solid;
+  box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.25);
+  animation: fkPulseGreen 600ms ease-out;
+}
+
+.fk-zone.is-save {
+  background: rgba(239, 68, 68, 0.32);
+  border-color: #ef4444;
+  border-style: solid;
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.22);
+  animation: fkShake 400ms ease-in-out;
+}
+
+.fk-zone.is-save-touch {
+  background: rgba(245, 158, 11, 0.3);
+  border-color: #f59e0b;
+  border-style: solid;
+  box-shadow: 0 0 4px rgba(245, 158, 11, 0.2);
+}
+
+.fk-zone.is-blocked {
+  background: rgba(148, 163, 184, 0.32);
+  border-color: #94a3b8;
+  border-style: solid;
+  box-shadow: 0 0 0 4px rgba(148, 163, 184, 0.22);
+  animation: fkShake 400ms ease-in-out;
+}
+
+.fk-zone.is-miss {
+  background: rgba(217, 70, 239, 0.26);
+  border-color: #d946ef;
+  border-style: solid;
+  box-shadow: 0 0 0 4px rgba(217, 70, 239, 0.2);
+}
+
+/* ---------- Keeper badge ---------- */
+/* FIX #5 — uses fkBadgePopIn instead of fkPopIn so translateX(-50%)
+   from the banner keyframe does not misplace the badge. */
+
+/* ---------- Ball ---------- */
+/* FIX #1 & #2 — base class no longer defines any animation. Each
+   modifier class drives its own keyframe so re-mounting the element
+   (via key prop in JSX) always plays the animation from frame 0.
+   All keyframes use only `transform` (no top/bottom mixing) so there
+   is no conflict with the inline style positioning. */
+.fk-ball {
+  position: absolute;
+  width: 29px;
+  height: 29px;
+  /* Start visually centred on the zone; each keyframe takes it from here */
+  transform: translate(-50%, -50%) scale(1);
+  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.5));
+  pointer-events: none;
+  z-index: 6;
+}
+
+.fk-ball__img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.fk-ball--kick .fk-ball__img {
+  animation: modalBallSpin 520ms linear infinite;
+}
+
+/* Phase "kicking" — ball launches from below toward the zone */
+.fk-ball--kick {
+  animation: fkBallKick 230ms cubic-bezier(0.2, 0.6, 0.3, 1) forwards;
+}
+
+/* Phase "result" trajectory classes */
+.fk-ball--goal {
+  animation: fkBallSettle 420ms ease-out forwards;
+}
+
+.fk-ball--save {
+  animation: fkBallBounce 520ms ease-out forwards;
+}
+
+.fk-ball--blocked-left {
+  animation: fkBallBlockedLeft 500ms cubic-bezier(0.18, 0.82, 0.22, 1) forwards;
+}
+
+.fk-ball--blocked-right {
+  animation: fkBallBlockedRight 500ms cubic-bezier(0.18, 0.82, 0.22, 1) forwards;
+}
+
+.fk-ball--miss-left {
+  animation: fkBallMissLeft 420ms cubic-bezier(0.25, 0.7, 0.3, 1) forwards;
+}
+
+.fk-ball--miss-right {
+  animation: fkBallMissRight 420ms cubic-bezier(0.25, 0.7, 0.3, 1) forwards;
+}
+
+.fk-ball--deflect-right {
+  animation: fkBallDeflectRight 400ms cubic-bezier(0.18, 0.82, 0.22, 1) forwards;
+}
+
+.fk-ball--deflect-left {
+  animation: fkBallDeflectLeft 400ms cubic-bezier(0.18, 0.82, 0.22, 1) forwards;
+}
+
+/* ---------- Banner ---------- */
+/* FIX #4 — fkBannerPopIn includes opacity so the banner fades in
+   properly instead of snapping in without any fade. */
+.fk-banner {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 8px 22px;
+  border-radius: 999px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  font-size: 15px;
+  color: #0b1220;
+  animation: fkBannerPopIn 280ms ease-out forwards;
+  z-index: 7;
+}
+
+.fk-banner--goal {
+  background: linear-gradient(90deg, #22c55e, #86efac);
+  box-shadow: 0 8px 24px rgba(34, 197, 94, 0.45);
+}
+
+.fk-banner--save_clean {
+  background: linear-gradient(90deg, #ef4444, #fca5a5);
+  color: #fff;
+  box-shadow: 0 8px 24px rgba(239, 68, 68, 0.45);
+}
+
+.fk-banner--save_touch {
+  background: linear-gradient(90deg, #f59e0b, #fcd34d);
+  color: #111827;
+  box-shadow: 0 8px 24px rgba(245, 158, 11, 0.4);
+}
+
+.fk-banner--blocked_wall {
+  background: linear-gradient(90deg, #94a3b8, #cbd5e1);
+  color: #0b1220;
+  box-shadow: 0 8px 24px rgba(148, 163, 184, 0.45);
+}
+
+.fk-banner--miss {
+  background: linear-gradient(90deg, #d946ef, #f0abfc);
+  color: #111827;
+  box-shadow: 0 8px 24px rgba(217, 70, 239, 0.45);
+}
+
+/* ---------- Goalkeeper ---------- */
+/* FIX #3 — transition-delay makes the keeper react *after* the ball
+   starts moving, creating a natural "read and dive" feeling. */
+.fk-goalkeeper-card-wrap {
+  position: absolute;
+  left: 55%;
+  top: 52%;
+  transform: translate(-50%, -50%);
+  z-index: 3;
+  pointer-events: none;
+  transition: transform 630ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  transition-delay: 100ms;
+  will-change: transform;
+}
+
+.fk-goalkeeper-card {
+  transform-origin: center;
+  filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.45));
+  transition: transform 400ms ease;
+}
+
+.fk-goalkeeper-card-wrap--short .fk-goalkeeper-card {
+  transform: scale(0.32) translateY(20px);
+}
+
+.fk-goalkeeper-card-wrap--mid .fk-goalkeeper-card {
+  transform: scale(0.31) translateY(30px);
+}
+
+.fk-goalkeeper-card-wrap--long .fk-goalkeeper-card {
+  transform: scale(0.30) translateY(40px);
+}
+
+.fk-goalkeeper-card-wrap--diving.fk-goalkeeper-card-wrap--left {
+  transform: translate(-132%, -60%) rotate(-8deg);
+}
+
+.fk-goalkeeper-card-wrap--diving.fk-goalkeeper-card-wrap--right {
+  transform: translate(-2%, -60%) rotate(8deg);
+}
+
+.fk-goalkeeper-card-wrap--diving.fk-goalkeeper-card-wrap--center {
+  transform: translate(-50%, -58%) scale(1.08);
+}
+
+/* ---------- Free-kick taker mini card ---------- */
+.fk-shooter-row {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.fk-shooter-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+
+.fk-shooter-card-mini {
+  position: relative;
+  z-index: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 10px;
+  backdrop-filter: blur(6px);
+  box-shadow:
+    0 0 12px rgba(250, 204, 21, 0.12),
+    0 0 24px rgba(250, 204, 21, 0.06);
+  overflow: hidden;
+}
+
+.fk-shooter-card-mini::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 10px;
+  padding: 1px;
+  background: linear-gradient(
+    120deg,
+    #a855f7,
+    #d8b4fe,
+    #a855f7,
+    #9333ea,
+    #a855f7
+  );
+  background-size: 300% 300%;
+  animation: fkBorderFlow 4s linear infinite;
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+.fk-shooter-img {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+}
+
+.fk-shooter-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.fk-shooter-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: #e5e7eb;
+}
+
+.fk-shooter-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.fk-shooter-ovr {
+  font-size: 11px;
+  font-weight: 700;
+  color: #a855f7;
+}
+
+.fk-shooter-pos {
+  font-size: 10px;
+  color: #9ca3af;
+}
+
+.fk-shooter-flag {
+  width: 14px;
+  height: 10px;
+  object-fit: cover;
+  border-radius: 2px;
+}
+
+/* ============================================================
+   Animations
+   ============================================================ */
+
+/* FIX #4 — banner keyframe now includes opacity so it fades in
+   cleanly instead of appearing without any transition. The
+   translateX(-50%) is preserved to keep the banner centred. */
+@keyframes fkBannerPopIn {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) scale(0.88);
+  }
+  70% {
+    transform: translateX(-50%) scale(1.04);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(-50%) scale(1);
+  }
+}
+
+/* FIX #2 — fkBallKick uses only `transform` (no top/bottom mixing).
+   Ball starts from bottom-centre of the stage (where the taker stands)
+   and travels up to the target zone, shrinking as it recedes. */
+@keyframes modalBallSpin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes fkBallKick {
+  0% {
+    transform: translate(-50%, 380%) scale(1.6);
+    opacity: 0.7;
+  }
+  40% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+}
+
+/* Goal — ball bulges the net: continues forward (scale up slightly)
+   then settles as if lodged in the net (scale down a touch). */
+@keyframes fkBallSettle {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+  40% {
+    transform: translate(-50%, -20%) scale(1.28);
+  }
+  75% {
+    transform: translate(-50%, -10%) scale(0.95);
+  }
+  100% {
+    transform: translate(-50%, -12%) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes fkBallBounce {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+  40% {
+    transform: translate(-80%, -30%) scale(0.9) rotate(-20deg);
+  }
+  100% {
+    transform: translate(-110%, 10%) scale(0.85) rotate(-40deg);
+  }
+}
+
+.fk-ball--blocked {
+  animation: fkBallBlocked 500ms cubic-bezier(0.18, 0.82, 0.22, 1) forwards;
+}
+
+@keyframes fkBallBlocked {
+  0% {
+    transform: translate(-50%, -50%) scale(1) rotate(0deg);
+    opacity: 1;
+  }
+  22% {
+    transform: translate(-72%, -58%) scale(1.08) rotate(-8deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-940%, 120%) scale(0.68) rotate(-58deg);
+    opacity: 1;
+  }
+}
+
+@keyframes fkBallMissLeft {
+  0% {
+    transform: translateX(-50%) scale(1.3);
+    opacity: 1;
+  }
+  40% {
+    transform: translate(-52%, -150%) scale(0.9);
+    opacity: 1;
+  }
+  70% {
+    transform: translate(-80%, -300%) scale(0.6) rotate(-15deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-90%, -380%) scale(0.45) rotate(-20deg);
+    opacity: 0;
+  }
+}
+
+@keyframes fkBallMissRight {
+  0% {
+    transform: translateX(-50%) scale(1.3);
+    opacity: 1;
+  }
+  40% {
+    transform: translate(-48%, -150%) scale(0.9);
+    opacity: 0.9;
+  }
+  70% {
+    transform: translate(-20%, -300%) scale(0.6) rotate(15deg);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translate(-10%, -350%) scale(0.45) rotate(20deg);
+    opacity: 0;
+  }
+}
+
+@keyframes fkBallDeflectRight {
+  0% {
+    transform: translate(-50%, -50%) scale(1) rotate(0deg);
+    opacity: 1;
+  }
+  22% {
+    transform: translate(-28%, -58%) scale(1.08) rotate(8deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(520%, 120%) scale(0.68) rotate(58deg);
+    opacity: 1;
+  }
+}
+
+@keyframes fkBallDeflectLeft {
+  0% {
+    transform: translate(-50%, -50%) scale(1) rotate(0deg);
+    opacity: 1;
+  }
+  22% {
+    transform: translate(-72%, -58%) scale(1.08) rotate(-8deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-620%, 120%) scale(0.68) rotate(-58deg);
+    opacity: 1;
+  }
+}
+
+@keyframes fkPulseGreen {
+  0% {
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+  }
+  100% {
+    box-shadow: 0 0 0 18px rgba(34, 197, 94, 0);
+  }
+}
+
+@keyframes fkShake {
+  0%, 100% {
+    transform: translateX(0) scale(1);
+  }
+  25% {
+    transform: translateX(-6px) scale(1);
+  }
+  75% {
+    transform: translateX(6px) scale(1);
+  }
+}
+
+@keyframes fkBorderFlow {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 300% 50%;
+  }
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 600px) {
+  .fk-stage {
+    margin: 0 18px;
+  }
+
+  .fk-distance-bar {
+    margin: 8px 18px 10px;
+    gap: 6px;
+  }
+
+  .fk-distance-btn {
+    padding: 8px 10px;
+  }
+
+  .fk-distance-btn__label {
+    font-size: 12px;
+  }
+
+  .fk-distance-btn__hint {
+    font-size: 10px;
+  }
+
+  .fk-zone-label__main {
+    font-size: 11px;
+  }
+
+  .fk-zone-label__sub {
+    font-size: 9px;
+  }
+
+  .fk-banner {
+    font-size: 13px;
+    padding: 6px 16px;
+  }
+}
+
+/* Barrier — lives inside .fk-stage (position: relative).
+   z-index 4: above goalkeeper card (3) so it visually blocks the wall.
+   transition: none prevents any inherited transition from nudging it. */
+.fk-barrier {
+  position: absolute;
+  bottom: 25%;
+  left: 36%;
+  transform: translateX(-50%);
+  width: 170px;
+  height: 170px;
+  pointer-events: none;
+  z-index: 4;
+  opacity: 1;
+  filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.6));
+  transition: none !important;
+}
+
+@keyframes fkBarrierJump {
+  0%   { transform: translateX(-50%) translateY(0); }
+  15%  { transform: translateX(-50%) translateY(-36px); }
+  35%  { transform: translateX(-50%) translateY(-30px); }
+  60%  { transform: translateX(-50%) translateY(-25px); }
+  82%  { transform: translateX(-50%) translateY(-14px); }
+  100% { transform: translateX(-50%) translateY(0); }
+}
+
+.fk-barrier--jumping {
+  animation: fkBarrierJump 1.4s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+}
+
+/* DEPTH */
+
+.fk-stage--short .fk-stage-img {
+  filter: brightness(1.08) saturate(1.1);
+  transform: scale(1.02);
+}
+
+.fk-stage--mid .fk-stage-img {
+  filter: brightness(1.0) saturate(1.0);
+  transform: scale(1.0);
+}
+
+.fk-stage--long .fk-stage-img {
+  filter: brightness(0.82) saturate(0.85);
+  transform: scale(0.995);
+}
+
+.fk-stage-img {
+  /* adds a transition so the change feels smooth */
+  transition: filter 400ms ease, transform 400ms ease;
+}
+
+/* ─── Opponent stage overrides ───────────────────────────────────────────────
+   In OppFkModal, goal = bad for the user -> red
+   save / blocked / miss = good for the user -> green
+   ─────────────────────────────────────────────────────────────────────────── */
+
+.fk-stage--opponent .fk-zone {
+  cursor: default;
+  pointer-events: none;
+}
+
+.fk-stage--opponent .fk-zone:hover {
+  background: rgba(15, 23, 42, 0.32);
+  border-color: rgba(255, 255, 255, 0.55);
+  transform: none;
+  box-shadow: none;
+}
+
+.fk-stage--opponent .fk-zone.is-goal {
+  background: rgba(239, 68, 68, 0.38);
+  border-color: #ef4444;
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.22);
+  animation: fkShake 400ms ease-in-out;
+}
+
+.fk-stage--opponent .fk-zone.is-save {
+  background: rgba(34, 197, 94, 0.38);
+  border-color: #22c55e;
+  box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.25);
+  animation: fkPulseGreen 600ms ease-out;
+}
+
+.fk-stage--opponent .fk-zone.is-save-touch {
+  background: rgba(34, 197, 94, 0.3);
+  border-color: #22c55e;
+  box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.2);
+}
+
+.fk-stage--opponent .fk-zone.is-blocked {
+  background: rgba(34, 197, 94, 0.32);
+  border-color: #22c55e;
+  box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.22);
+  animation: fkPulseGreen 600ms ease-out;
+}
+
+.fk-stage--opponent .fk-zone.is-miss {
+  background: rgba(34, 197, 94, 0.26);
+  border-color: #22c55e;
+  box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.2);
+}
+
+/* banners */
+.fk-stage--opponent .fk-banner {
+  color: #ffffff;
+}
+
+.fk-stage--opponent .fk-banner--goal {
+  background: linear-gradient(90deg, #ef4444, #fca5a5);
+  color: #fff;
+  box-shadow: 0 8px 24px rgba(239, 68, 68, 0.45);
+}
+
+.fk-stage--opponent .fk-banner--save_clean {
+  background: linear-gradient(90deg, #22c55e, #86efac);
+  color: #fff;
+  box-shadow: 0 8px 24px rgba(34, 197, 94, 0.45);
+}
+
+.fk-stage--opponent .fk-banner--save_touch {
+  background: linear-gradient(90deg, #22c55e, #86efac);
+  color: #fff;
+  box-shadow: 0 8px 24px rgba(34, 197, 94, 0.45);
+}
+
+.fk-stage--opponent .fk-banner--blocked_wall {
+  background: linear-gradient(90deg, #22c55e, #86efac);
+  color: #fff;
+  box-shadow: 0 8px 24px rgba(34, 197, 94, 0.45);
+}
+
+.fk-stage--opponent .fk-banner--miss {
+  background: linear-gradient(90deg, #22c55e, #86efac);
+  color: #fff;
+  box-shadow: 0 8px 24px rgba(34, 197, 94, 0.45);
+}
+
+.fk-banner {
+  color: #ffffff !important;
+}

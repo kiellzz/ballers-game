@@ -1,0 +1,232 @@
+/* components/match/EventLog.css */
+
+.match-events {
+  background: linear-gradient(180deg, rgba(31, 19, 47, 0.65) 0%, rgba(8, 8, 16, 0.82) 100%);
+  padding: 12px 14px;
+  border-top: 1px solid rgba(138, 92, 246, 0.18);
+  backdrop-filter: blur(6px);
+  transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.match-events:hover {
+  background: linear-gradient(180deg, rgba(31, 19, 47, 0.74) 0%, rgba(10, 10, 18, 0.88) 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.event-log-body {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: max-height 0.26s ease, opacity 0.22s ease, margin-top 0.22s ease;
+  scrollbar-width: thin;
+  scrollbar-color: #8b5cf6 rgba(0, 0, 0, 0.4);
+}
+
+.event-log-body--visible {
+  max-height: 300px;
+  opacity: 1;
+  margin-top: 8px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.event-log-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.event-log-body::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 8px;
+}
+
+.event-log-body::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #7c3aed, #a855f7);
+  border-radius: 8px;
+  opacity: 0.7;
+}
+
+.event-log-body::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #8b5cf6, #c084fc);
+}
+
+.match-events__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.match-events h3 {
+  text-transform: uppercase;
+  font-size: 0.82rem;
+  color: #b5a8d8;
+  margin: 0;
+  letter-spacing: 0.12em;
+}
+
+.match-events__toggle {
+  border: 1px solid rgba(168, 85, 247, 0.16);
+  background: rgba(109, 40, 217, 0.14);
+  color: rgba(226, 232, 240, 0.7);
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 0.72rem;
+  line-height: 1.2;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease, opacity 0.18s ease;
+}
+
+.match-events__toggle:hover {
+  background: rgba(124, 58, 237, 0.28);
+  border-color: rgba(192, 132, 252, 0.32);
+  color: rgba(248, 250, 252, 0.9);
+  opacity: 1;
+}
+
+.event-log {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.event-log-item {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  min-height: 56px;
+  padding: 4px 10px;
+  min-width: max-content;
+  overflow: visible;
+  border-radius: 8px;
+  background: linear-gradient(90deg, rgba(31, 19, 47, 0.65) 0%, rgba(12, 11, 20, 0.8) 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  transition: background 0.18s ease, box-shadow 0.18s ease;
+}
+
+.event-log-item:hover {
+  background: linear-gradient(90deg, rgba(40, 24, 60, 0.74) 0%, rgba(14, 13, 24, 0.88) 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.event-log-minute {
+  flex: 0 0 auto;
+  color: #dbc16b;
+  min-width: 30px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+
+.event-log-player {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex: 0 0 auto;
+  min-width: max-content;
+  max-width: none;
+  overflow: visible;
+}
+
+.event-log-player > .match-event-player-card {
+  flex: 0 0 34px;
+  width: 34px;
+  height: 52px;
+  min-width: 34px;
+  max-width: 34px;
+  margin: 0;
+  align-self: center;
+}
+
+.event-log-player > .match-event-player-card:hover {
+  transform: none;
+  filter: none;
+}
+
+.event-log-name,
+.event-log-action,
+.event-log-outcome {
+  flex: 0 0 auto;
+  min-width: max-content;
+  max-width: none;
+  white-space: nowrap;
+  overflow: visible;
+  text-overflow: unset;
+  font-family: "Barlow Condensed", sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.event-log-name {
+  color: #e5e7eb;
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.event-log-arrow,
+.event-log-vs {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.event-log-vs {
+  color: #ff0055;
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  margin-inline: 1px;
+  text-shadow:
+    0 0 5px rgba(255, 0, 85, 0.75),
+    0 0 12px rgba(255, 0, 85, 0.35);
+}
+
+.event-log-arrow {
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 0.78rem;
+  font-weight: 800;
+  margin-inline: 1px;
+}
+
+.event-log-action {
+  color: #ad9adf;
+  font-size: 0.92rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.event-log-outcome {
+  color: #e2c76f;
+  font-size: 0.92rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.event-log__empty {
+  margin: 0;
+  color: #9ca3af;
+  font-size: 0.92rem;
+}
+
+@media (max-width: 1100px) {
+  .event-log-item {
+    gap: 7px;
+    padding: 4px 8px;
+  }
+
+  .event-log-name {
+    font-size: 0.76rem;
+  }
+
+  .event-log-action,
+  .event-log-outcome {
+    font-size: 0.84rem;
+  }
+
+  .event-log-vs,
+  .event-log-arrow {
+    font-size: 0.72rem;
+  }
+}

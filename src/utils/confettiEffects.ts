@@ -76,3 +76,79 @@ export function triggerLegendConfetti() {
     });
   }, 150);
 }
+
+// User Goal
+export function triggerGoalConfetti() {
+  const duration = 1800;
+  const end = Date.now() + duration;
+
+  const canvas = document.createElement("canvas");
+
+  canvas.style.position = "fixed";
+  canvas.style.inset = "0";
+  canvas.style.width = "100vw";
+  canvas.style.height = "100vh";
+  canvas.style.pointerEvents = "none";
+  canvas.style.zIndex = "10050";
+
+  document.body.appendChild(canvas);
+
+  const goalConfetti = confetti.create(canvas, {
+    resize: true,
+    useWorker: true,
+  });
+
+  const colors = ["#3b82f6", "#60a5fa", "#93c5fd", "#ffffff", "#1d4ed8"];
+
+  function removeCanvas() {
+    setTimeout(() => {
+      canvas.remove();
+    }, 2600);
+  }
+
+  (function frame() {
+    goalConfetti({
+      particleCount: 6,
+      angle: 60,
+      spread: 70,
+      origin: { x: 0, y: 0.65 },
+      colors,
+      ticks: 100,
+      gravity: 0.9,
+      decay: 0.92,
+      startVelocity: 35,
+    });
+
+    goalConfetti({
+      particleCount: 6,
+      angle: 120,
+      spread: 70,
+      origin: { x: 1, y: 0.65 },
+      colors,
+      ticks: 100,
+      gravity: 0.9,
+      decay: 0.92,
+      startVelocity: 35,
+    });
+
+    if (Date.now() < end) {
+      requestAnimationFrame(frame);
+    } else {
+      removeCanvas();
+    }
+  })();
+
+  setTimeout(() => {
+    goalConfetti({
+      particleCount: 70,
+      spread: 110,
+      origin: { x: 0.5, y: 0.5 },
+      colors,
+      ticks: 120,
+      gravity: 0.8,
+      decay: 0.9,
+      startVelocity: 42,
+      scalar: 1.1,
+    });
+  }, 120);
+}

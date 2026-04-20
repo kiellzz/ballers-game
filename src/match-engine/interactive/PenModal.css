@@ -1,0 +1,499 @@
+.pen-modal__body {
+  min-height: 0;
+}
+
+.pen-modal__footer {
+  display: flex;
+  align-items: center;
+}
+
+/* Stage */
+.pen-stage {
+  position: relative;
+  margin: 8px 22px 0;
+  border-radius: 14px;
+  overflow: visible;
+  aspect-ratio: 16 / 10;
+  background: #050810;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.pen-goal-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  user-select: none;
+  pointer-events: none;
+}
+
+.pen-zones {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+}
+
+/* Individual zone */
+.pen-zone {
+  position: absolute;
+  background: rgba(15, 23, 42, 0.28);
+  border: 2px dashed rgba(255, 255, 255, 0.55);
+  border-radius: 10px;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  backdrop-filter: blur(2px);
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    transform 180ms ease,
+    box-shadow 180ms ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
+  overflow: hidden;
+}
+
+.pen-zone:hover:not(:disabled) {
+  background: rgba(255, 207, 61, 0.22);
+  border-color: #ffcf3d;
+  transform: scale(1.02);
+  box-shadow: 0 0 0 3px rgba(255, 207, 61, 0.18);
+}
+
+.pen-zone:disabled {
+  cursor: default;
+}
+
+.pen-zone.is-selected {
+  background: rgba(59, 130, 246, 0.28);
+  border-color: #60a5fa;
+  border-style: solid;
+}
+
+.pen-zone.is-goal {
+  background: rgba(34, 197, 94, 0.38);
+  border-color: #22c55e;
+  border-style: solid;
+  box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.25);
+  animation: penPulseGreen 600ms ease-out;
+}
+
+.pen-zone.is-save {
+  background: rgba(239, 68, 68, 0.32);
+  border-color: #ef4444;
+  border-style: solid;
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.22);
+  animation: penShake 400ms ease-in-out;
+}
+
+.pen-zone.is-save-touch {
+  background: rgba(245, 158, 11, 0.3);
+  border-color: #f59e0b;
+  border-style: solid;
+  box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.2);
+}
+
+.pen-zone-label {
+  pointer-events: none;
+}
+
+/* Keeper badge */
+.pen-keeper-badge {
+  position: absolute;
+  top: -6px;
+  right: 6px;
+  background: #ef4444;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 2px solid #0b1220;
+  letter-spacing: 0.04em;
+  animation: penPopIn 260ms ease-out;
+  z-index: 9999;
+}
+
+.pen-keeper-badge.is-beaten {
+  background: #f59e0b;
+  color: #111827;
+}
+
+/* Ball */
+.pen-ball {
+  position: absolute;
+  width: 33px;
+  height: 33px;
+  background-image: url("/images/ball.png");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  transform: translate(-50%, -50%) scale(0.4);
+  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.5));
+  animation: penBallKick 300ms cubic-bezier(0.2, 0.6, 0.3, 1) forwards;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.pen-ball--goal {
+  animation: penBallSettle 400ms ease-out forwards;
+}
+
+.pen-ball--save_clean {
+  animation: penBallBounce 500ms ease-out forwards;
+}
+
+.pen-ball--deflect-right {
+  animation: penBallDeflectRight 360ms cubic-bezier(0.18, 0.82, 0.22, 1) forwards;
+}
+
+.pen-ball--deflect-left {
+  animation: penBallDeflectLeft 360ms cubic-bezier(0.18, 0.82, 0.22, 1) forwards;
+}
+
+/* Result banner */
+.pen-banner {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 8px 22px;
+  border-radius: 999px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  font-size: 15px;
+  color: #0b1220;
+  animation: penPopIn 260ms ease-out;
+}
+
+.pen-banner--goal {
+  background: linear-gradient(90deg, #22c55e, #86efac);
+  box-shadow: 0 8px 24px rgba(34, 197, 94, 0.45);
+}
+
+.pen-banner--save_clean {
+  background: linear-gradient(90deg, #ef4444, #fca5a5);
+  color: #fff;
+  box-shadow: 0 8px 24px rgba(239, 68, 68, 0.45);
+}
+
+.pen-banner--save_touch {
+  background: linear-gradient(90deg, #f59e0b, #fcd34d);
+  color: #111827;
+  box-shadow: 0 8px 24px rgba(245, 158, 11, 0.4);
+}
+
+/* Goalkeeper */
+.pen-goalkeeper-card-wrap {
+  position: absolute;
+  left: 50%;
+  top: 52%;
+  transform: translate(-50%, -50%);
+  z-index: 4;
+  pointer-events: none;
+  transition: transform 700ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  will-change: transform;
+}
+
+.pen-goalkeeper-card {
+  transform: scale(0.72);
+  transform-origin: center;
+  filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.45));
+}
+
+/* Diving directions */
+.pen-goalkeeper-card-wrap--diving.pen-goalkeeper-card-wrap--top_left {
+  transform: translate(-150%, -80%) rotate(-12deg);
+}
+
+.pen-goalkeeper-card-wrap--diving.pen-goalkeeper-card-wrap--bottom_left {
+  transform: translate(-150%, -15%) rotate(-10deg);
+}
+
+.pen-goalkeeper-card-wrap--diving.pen-goalkeeper-card-wrap--center {
+  transform: translate(-50%, -58%) scale(1.08);
+}
+
+.pen-goalkeeper-card-wrap--diving.pen-goalkeeper-card-wrap--top_right {
+  transform: translate(50%, -80%) rotate(12deg);
+}
+
+.pen-goalkeeper-card-wrap--diving.pen-goalkeeper-card-wrap--bottom_right {
+  transform: translate(50%, -15%) rotate(10deg);
+}
+
+/* Penalty taker */
+.pen-shooter-row {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.pen-shooter-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+
+.pen-shooter-card-mini {
+  position: relative;
+  z-index: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 10px;
+  backdrop-filter: blur(6px);
+  box-shadow:
+    0 0 12px rgba(250, 204, 21, 0.12),
+    0 0 24px rgba(250, 204, 21, 0.06);
+  overflow: hidden;
+}
+
+.pen-shooter-card-mini::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 10px;
+  padding: 1px;
+  background: linear-gradient(
+    120deg,
+    #a855f7,
+    #d8b4fe,
+    #a855f7,
+    #9333ea,
+    #a855f7
+  );
+  background-size: 300% 300%;
+  animation: borderFlow 4s linear infinite;
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+.pen-shooter-img {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+}
+
+.pen-shooter-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pen-shooter-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: #e5e7eb;
+}
+
+.pen-shooter-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pen-shooter-ovr {
+  font-size: 11px;
+  font-weight: 700;
+  color: #a855f7;
+}
+
+.pen-shooter-pos {
+  font-size: 10px;
+  color: #9ca3af;
+}
+
+.pen-shooter-flag {
+  width: 14px;
+  height: 10px;
+  object-fit: cover;
+  border-radius: 2px;
+}
+
+/* Animations */
+@keyframes penPopIn {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) scale(0.92) translateY(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(-50%) scale(1) translateY(0);
+  }
+}
+
+@keyframes penBallKick {
+  0% {
+    bottom: 4%;
+    left: 50%;
+    top: auto;
+    transform: translate(-50%, 50%) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes penBallSettle {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+  60% {
+    transform: translate(-50%, -50%) scale(1.35);
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.1);
+  }
+}
+
+@keyframes penBallBounce {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+  40% {
+    transform: translate(-80%, -30%) scale(0.9) rotate(-20deg);
+  }
+  100% {
+    transform: translate(-110%, 10%) scale(0.85) rotate(-40deg);
+  }
+}
+
+@keyframes penPulseGreen {
+  0% {
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+  }
+  100% {
+    box-shadow: 0 0 0 18px rgba(34, 197, 94, 0);
+  }
+}
+
+@keyframes penShake {
+  0%, 100% {
+    transform: translateX(0) scale(1);
+  }
+  25% {
+    transform: translateX(-6px) scale(1);
+  }
+  75% {
+    transform: translateX(6px) scale(1);
+  }
+}
+
+@keyframes penBallDeflectRight {
+  0% {
+    transform: translate(-50%, -50%) scale(1) rotate(0deg);
+    opacity: 1;
+  }
+  22% {
+    transform: translate(-28%, -58%) scale(1.08) rotate(8deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(520%, 120%) scale(0.68) rotate(58deg);
+    opacity: 1;
+  }
+}
+
+@keyframes penBallDeflectLeft {
+  0% {
+    transform: translate(-50%, -50%) scale(1) rotate(0deg);
+    opacity: 1;
+  }
+  22% {
+    transform: translate(-72%, -58%) scale(1.08) rotate(-8deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-620%, 120%) scale(0.68) rotate(-58deg);
+    opacity: 1;
+  }
+}
+
+@keyframes borderFlow {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 300% 50%;
+  }
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .pen-stage {
+    margin: 8px 18px 0;
+  }
+
+  .pen-zone {
+    font-size: 11px;
+  }
+
+  .pen-banner {
+    font-size: 13px;
+    padding: 6px 16px;
+  }
+}
+
+/* ─── Opponent stage overrides ───────────────────────────────────────────────
+   In OppPenModal, goal = bad for the user -> red; save = good -> green.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+.pen-stage--opponent .pen-zone.is-goal {
+  background: rgba(239, 68, 68, 0.38);
+  border-color: #ef4444;
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.22);
+  animation: penShake 400ms ease-in-out;
+}
+
+.pen-stage--opponent .pen-zone.is-save {
+  background: rgba(34, 197, 94, 0.38);
+  border-color: #22c55e;
+  box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.25);
+  animation: penPulseGreen 600ms ease-out;
+}
+
+.pen-stage--opponent .pen-zone.is-save-touch {
+  background: rgba(34, 197, 94, 0.3);
+  border-color: #22c55e;
+  box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.2);
+}
+
+.pen-stage--opponent .pen-banner--goal {
+  background: linear-gradient(90deg, #ef4444, #fca5a5);
+  color: #fff;
+  box-shadow: 0 8px 24px rgba(239, 68, 68, 0.45);
+}
+
+.pen-stage--opponent .pen-banner--save_clean {
+  background: linear-gradient(90deg, #22c55e, #86efac);
+  color: #0b1220;
+  box-shadow: 0 8px 24px rgba(34, 197, 94, 0.45);
+}
+
+.pen-stage--opponent .pen-banner--save_touch {
+  background: linear-gradient(90deg, #22c55e, #86efac);
+  color: #0b1220;
+  box-shadow: 0 8px 24px rgba(34, 197, 94, 0.45);
+}
+
+.pen-banner {
+  color: #ffffff !important;
+}

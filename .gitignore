@@ -27,6 +27,3 @@ dist-ssr
 /input
 /output
 /resize.cjs
-/src/match-engine
-/src/pages/Match.tsx
-/src/components/match

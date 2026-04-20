@@ -1,3 +1,5 @@
+// APP.TSX ORIGINAL 
+
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useState, useRef } from "react";
 import Home from "./pages/Home";
