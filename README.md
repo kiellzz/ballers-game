@@ -1,172 +1,137 @@
-> ⚠️ **Project Status:** In development (currently running locally)
+<div align="center">
 
-# ⚽ Ballers • Interactive Football Experience
+> ⚠️ **Project Status:** In development (Match engine to be added soon)
+# ⚽ Ballers Game • Interactive Football Experience
 
-![React](https://img.shields.io/badge/React-20232A?style=for-the-badge\&logo=react\&logoColor=61DAFB)
-![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge\&logo=typescript\&logoColor=white)
-![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge\&logo=vite\&logoColor=white)
-![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge\&logo=css3\&logoColor=white)
+</div>
 
-**Ballers** is a football web application focused on **interaction, squad building, and gameplay systems**, inspired by modern football games like FIFA Ultimate Team.
+<p align="center">
+  <img src="https://img.shields.io/badge/Status-In%20Development-F2A65A?style=for-the-badge" alt="Project Status" />
+  <img src="https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React" />
+  <img src="https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white" alt="Vite" />
+  <img src="https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white" alt="CSS3" />
+</p>
 
-The project combines a **high-quality UI/UX** with a growing **custom match engine**, aiming to create a more interactive football experience.
+<div align="center">
+
+Ballers is a web-based football application focused on **interaction, squad building, and gameplay systems**, heavily inspired by modern football games like EA FC/FIFA Ultimate Team. Combining high-quality UI/UX with a growing custom match engine, Ballers aims to deliver an immersive browser experience.
+
+[Features](#-features) • [Preview](#-preview) • [Running Locally](#%EF%B8%8F-running-locally) • [Roadmap](#-roadmap)
+
+</div>
 
 ---
 
 ## 🎯 Project Goal
 
-This project was built to:
-
-* Simulate a football squad-building experience
-* Practice advanced frontend architecture with React + TypeScript
-* Apply UI/UX concepts inspired by real football games
-* Build a foundation for a **custom interactive match engine**
+* Simulate a engaging football squad-building experience.
+* Practice advanced frontend architecture with **React + TypeScript**.
+* Implement state-driven UI/UX concepts inspired by real AAA sports titles.
+* Build a robust foundation for a **custom interactive match engine**.
 
 ---
 
 ## 📸 Preview
 
-### 🏠 Home
+### 🏠 Home & Navigation
+<div align="center">
+  <img src="./media/home1.jpg" width="49%" alt="Home Screen">
+  <img src="./media/home2.jpg" width="49%" alt="Home Navigation">
+</div>
 
-![Home](./media/home1.png)
-
-![Home Navigation](./media/home2.png)
-
----
-
-### 🎴 Pack Opening
-
-![Pack Opening](./media/packopening.gif)
-
----
+### 🎴 Pack Opening & Filters
+<div align="center">
+  <img src="./media/packopening.gif" width="49%" alt="Pack Opening Animation">
+  <img src="./media/filtermodal.png" width="49%" alt="Search Filters">
+</div>
 
 ### 👥 Squad & Lineup System
-
-![Lineup](./media/lineup.gif)
-![Lineup 2](./media/lineup.png)
-
----
+<div align="center">
+  <img src="./media/lineup.gif" width="49%" alt="Lineup Drag and Drop">
+  <img src="./media/lineup.jpg" width="49%" alt="Static Lineup View">
+</div>
 
 ### 🎯 Player Interaction
-
-![Player Modal](./media/playermodal.png)
-![Player Modal Lineup](./media/playermodalLineup.png)
-
----
-
-### 🔎 Filters System
-
-![Filters](./media/filtermodal.png)
-
----
+<div align="center">
+  <img src="./media/playermodal.png" width="49%" alt="Player Details">
+  <img src="./media/playermodalLineup.png" width="49%" alt="Lineup Player Options">
+</div>
 
 ### 🆚 Pre-Match
-
-![Pre-Match](./media/prematch.png)
-![Pre-Match 2](./media/prematch_opplineup.png)
+<div align="center">
+  <img src="./media/prematch.jpg" width="49%" alt="Pre-Match Opponent Selection">
+  <img src="./media/prematch_opplineup.png" width="49%" alt="Opponent Squad Reveal">
+</div>
 
 ---
 
-## 🛠 Tech Stack
+## 🛠 Architecture
 
-### 🔹 Frontend
-
-* React
-* TypeScript
-* Vite
-* CSS
-
-### 🔹 Architecture
-
-* Component-based structure
-* Custom hooks for logic separation
-* Utility-driven systems (formations, probability, validation)
+* **Component-based structure:** Highly reusable UI elements (player cards, modals).
+* **Custom Hooks:** Clean separation of business logic from the presentation layer.
+* **Utility-driven systems:** Dedicated modules for formations, pack probability weights, and validation.
 
 ---
 
 ## 🚀 Features
 
-* 🎴 **Pack Opening System**
-
-  * Tier-based cards (Legend, Gold, Silver, Bronze)
-  * Weighted probability system
-  * Animated card reveal
-
-* 👥 **Squad & Lineup**
-
-  * Multiple formations
-  * Drag & drop player positioning
-  * Bench and substitution system
-
-* 🎯 **Player Interaction**
-
-  * Replace and remove players
-  * Favorite system
-  * Detailed player modals
-
-* 🔎 **Filters & Search**
-
-  * Filter by overall, tier, position and nationality
-  * Dynamic search system
-
-* 🆚 **Pre-Match System**
-
-  * Opponent selection
-  * Predefined teams
-  * Match preparation flow
-
-* 🎨 **User Experience**
-
-  * Game-like interface (EA FC/FIFA-inspired)
-  * Smooth transitions and animations
-  * Sound and visual feedback
-
----
-
-## 🧩 Highlights
-
-* Strong focus on **UI/UX and microinteractions**
-* Modular and scalable architecture
-* Separation between UI and logic (hooks + utils)
-* Built as a **product experience**, not just a UI demo
+* 🎴 **Dynamic Pack Opening System**
+    * Tier-based cards (Legend, Gold, Silver, Bronze).
+    * Weighted probability algorithms for realistic drop rates.
+    * Engaging, animated card reveals.
+* 👥 **Advanced Squad Building**
+    * Multiple tactical formations.
+    * Drag & drop player positioning.
+    * Full bench and substitution management.
+* 🎯 **Deep Player Interaction**
+    * Detailed stat modals for every player.
+    * Quick-swap and remove mechanics.
+    * Favorites system.
+* 🔎 **Robust Filtering**
+    * Filter database by overall rating, tier, position, and nationality.
+    * Dynamic, real-time search.
+* 🆚 **Pre-Match Preparation**
+    * Opponent selection flow.
+    * Predefined challenger teams.
+* 🔊 **Audio & Immersion**
+    * 🎵 **Integrated Music Player:** Curated soundtrack for a complete game atmosphere.
+    * 🔉 **Dynamic SFX:** Sound effects for pack openings, clicks, and transitions.
+    * ⚡ **Tactile Feedback:** Audio-visual synchronization for UI interactions.
+    * 🔘 **User Control:** Audio and music can be toggled on/off at any time via the **top-left controls**.
 
 ---
 
 ## ⚙️ Running Locally
 
-### 1. Clone the repository
+Want to test your pack luck on your own machine? Follow these steps:
 
-```bash id="cloneballers2"
-git clone https://github.com/kiellzz/ballers-next.git
-cd ballers-next
+**1. Clone the repository**
+```bash
+git clone [https://github.com/kiellzz/ballers-next.git](https://github.com/kiellzz/ballers-game.git)
+cd ballers-game
 ```
 
----
-
-### 2. Install dependencies
-
-```bash id="installballers2"
+**2. Install dependencies**
+```bash
 npm install
 ```
 
----
-
-### 3. Run the project
-
-```bash id="runballers2"
+**3. Fire it up**
+```bash
 npm run dev
 ```
-
-> 📍 App running at: http://localhost:5173
+> 📍 App will be running at: `http://localhost:5173`
 
 ---
 
-## 📌 Future Improvements
+## 🗺 Roadmap
 
-* ⚔️ Interactive match engine
-* 🎯 Event-based gameplay system
-* 🎲 Player stats impacting outcomes
-* 🎮 Draft mode
+The journey doesn't stop here. Here is what is planned for future updates:
+
+- [ ] ⚔️ **Interactive Match Engine:** Move beyond squad building into actual simulated gameplay.
+- [ ] 🎲 **Stat-Driven Outcomes:** Player attributes (SPD, SHO, PHY) directly impacting match results.
+- [ ] 🎮 **Draft Mode:** Build a team on the fly from random selections.
 
 ---
 
@@ -174,11 +139,7 @@ npm run dev
 
 Developed by **Ezequiel Borges**
 
-* GitHub: https://github.com/kiellzz
-* LinkedIn: https://www.linkedin.com/in/ezequielborgesdev
+* **GitHub:** [@kiellzz](https://github.com/kiellzz)
+* **LinkedIn:** [Ezequiel Borges](https://www.linkedin.com/in/ezequielborgesdev)
 
----
-
-## ⭐ Final Notes
-
-This project represents my evolution from building simple applications to creating **interactive systems with real gameplay structure**, focusing on both **technical architecture** and **user experience**.
+> *This project represents a transition from building standard web applications to engineering interactive systems with real gameplay structure, focusing heavily on robust technical architecture and polished user experience.*
