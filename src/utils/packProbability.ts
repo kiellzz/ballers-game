@@ -1,11 +1,11 @@
 import type { Player } from "../types/PlayerTypes";
 
-// Pesos atualizados com a nova categoria Elite
+// Weights
 const WEIGHTS = {
-  legend: 0.5,      // Ídolos
-  goldSpecial: 3.5, // 86+ (raro)
-  goldElite: 16,    // 83-86 (Destaques)
-  gold: 70,         // 75-82 (Base)
+  legend: 0.5,      // Legends
+  goldSpecial: 3.5, // 86+
+  goldElite: 16,    // 83-86 
+  gold: 70,         // 75-82 
   silver: 7,       // 65-74
   bronze: 3,       // < 65
 };
@@ -13,7 +13,7 @@ const WEIGHTS = {
 type WeightKey = keyof typeof WEIGHTS;
 
 export function drawPack(players: Player[], packSize = 5): Player[] {
-  // Inicializa os buckets
+
   const buckets: Record<WeightKey, Player[]> = {
     legend: [],
     goldSpecial: [],
@@ -23,7 +23,6 @@ export function drawPack(players: Player[], packSize = 5): Player[] {
     bronze: []
   };
 
-  // Distribui os jogadores nos novos intervalos
   players.forEach(p => {
     if (p.isLegend) buckets.legend.push(p);
     else if (p.overall >= 86) buckets.goldSpecial.push(p);
@@ -50,8 +49,6 @@ export function drawPack(players: Player[], packSize = 5): Player[] {
   for (let i = 0; i < packSize; i++) {
     let tier = getWeightedTier();
 
-    // Tenta pegar do tier sorteado, se não houver ninguém disponível, 
-    // tenta o tier imediatamente abaixo (fallback em cascata)
     const tiers: WeightKey[] = ["legend", "goldSpecial", "goldElite", "gold", "silver", "bronze"];
     let currentTierIndex = tiers.indexOf(tier);
     let player: Player | null = null;
