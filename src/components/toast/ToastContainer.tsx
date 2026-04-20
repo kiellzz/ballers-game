@@ -25,16 +25,16 @@ export default function ToastContainer({ toasts, onRemove }: Props) {
             className={`toast ${isSuccess ? 'toast--success' : 'toast--error'}`}
             onClick={createRemoveHandler(toast.id)}
           >
-            {/* Ícone dinâmico */}
+            {/* Icon */}
             <div className="toast__icon">{isSuccess ? '✅' : '⚠️'}</div>
 
             <div className="toast__body">
-              {/* Título dinâmico */}
+              {/* Títle*/}
               <span className="toast__title">
                 {isSuccess ? 'Success!' : 'Unavailable Player'}
               </span>
 
-              {/* Mensagem dinâmica */}
+              {/* Message*/}
               <span className="toast__message">
                 {isSuccess ? (
                   <>
