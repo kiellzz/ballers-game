@@ -6,7 +6,7 @@ function getCtx(): AudioContext {
   return ctx;
 }
 
-// ─── Flag global de mute de sons de UI ───────────────────────────────────────
+// ─── Mute sounds ───────────────────────────────────────
 let _soundMuted = false;
 
 export function setSoundMuted(value: boolean) {
@@ -41,7 +41,7 @@ function playTone(
   osc.stop(ac.currentTime + delay + duration);
 }
 
-// ─── Helper para reproduzir um AudioBuffer com guard de mute ─────────────────
+// ─── Helper to play an AudioBuffer with a mute guard ─────────────────
 async function playBuffer(buffer: AudioBuffer, volume: number) {
   if (_soundMuted) return;
 
@@ -60,7 +60,7 @@ async function playBuffer(buffer: AudioBuffer, volume: number) {
 }
 // ─────────────────────────────────────────────────────────────────────────────
 
-// ─── Cache do hover.mp3 ───────────────────────────────────────────────────────
+// ─── Cache hover.mp3 ───────────────────────────────────────────────────────
 let hoverBuffer: AudioBuffer | null = null;
 let hoverLoading = false;
 
@@ -126,7 +126,7 @@ export function playShake() {
   playTone(60, "sawtooth", 0.08, 0.7, 0.2);
 }
 
-// ─── Cache do select.mp3 ──────────────────────────────────────────────────────
+// ─── Cache select.mp3 ──────────────────────────────────────────────────────
 let selectBuffer: AudioBuffer | null = null;
 let selectLoading = false;
 
@@ -155,7 +155,7 @@ export async function playSelect(volume = 0.6) {
 }
 // ─────────────────────────────────────────────────────────────────────────────
 
-// ─── Cache do favorite.mp3 ────────────────────────────────────────────────────
+// ─── Cache favorite.mp3 ────────────────────────────────────────────────────
 let favoriteBuffer: AudioBuffer | null = null;
 let favoriteLoading = false;
 
@@ -184,7 +184,7 @@ export async function playFavorite(volume = 2) {
 }
 // ─────────────────────────────────────────────────────────────────────────────
 
-// ─── Cache do button.mp3 ──────────────────────────────────────────────────────
+// ─── Cache button.mp3 ──────────────────────────────────────────────────────
 let buttonBuffer: AudioBuffer | null = null;
 let buttonLoading = false;
 
@@ -213,7 +213,7 @@ export async function playButton(volume = 0.5) {
 }
 // ─────────────────────────────────────────────────────────────────────────────
 
-// ─── Cache do confirm.mp3 ─────────────────────────────────────────────────────
+// ─── Cache confirm.mp3 ─────────────────────────────────────────────────────
 let confirmBuffer: AudioBuffer | null = null;
 let confirmLoading = false;
 
@@ -242,7 +242,7 @@ export async function playConfirm(volume = 0.6) {
 }
 // ─────────────────────────────────────────────────────────────────────────────
 
-// ─── Cache do premiumpack.mp3 ─────────────────────────────────────────────────
+// ─── Cache premiumpack.mp3 ─────────────────────────────────────────────────
 let premiumPackBuffer: AudioBuffer | null = null;
 let premiumPackLoading = false;
 
@@ -271,7 +271,7 @@ export async function playPremiumPack(volume = 0.75) {
 }
 // ─────────────────────────────────────────────────────────────────────────────
 
-// ─── Cache do legendpack.mp3 ──────────────────────────────────────────────────
+// ─── Cache legendpack.mp3 ──────────────────────────────────────────────────
 let legendPackBuffer: AudioBuffer | null = null;
 let legendPackLoading = false;
 
