@@ -11,9 +11,6 @@ export interface OpponentTeam {
   logo?: string;
 }
 
-/**
- * Cria jogadores para times fixos com validação de posição.
- */
 const createTeamPlayers = (playerNames: string[], formationKey: FormationKey, teamName: string): Player[] => {
   const formation = FORMATIONS[formationKey];
   if (!formation) throw new Error(`Formação ${formationKey} não existe.`);
@@ -28,8 +25,8 @@ const createTeamPlayers = (playerNames: string[], formationKey: FormationKey, te
 
     if (!canPlayerPlayInPosition(basePlayer, targetPos)) {
       console.error(
-        `[VALIDAÇÃO DE ELENCO - ${teamName}]: ` +
-        `${basePlayer.name} não possui ${targetPos} nas posições (Principal: ${basePlayer.position}, Secundárias: ${basePlayer.secondaryPositions?.join(', ') || 'Nenhuma'}).`
+        `[TEAM VALIDATION - ${teamName}]: ` +
+        `${basePlayer.name} don't have ${targetPos} in these positions: (Main: ${basePlayer.position}, Secondary: ${basePlayer.secondaryPositions?.join(', ') || 'None'}).`
       );
     }
 
@@ -41,7 +38,7 @@ const createTeamPlayers = (playerNames: string[], formationKey: FormationKey, te
 };
 
 /**
- * Geração de time 100% aleatório respeitando as posições da formação.
+ * Random team generation
  */
 const createRandomTeam = (id: string, name: string, formationKey: FormationKey): OpponentTeam => {
   const formation = FORMATIONS[formationKey];
@@ -54,8 +51,8 @@ const createRandomTeam = (id: string, name: string, formationKey: FormationKey):
     );
 
     if (validOptions.length === 0) {
-      console.warn(`Aviso: Poucas opções para a posição ${targetPos}. Usando fallback.`);
-      // Fallback básico caso seu banco de dados esteja muito curto para uma posição específica
+      console.warn(`Alert: Few options for this position: ${targetPos}. Using fallback.`);
+      // Fallback
       const fallback = playersData.find(p => !usedIds.has(p.id)) || playersData[0];
       validOptions.push(fallback);
     }
@@ -104,6 +101,6 @@ export const MOCK_OPPONENTS: OpponentTeam[] = [
       "Lautaro Martínez", "Ousmane Dembélé"
     ], "3-5-2", "Técnicos"),
   },
-  // Time 4 gerado aleatoriamente a cada load
+  // Random team generated
   createRandomTeam("team_4", "All-Stars Random", "4-3-3 (2)")
 ];
