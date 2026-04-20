@@ -44,7 +44,6 @@ This project was built to:
 
 ![Lineup](./media/lineup.gif)
 ![Lineup 2](./media/lineup.png)
-![Formations](./media/formations.png)
 
 ---
 
