@@ -1,73 +1,185 @@
-# React + TypeScript + Vite
+> ⚠️ **Project Status:** In development (currently running locally)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+# ⚽ Ballers • Interactive Football Experience
 
-Currently, two official plugins are available:
+![React](https://img.shields.io/badge/React-20232A?style=for-the-badge\&logo=react\&logoColor=61DAFB)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge\&logo=typescript\&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge\&logo=vite\&logoColor=white)
+![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge\&logo=css3\&logoColor=white)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+**Ballers** is a football web application focused on **interaction, squad building, and gameplay systems**, inspired by modern football games like FIFA Ultimate Team.
 
-## React Compiler
+The project combines a **high-quality UI/UX** with a growing **custom match engine**, aiming to create a more interactive football experience.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+---
 
-## Expanding the ESLint configuration
+## 🎯 Project Goal
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+This project was built to:
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+* Simulate a football squad-building experience
+* Practice advanced frontend architecture with React + TypeScript
+* Apply UI/UX concepts inspired by real football games
+* Build a foundation for a **custom interactive match engine**
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+---
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## 📸 Preview
+
+### 🏠 Home
+
+![Home](./media/home1.png)
+
+![Home Navigation](./media/home2.png)
+
+---
+
+### 🎴 Pack Opening
+
+![Pack Opening](./media/packopening.gif)
+
+---
+
+### 👥 Squad & Lineup System
+
+![Lineup](./media/lineup.gif)
+![Lineup 2](./media/lineup.png)
+![Formations](./media/formations.png)
+
+---
+
+### 🎯 Player Interaction
+
+![Player Modal](./media/playermodal.png)
+![Player Modal Lineup](./media/playermodalLineup.png)
+
+---
+
+### 🔎 Filters System
+
+![Filters](./media/filtermodal.png)
+
+---
+
+### 🆚 Pre-Match
+
+![Pre-Match](./media/prematch.png)
+![Pre-Match 2](./media/prematch_opplineup.png)
+
+---
+
+## 🛠 Tech Stack
+
+### 🔹 Frontend
+
+* React
+* TypeScript
+* Vite
+* CSS
+
+### 🔹 Architecture
+
+* Component-based structure
+* Custom hooks for logic separation
+* Utility-driven systems (formations, probability, validation)
+
+---
+
+## 🚀 Features
+
+* 🎴 **Pack Opening System**
+
+  * Tier-based cards (Legend, Gold, Silver, Bronze)
+  * Weighted probability system
+  * Animated card reveal
+
+* 👥 **Squad & Lineup**
+
+  * Multiple formations
+  * Drag & drop player positioning
+  * Bench and substitution system
+
+* 🎯 **Player Interaction**
+
+  * Replace and remove players
+  * Favorite system
+  * Detailed player modals
+
+* 🔎 **Filters & Search**
+
+  * Filter by overall, tier, position and nationality
+  * Dynamic search system
+
+* 🆚 **Pre-Match System**
+
+  * Opponent selection
+  * Predefined teams
+  * Match preparation flow
+
+* 🎨 **User Experience**
+
+  * Game-like interface (EA FC/FIFA-inspired)
+  * Smooth transitions and animations
+  * Sound and visual feedback
+
+---
+
+## 🧩 Highlights
+
+* Strong focus on **UI/UX and microinteractions**
+* Modular and scalable architecture
+* Separation between UI and logic (hooks + utils)
+* Built as a **product experience**, not just a UI demo
+
+---
+
+## ⚙️ Running Locally
+
+### 1. Clone the repository
+
+```bash id="cloneballers2"
+git clone https://github.com/kiellzz/ballers-next.git
+cd ballers-next
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+---
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+### 2. Install dependencies
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash id="installballers2"
+npm install
 ```
+
+---
+
+### 3. Run the project
+
+```bash id="runballers2"
+npm run dev
+```
+
+> 📍 App running at: http://localhost:5173
+
+---
+
+## 📌 Future Improvements
+
+* ⚔️ Interactive match engine
+* 🎯 Event-based gameplay system
+* 🎲 Player stats impacting outcomes
+* 🎮 Draft mode
+
+---
+
+## 👨‍💻 Author
+
+Developed by **Ezequiel Borges**
+
+* GitHub: https://github.com/kiellzz
+* LinkedIn: https://www.linkedin.com/in/ezequielborgesdev
+
+---
+
+## ⭐ Final Notes
+
+This project represents my evolution from building simple applications to creating **interactive systems with real gameplay structure**, focusing on both **technical architecture** and **user experience**.
