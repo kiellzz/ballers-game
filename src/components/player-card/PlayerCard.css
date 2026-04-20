@@ -1,0 +1,311 @@
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@500;600;700;800&display=swap');
+
+.player-card {
+  width: 233px;
+  height: 355px;
+  position: relative;
+  overflow: hidden;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  color: #000;
+
+  /* Transição suave para escala e profundidade */
+  transition: transform 0.2s ease, filter 0.2s ease, box-shadow 0.2s ease;
+  cursor: pointer;
+  will-change: transform, filter, box-shadow;
+}
+
+.player-card:hover {
+  /* Elevação sutil para simular flutuação */
+  transform: translateY(-8px) scale(1.04);
+
+  /* Brilho base leve */
+  filter: brightness(1.1);
+
+  /* Sombra robusta (Ambient Occlusion) para separar do fundo escuro */
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.65);
+  z-index: 10;
+}
+
+/* ================= TOP LEFT ================= */
+
+.player-card__top-left {
+  position: absolute;
+  top: 47px;
+  left: 18px;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  line-height: 0.95;
+}
+
+.player-card__overall {
+  font-size: 2.2rem;
+  font-weight: 900;
+  letter-spacing: -1px;
+  line-height: 0.8;
+  font-family: 'Bebas Neue', sans-serif;
+}
+
+.player-card__position {
+  margin-top: 1px;
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  font-family: 'Barlow Condensed', sans-serif;
+}
+
+.player-card__badge {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  margin-top: 10px;
+}
+
+.player-card__flag {
+  width: 34px;
+  height: 22px;
+  object-fit: cover;
+  margin-top: 6px;
+  border-radius: 2px;
+}
+
+/* ================= PLAYER IMAGE ================= */
+
+.player-card__image-wrap {
+  position: absolute;
+  top: 19px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 165px;
+  height: 160px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 2;
+}
+
+.player-card__image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center bottom;
+  /* Sombra interna da própria carta para destacar o jogador do fundo do card */
+  filter: drop-shadow(0 8px 12px rgba(0, 0, 0, 0.35));
+}
+
+/* ================= NAME ================= */
+
+.player-card__name {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 184px;
+  z-index: 5;
+  text-align: center;
+  font-size: 1.4rem;
+  text-transform: uppercase;
+  font-weight: 600;
+  line-height: 1;
+  color: #111;
+  padding: 0 14px;
+  font-family: 'Barlow Condensed', sans-serif;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4), 0 -1px 0 rgba(0, 0, 0, 0.1);
+}
+
+/* ================= STATS ================= */
+
+.player-card__stats {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 208px;
+  z-index: 5;
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  font-size: 1.3rem;
+  font-weight: 500;
+  color: #3a2e00;
+  font-family: 'Barlow Condensed', sans-serif;
+}
+
+.player-card__stats-column {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.player-card__stats p {
+  margin: 0;
+  line-height: 1.2;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.player-card__stats strong {
+  font-weight: 800;
+  min-width: 22px;
+  text-align: right;
+}
+
+/* ================= HOVER GLOW (Intensificado para destaque) ================= */
+
+/* Aumentei a opacidade e o raio para a luz "vazar" sobre o background escuro */
+.player-card--legend:hover {
+  filter: brightness(1.1) drop-shadow(0 0 15px rgba(194, 109, 255, 0.6));
+}
+
+.player-card--gold:hover {
+  filter: brightness(1.1) drop-shadow(0 0 15px rgba(255, 210, 0, 0.55));
+}
+
+.player-card--silver:hover {
+  filter: brightness(1.1) drop-shadow(0 0 15px rgba(210, 210, 210, 0.45));
+}
+
+.player-card--bronze:hover {
+  filter: brightness(1.1) drop-shadow(0 0 15px rgba(173, 118, 87, 0.45));
+}
+
+/* ================= LIGHT EFFECT ================= */
+
+.player-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -75%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(120deg, transparent 0%, rgba(255, 255, 255, 0.15) 50%, transparent 100%);
+  transform: skewX(-15deg);
+  z-index: 11;
+  pointer-events: none;
+  opacity: 0;
+}
+
+.player-card:hover::after {
+  animation: card-shine 0.9s ease forwards;
+}
+
+@keyframes card-shine {
+  0% {
+    left: -75%;
+    opacity: 1;
+  }
+
+  100% {
+    left: 130%;
+    opacity: 1;
+  }
+}
+
+.player-card__favorite-star {
+  position: absolute;
+  top: 10px;
+  right: 8px;
+  font-size: 3.2rem;
+  line-height: 1;
+  display: inline-block;
+  pointer-events: none;
+  z-index: 12;
+
+  /* Gradiente Premium */
+  background: linear-gradient(135deg, #e0b0ff 0%, #b44fff 50%, #8a2be2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+
+  /* Brilho Neon (Glow) */
+  filter: drop-shadow(0 0 5px rgba(180, 79, 255, 0.9)) drop-shadow(0 0 15px rgba(180, 79, 255, 0.4));
+
+  /* Animação de entrada com Bounce */
+  animation: star-bounce 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+/* ================= SOMBREADO DE PROFUNDIDADE ================= */
+/* Criamos uma camada preta por baixo para projetar a sombra na carta */
+.player-card__favorite-star::before {
+  content: '★';
+  position: absolute;
+  top: 0;
+  left: 0;
+  -webkit-text-fill-color: #092eff 100%;
+  transform: translate(3px, 3px);
+  filter: blur(3px);
+  opacity: 0.9;
+  z-index: -1;
+}
+
+/* ================= EFEITO DE PULSO (GLOW DINÂMICO) ================= */
+.player-card__favorite-star::after {
+  content: '★';
+  position: absolute;
+  top: 0;
+  left: 0;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background: inherit;
+  opacity: 0.5;
+  animation: star-pulse 2s infinite ease-in-out;
+  z-index: 1;
+}
+
+/* ================= ANIMAÇÕES ================= */
+@keyframes star-bounce {
+  0% {
+    transform: scale(0) rotate(-45deg);
+    opacity: 0;
+  }
+
+  70% {
+    transform: scale(1.2) rotate(5deg);
+  }
+
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+@keyframes star-pulse {
+
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.4;
+    filter: blur(0px);
+  }
+
+  50% {
+    transform: scale(1.15);
+    opacity: 0;
+    filter: blur(4px);
+  }
+}
+
+/* ================= LÓGICA PARA LEGENDS (ESTRELA BRANCA) ================= */
+
+.player-card--legend .player-card__favorite-star {
+  /* Reseta o gradiente roxo e aplica branco sólido */
+  background: none;
+  -webkit-text-fill-color: #ffffff;
+
+  /* Glow branco/prateado para destacar no fundo roxo da lenda */
+  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.9)) drop-shadow(0 0 20px rgba(255, 255, 255, 0.4));
+}
+
+/* Ajusta o pulso para branco também */
+.player-card--legend .player-card__favorite-star::after {
+  background: none;
+  -webkit-text-fill-color: #ffffff;
+  opacity: 0.3;
+}
+
+/* Ajusta a sombra de profundidade para não ser azul/roxa no card legend */
+.player-card--legend .player-card__favorite-star::before {
+  -webkit-text-fill-color: rgba(0, 0, 0, 0.5);
+  filter: blur(2px);
+}

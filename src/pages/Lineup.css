@@ -1,0 +1,167 @@
+/* Animação do Brilho Pulsante */
+@keyframes fieldGlow {
+  0% {
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+
+  50% {
+    box-shadow: 0 0 25px rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.25);
+  }
+
+  100% {
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+}
+
+.lineup {
+  width: 100%;
+  height: 100vh;
+  position: relative;
+  overflow-x: clip;
+  overflow-y: hidden;
+  display: flex;
+  flex-direction: column;
+  background-image:
+    radial-gradient(circle at center,
+      transparent 10%,
+      rgba(0, 0, 0, 0.4) 40%,
+      rgba(0, 0, 0, 0.8) 60%,
+      #000000 80%),
+    url('/images/lineupbackground.jpg');
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-color: #000000;
+}
+
+.lineup__watermark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 320px;
+  opacity: 0.3;
+  pointer-events: none;
+  z-index: 1;
+  filter: brightness(1.2);
+}
+
+.lineup__watermark img {
+  width: 100%;
+  height: auto;
+}
+
+.lineup__pitch {
+  flex: 1;
+  position: relative;
+  width: 100%;
+  max-width: 850px;
+  margin: 0 auto;
+  z-index: 2;
+  border: 3px solid rgba(255, 255, 255, 0.5);
+  border-radius: 8px;
+  animation: fieldGlow 6s infinite ease-in-out;
+  padding-top: 60px;
+}
+
+.lineup__pitch::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.04);
+  pointer-events: none;
+  border-radius: 6px;
+  z-index: 0;
+}
+
+/* ================= POSICIONAMENTO DOS SLOTS ================= */
+.player-slot {
+  position: absolute;
+  width: 80px;
+  cursor: pointer;
+  transform: translate(-50%, -50%);
+  transition: all 0.15s ease;
+  filter: drop-shadow(0 0 8px rgba(0, 0, 0, 0.8));
+  z-index: 10;
+  overflow: visible !important;
+  touch-action: manipulation;
+}
+
+.player-slot:hover {
+  transform: translate(-50%, -50%) scale(1.1);
+  filter: drop-shadow(0 0 15px rgba(248, 225, 50, 0.4)) brightness(1.2);
+  z-index: 30;
+}
+
+.player-slot__empty {
+  position: relative;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  touch-action: manipulation;
+  pointer-events: auto;
+}
+
+.empty-card-img {
+  width: 100%;
+  height: auto;
+  opacity: 0.7;
+}
+
+.slot-pos-label {
+  position: absolute;
+  color: #fff;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 800;
+  font-size: 0.9rem;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.9);
+  pointer-events: none;
+}
+
+/* ================= SIDEBAR DE AÇÕES (FIXED) ================= */
+.lineup__actions-sidebar {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+  z-index: 100;
+  width: auto;
+}
+
+/* Overrides do FeatureButton exclusivos para a sidebar */
+.lineup__actions-sidebar .feature-button {
+  width: 320px;
+  /* ← era 180px, aqui é o que vale */
+  min-height: 72px;
+  border-radius: 999px 0 0 999px;
+  justify-content: flex-start;
+  padding: 0;
+}
+
+.lineup__actions-sidebar .feature-button__label {
+  flex: 1;
+  font-size: 1.4rem;
+  padding-right: 12px;
+  text-align: center;
+}
+
+.lineup__actions-sidebar .feature-button__icon-wrap {
+  width: 80px;
+  min-width: 80px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.lineup__actions-sidebar .feature-button__icon-circle {
+  width: 62px;
+  height: 62px;
+}

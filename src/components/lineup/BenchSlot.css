@@ -1,0 +1,140 @@
+.bench-slot {
+  width: 80px;
+  cursor: pointer;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  filter: drop-shadow(0 0 8px rgba(0, 0, 0, 0.8));
+  transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.bench-slot:hover {
+  transform: scale(1.1);
+  filter: drop-shadow(0 0 15px rgba(248, 225, 50, 0.4)) brightness(1.2);
+  z-index: 10;
+}
+
+.bench-slot--dragging {
+  opacity: 0.4;
+}
+
+/* ── Card com background ── */
+.bench-slot__card {
+  position: relative;
+  width: 100%;
+  padding-top: 140%;
+  /* mesma proporção do LineupCard */
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  border-radius: 6px;
+  cursor: grab;
+  user-select: none;
+}
+
+.bench-slot__card:active {
+  cursor: grabbing;
+}
+
+/* ── Imagem do jogador ── */
+.bench-slot__img-wrap {
+  position: absolute;
+  top: 8%;
+  left: 10%;
+  width: 80%;
+  height: 60%;
+  overflow: hidden;
+}
+
+.bench-slot__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top;
+}
+
+/* ── Info bar (overall, flag, posição) ── */
+.bench-slot__info {
+  position: absolute;
+  bottom: 6%;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.bench-slot__overall {
+  font-size: 10px;
+  font-weight: 600;
+  color: #111;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+}
+
+.bench-slot__flag {
+  width: 14px;
+  height: auto;
+}
+
+.bench-slot__pos {
+  font-size: 9px;
+  font-weight: 600;
+  color: #111;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+  text-transform: uppercase;
+}
+
+/* Adicione/ajuste estas propriedades */
+
+.bench-slot {
+  width: 80px;
+  /* Altura proporcional ao card (80px * 1.4 = 112px) */
+  height: 112px;
+  cursor: pointer;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  filter: drop-shadow(0 0 8px rgba(0, 0, 0, 0.8));
+  transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+/* Garante que o novo wrapper do React ocupe o slot todo */
+.bench-slot>div {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bench-slot__card {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  /* Mudei de padding-top para height 100% já que o pai tem altura */
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  border-radius: 6px;
+  cursor: grab;
+  user-select: none;
+}
+
+/* Estilização para o slot vazio para ele bater com o tamanho do card */
+.bench-slot .player-slot__empty {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.bench-slot .empty-card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}

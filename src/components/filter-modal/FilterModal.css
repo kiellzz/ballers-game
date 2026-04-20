@@ -1,0 +1,454 @@
+.filter-modal__overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.filter-modal {
+  width: 100%;
+  max-width: 640px;
+  max-height: 85vh;
+  overflow-y: auto;
+  background: #0f0a1a;
+  border: 1px solid rgba(217, 150, 255, 0.25);
+  border-radius: 24px;
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  box-shadow:
+    0 0 60px rgba(140, 60, 200, 0.2),
+    0 24px 80px rgba(0, 0, 0, 0.6);
+}
+
+/* Scrollbar sutil e temática */
+.filter-modal::-webkit-scrollbar {
+  width: 4px;
+}
+
+.filter-modal::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.filter-modal::-webkit-scrollbar-thumb {
+  background: rgba(217, 150, 255, 0.3);
+  border-radius: 999px;
+}
+
+/* HEADER */
+.filter-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.filter-modal__title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.8rem;
+  letter-spacing: 2px;
+  color: #e8c0ff;
+  text-shadow: 0 0 16px rgba(217, 150, 255, 0.5);
+  margin: 0;
+}
+
+.filter-modal__close {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid rgba(217, 150, 255, 0.3);
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.filter-modal__close:hover {
+  background: rgba(217, 150, 255, 0.15);
+  color: #fff;
+  transform: rotate(90deg);
+}
+
+/* SECTIONS */
+.filter-modal__section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.filter-modal__section-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: rgba(217, 150, 255, 0.5);
+  margin: 0;
+}
+
+.filter-modal__section-title--overall {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  line-height: 1;
+}
+
+/* OVERALL - Com foco brilhante */
+.filter-modal__overall-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.filter-modal__overall-input {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.filter-modal__overall-input label {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.filter-modal__overall-input input {
+  width: 80px;
+  height: 44px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  color: #fff;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.4rem;
+  text-align: center;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.filter-modal__overall-input input:focus {
+  border-color: rgba(217, 150, 255, 0.6);
+  background: rgba(217, 150, 255, 0.08);
+  box-shadow: 0 0 15px rgba(217, 150, 255, 0.2);
+}
+
+.filter-modal__overall-sep {
+  color: rgba(255, 255, 255, 0.2);
+  font-size: 1.2rem;
+  margin-top: 20px;
+}
+
+/* CHIPS - Estilo Pílula Moderna */
+.filter-modal__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.filter-modal__chip {
+  padding: 8px 18px;
+  border-radius: 12px;
+  /* Menos arredondado para um ar mais tech */
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.6);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.filter-modal__chip:hover {
+  background: rgba(217, 150, 255, 0.1);
+  border-color: rgba(217, 150, 255, 0.3);
+  color: #fff;
+}
+
+.filter-modal__chip--active {
+  background: rgba(217, 150, 255, 0.2);
+  border-color: rgba(217, 150, 255, 0.8);
+  color: #fff;
+  box-shadow: 0 0 15px rgba(217, 150, 255, 0.25);
+}
+
+/* TIER CHIPS - Cores específicas de card */
+.filter-modal__chip--legend.filter-modal__chip--active {
+  background: linear-gradient(135deg, rgba(194, 109, 255, 0.3), rgba(112, 0, 255, 0.4));
+  border-color: #c26dff;
+  text-shadow: 0 0 8px rgba(194, 109, 255, 0.6);
+}
+
+.filter-modal__chip--gold.filter-modal__chip--active {
+  background: linear-gradient(135deg, rgba(255, 210, 0, 0.2), rgba(184, 134, 11, 0.3));
+  border-color: #ffd700;
+  color: #ffd700;
+}
+
+.filter-modal__chip--silver.filter-modal__chip--active {
+  background: rgba(200, 200, 200, 0.15);
+  border-color: #d0d0d0;
+  color: #fff;
+}
+
+.filter-modal__chip--bronze.filter-modal__chip--active {
+  background: rgba(173, 118, 87, 0.15);
+  border-color: #c8886a;
+  color: #ffaa80;
+}
+
+/* SEARCH & NATIONALITY */
+.filter-modal__search-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.filter-modal__search-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: rgba(217, 150, 255, 0.4);
+  pointer-events: none;
+}
+
+.filter-modal__search-input {
+  width: 100%;
+  height: 48px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(217, 150, 255, 0.2);
+  border-radius: 14px;
+  padding: 0 16px 0 44px;
+  color: white;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 1rem;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.filter-modal__search-input:focus {
+  border-color: rgba(217, 150, 255, 0.8);
+  background: rgba(0, 0, 0, 0.5);
+  box-shadow: 0 0 20px rgba(112, 0, 255, 0.15);
+}
+
+/* Chips de Nacionalidade com Bandeira */
+.filter-modal__chip--flag {
+  display: flex !important;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 14px 6px 8px;
+  /* Menos padding na esquerda para equilibrar com a bandeira */
+}
+
+.filter-modal__flag {
+  width: 22px;
+  height: auto;
+  border-radius: 3px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  flex-shrink: 0;
+}
+
+.filter-modal__feedback {
+  color: rgba(255, 255, 255, 0.3);
+  font-size: 0.9rem;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-style: italic;
+  padding: 20px;
+  text-align: center;
+  width: 100%;
+}
+
+/* Container para agrupar os botões no canto superior direito */
+.filter-modal__header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  /* Espaço entre o Clear e o Close */
+}
+
+/* Estilizando o botão de limpar para seguir o padrão do seu header principal */
+.filter-modal__action-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid rgba(217, 150, 255, 0.3);
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.filter-modal__action-btn:hover {
+  background: rgba(217, 150, 255, 0.15);
+  color: #fff;
+  border-color: rgba(217, 150, 255, 0.6);
+  transform: rotate(-30deg);
+  /* Pequeno charme visual ao dar hover no reset */
+}
+
+/* Mantendo o estilo do botão de fechar */
+.filter-modal__close {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid rgba(217, 150, 255, 0.3);
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.filter-modal__close:hover {
+  background: rgba(217, 150, 255, 0.15);
+  color: #fff;
+  transform: rotate(90deg);
+}
+
+/* ... manter classes de overlay e scrollbar anteriores ... */
+
+.filter-modal {
+  width: 100%;
+  max-width: 640px;
+  max-height: 85vh;
+  overflow-y: auto;
+  border: 1px solid rgba(217, 150, 255, 0.25);
+  border-radius: 24px;
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  box-shadow:
+    0 0 60px rgba(140, 60, 200, 0.2),
+    0 24px 80px rgba(0, 0, 0, 0.6);
+
+  /* Essencial para posicionar a imagem de fundo */
+  position: relative;
+
+  /* Cor de fundo principal com transparência */
+  background: rgba(15, 10, 26, 0.85);
+}
+
+.filter-modal__overall-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: center;
+}
+
+.filter-modal__overall-shortcuts {
+  display: flex;
+  gap: 4px;
+}
+
+.filter-modal__overall-shortcuts button {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #ccc;
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.filter-modal__overall-shortcuts button:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+/* Botão de favoritos quando está ativo */
+.filter-modal__action-btn--fav-active {
+  color: #b44fff !important;
+  /* Roxo da estrela */
+  border-color: #b44fff !important;
+  background: rgba(180, 79, 255, 0.1) !important;
+  box-shadow: 0 0 10px rgba(180, 79, 255, 0.4);
+}
+
+/* Ajuste de tamanho da estrela dentro do botão circular */
+.star-icon {
+  font-size: 1.4rem;
+  line-height: 1;
+  display: block;
+  margin-top: -2px;
+  /* Ajuste fino de alinhamento vertical */
+}
+
+/* Efeito de hover suave no botão de favorito */
+.filter-modal__action-btn:hover .star-icon {
+  transform: scale(1.1);
+  transition: transform 0.2s ease;
+}
+
+/* Container das setas - Posicionado verticalmente */
+.filter-modal__sort-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  margin: 0;
+  padding: 0;
+}
+
+/* Botão de ordenação (Seta) */
+.filter-modal__sort-btn {
+  width: 28px;
+  height: 16px;
+  background: rgba(180, 79, 255, 0.12);
+  border: 1px solid rgba(180, 79, 255, 0.35);
+  border-radius: 4px;
+  color: rgba(217, 150, 255, 0.7);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: all 0.2s ease;
+}
+
+/* Estado de Hover */
+.filter-modal__sort-btn:hover:not(.active) {
+  background: rgba(217, 150, 255, 0.1);
+  color: rgba(217, 150, 255, 0.8);
+  border-color: rgba(217, 150, 255, 0.3);
+}
+
+/* Estado Ativo (Selecionado) */
+.filter-modal__sort-btn.active {
+  background: rgba(217, 150, 255, 0.2);
+  border-color: rgba(217, 150, 255, 0.8);
+  color: #fff;
+  box-shadow: 0 0 12px rgba(217, 150, 255, 0.3);
+}
+
+/* Ajuste fino nos ícones lucide */
+.filter-modal__sort-btn svg {
+  stroke-width: 3px;
+  /* Deixa a seta um pouco mais espessa e visível */
+}
+
+.filter-modal__overall-input input::-webkit-inner-spin-button,
+.filter-modal__overall-input input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.filter-modal__overall-input input[type=number] {
+  -moz-appearance: textfield;
+}

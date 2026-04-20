@@ -1,0 +1,194 @@
+/* ================= OVERLAY & CONTAINER ================= */
+.search-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.search-modal {
+  background: #1a1a1a;
+  width: 90%;
+  max-width: 500px;
+  max-height: 80vh;
+  border-radius: 8px;
+  border: 1px solid #333;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+}
+
+/* ================= HEADER (ALINHADO) ================= */
+.search-modal__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  /* Alinha o título e os botões no centro vertical */
+  margin-bottom: 20px;
+  color: #fff;
+  font-family: 'Barlow Condensed', sans-serif;
+}
+
+.search-modal__header h3 {
+  margin: 0;
+  text-transform: uppercase;
+  font-size: 1.4rem;
+  letter-spacing: 0.5px;
+}
+
+.search-modal__header-actions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  /* Gap maior para o X não ficar colado na estrela */
+}
+
+/* ================= FAVORITES BUTTON (BALLERS STYLE) ================= */
+.search-modal__fav-btn {
+  background: rgba(168, 85, 247, 0.1);
+  border: 1px solid rgba(168, 85, 247, 0.3);
+  border-radius: 6px;
+  color: #a855f7;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  transition: all 0.3s ease;
+  font-size: 1.2rem;
+  line-height: 1;
+  padding: 0;
+}
+
+.search-modal__fav-btn:hover {
+  background: rgba(168, 85, 247, 0.2);
+  transform: translateY(-1px);
+}
+
+.search-modal__fav-btn.active {
+  background: #a855f7;
+  border-color: #d4a9ff;
+  color: #fff;
+  /* Glow Roxo Neon */
+  box-shadow: 0 0 10px #a855f7, 0 0 20px rgba(168, 85, 247, 0.5);
+  animation: pulseFavoritesBallers 1.5s infinite;
+}
+
+@keyframes pulseFavoritesBallers {
+
+  0%,
+  100% {
+    box-shadow: 0 0 10px #a855f7, 0 0 20px rgba(168, 85, 247, 0.5);
+  }
+
+  50% {
+    box-shadow: 0 0 5px #a855f7, 0 0 10px rgba(168, 85, 247, 0.3);
+  }
+}
+
+/* ================= CLOSE BUTTON (X) ================= */
+.search-modal__close {
+  background: none;
+  border: none;
+  color: #666;
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: color 0.2s ease;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.search-modal__close:hover {
+  color: #fff;
+}
+
+/* ================= INPUT & GRID ================= */
+.search-modal__input {
+  background: #222;
+  border: 1px solid #444;
+  padding: 12px;
+  color: #fff;
+  border-radius: 4px;
+  margin-bottom: 20px;
+  outline: none;
+  font-family: inherit;
+}
+
+.search-modal__input:focus {
+  border-color: #a855f7;
+}
+
+.search-modal__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: 15px;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+/* Custom scrollbar roxa para combinar com o tema */
+.search-modal__grid::-webkit-scrollbar {
+  width: 4px;
+}
+
+.search-modal__grid::-webkit-scrollbar-thumb {
+  background: #a855f7;
+  border-radius: 10px;
+}
+
+.search-modal__item {
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.search-modal__item:hover {
+  transform: scale(1.05);
+}
+
+.search-modal__empty {
+  color: #666;
+  text-align: center;
+  padding: 40px 20px;
+  font-style: italic;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 1.2rem;
+
+  /* Faz o texto ocupar todas as colunas do grid e centralizar */
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.search-modal__header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Reduz o botão para caber no header do modal sem quebrar tudo */
+.search-modal__header-actions .header__icon-btn {
+  width: 40px;
+  height: 40px;
+  pointer-events: auto;
+  /* Garante o clique */
+}
+
+/* Ajusta a bolinha para o tamanho menor */
+.search-modal__header-actions .header__filter-dot {
+  width: 6px;
+  height: 6px;
+  top: 4px;
+  right: 4px;
+}

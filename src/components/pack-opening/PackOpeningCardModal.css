@@ -1,0 +1,199 @@
+/* Overlay */
+.card-modal__overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 5, 20, 0.85);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  animation: modal-fade-in 0.2s ease;
+}
+
+/* Dialog (wraps header + content) */
+.card-modal__dialog {
+  position: relative;
+  background: #1a0f2e;
+  border: 1px solid rgba(160, 80, 255, 0.2);
+  border-radius: 24px;
+  box-shadow:
+    0 0 60px rgba(130, 60, 220, 0.25),
+    0 24px 64px rgba(0, 0, 0, 0.6);
+  animation: modal-slide-up 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  min-width: 760px;
+  overflow: hidden;
+}
+
+/* Close button */
+.card-modal__close {
+  position: absolute;
+  top: 16px;
+  right: 20px;
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.35);
+  font-size: 18px;
+  cursor: pointer;
+  line-height: 1;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: color 0.2s, background 0.2s;
+  z-index: 1;
+}
+
+.card-modal__close:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* Header */
+.card-modal__header {
+  padding: 24px 56px 20px;
+  border-bottom: 1px solid rgba(160, 80, 255, 0.15);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.card-modal__header-name {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.card-modal__header-positions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.card-modal__position-badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.card-modal__position-badge--primary {
+  background: rgba(160, 80, 255, 0.2);
+  color: #d4a8ff;
+  border-color: rgba(160, 80, 255, 0.4);
+}
+
+/* Content (card + logo + actions) */
+.card-modal__content {
+  padding: 40px 56px 48px;
+  display: flex;
+  align-items: center;
+  gap: 48px;
+}
+
+/* Card column */
+.card-modal__left {
+  flex-shrink: 0;
+}
+
+/* Logo column */
+.card-modal__center {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card-modal__logo {
+  width: 160px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 20px rgba(160, 80, 255, 0.5));
+}
+
+/* Actions column */
+.card-modal__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  flex-shrink: 0;
+}
+
+/* Buttons */
+.card-modal__btn {
+  min-width: 220px;
+  padding: 18px 28px;
+  border-radius: 50px;
+  border: none;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.2s ease;
+  letter-spacing: 0.01em;
+}
+
+.card-modal__btn:active {
+  transform: scale(0.97);
+}
+
+.card-modal__btn--remove {
+  background: #1e3a4a;
+  color: #e0f0ff;
+  box-shadow: 0 4px 16px rgba(0, 80, 120, 0.3);
+}
+
+.card-modal__btn--remove:hover {
+  background: #234557;
+  box-shadow: 0 6px 24px rgba(0, 100, 160, 0.4);
+  transform: translateY(-1px);
+}
+
+.card-modal__btn--favorite {
+  background: #1e3a4a;
+  color: #e0f0ff;
+  box-shadow: 0 4px 16px rgba(0, 80, 120, 0.3);
+}
+
+.card-modal__btn--favorite:hover {
+  background: #234557;
+  box-shadow: 0 6px 24px rgba(0, 100, 160, 0.4);
+  transform: translateY(-1px);
+}
+
+.card-modal__btn--favorite-active {
+  background: #3b1a6e;
+  color: #d4a8ff;
+  box-shadow: 0 4px 20px rgba(140, 60, 255, 0.4);
+}
+
+.card-modal__btn--favorite-active:hover {
+  background: #4a2280;
+  box-shadow: 0 6px 28px rgba(150, 70, 255, 0.5);
+  transform: translateY(-1px);
+}
+
+/* Animations */
+@keyframes modal-fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modal-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.97);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}

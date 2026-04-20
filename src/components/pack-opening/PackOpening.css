@@ -1,0 +1,347 @@
+/* ================= CONTAINER ================= */
+
+.pack-opening {
+  padding-top: 140px;
+}
+
+.pack-opening {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+
+  /* BACKGROUND ORIGINAL REMOVIDO */
+  background: none;
+
+  overflow: hidden;
+  position: relative;
+}
+
+/* ================= BACKGROUND (NOVO) ================= */
+
+.pack-opening::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+
+  background: url("/images/backgroundpack.jpg") center/cover no-repeat;
+
+  filter: blur(5px) brightness(0.8);
+  transform: scale(1.03);
+
+  z-index: 0;
+}
+
+.pack-opening::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+
+  background:
+    radial-gradient(circle at center, rgba(120, 70, 255, 0.14), rgba(10, 10, 30, 0.52)),
+    linear-gradient(180deg, rgba(20, 10, 40, 0.18), rgba(10, 10, 30, 0.42));
+
+  z-index: 1;
+}
+
+/* ================= PARTICULAS ================= */
+
+.pack-opening__particles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+
+  background-image:
+    radial-gradient(rgba(255, 255, 255, 0.12) 1px, transparent 1px),
+    radial-gradient(rgba(200, 150, 255, 0.1) 1px, transparent 1px),
+    radial-gradient(rgba(255, 255, 255, 0.08) 2px, transparent 2px);
+
+  background-size:
+    120px 120px,
+    180px 180px,
+    250px 250px;
+
+  animation: particlesFloat 10s linear infinite;
+  animation-delay: -2;
+}
+
+@keyframes particlesMove {
+  from {
+    transform: translateY(0);
+  }
+
+  to {
+    transform: translateY(-200px);
+  }
+}
+
+@keyframes particlesFloat {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+
+  25% {
+    transform: translate(-30px, -60px) scale(1.02);
+  }
+
+  50% {
+    transform: translate(20px, -120px) scale(0.98);
+  }
+
+  75% {
+    transform: translate(-15px, -180px) scale(1.01);
+  }
+
+  100% {
+    transform: translate(10px, -240px) scale(1);
+  }
+}
+
+/* ================= PACOTE ================= */
+
+.pack-opening__pack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 32px;
+  position: relative;
+  z-index: 3;
+}
+
+.pack-opening__pack-img {
+  width: 280px;
+  height: auto;
+  filter: drop-shadow(0 8px 32px rgba(255, 210, 0, 0.4));
+  transition: transform 0.2s ease;
+}
+
+.pack-opening__pack-img:hover {
+  transform: scale(1.03);
+}
+
+.pack-opening__pack-img--shaking {
+  animation: pack-shake 0.1s ease infinite;
+}
+
+@keyframes pack-shake {
+  0% {
+    transform: rotate(-2deg) translateX(-3px);
+  }
+
+  25% {
+    transform: rotate(2deg) translateX(3px);
+  }
+
+  50% {
+    transform: rotate(-1deg) translateX(-2px);
+  }
+
+  75% {
+    transform: rotate(1deg) translateX(2px);
+  }
+
+  100% {
+    transform: rotate(0deg) translateX(0);
+  }
+}
+
+/* ================= BURST ================= */
+
+.pack-opening__burst {
+  position: relative;
+  width: 200px;
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3;
+}
+
+.pack-opening__burst-ring {
+  position: absolute;
+  width: 80px;
+  height: 80px;
+  border: 3px solid rgba(255, 210, 0, 0.8);
+  border-radius: 50%;
+  animation: burst-expand 0.6s ease-out forwards;
+}
+
+.pack-opening__burst-ring--2 {
+  animation-delay: 0.15s;
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+@keyframes burst-expand {
+  0% {
+    transform: scale(0);
+    opacity: 1;
+  }
+
+  100% {
+    transform: scale(5);
+    opacity: 0;
+  }
+}
+
+/* ================= CARTAS ================= */
+
+.pack-opening__cards {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 32px;
+  position: relative;
+  z-index: 3;
+}
+
+.pack-opening__cards-row {
+  display: flex;
+  flex-direction: row;
+  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+/* ================= PACK CARD ================= */
+
+.pack-card-wrapper {
+  position: relative;
+  opacity: 0;
+  transform: translateY(40px);
+  animation: card-enter 1s ease forwards;
+}
+
+@keyframes card-enter {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.pack-card-flip {
+  width: 233px;
+  height: 355px;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  z-index: 1;
+}
+
+.pack-card-flip--flipped {
+  transform: rotateY(180deg);
+}
+
+.pack-card-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+/* VERSO */
+
+.pack-card-face--back {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pack-card-back__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 14px;
+}
+
+/* FRENTE */
+
+.pack-card-face--front {
+  transform: rotateY(180deg);
+  width: 233px;
+  height: 355px;
+}
+
+.pack-card-face--front .player-card {
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* ================= LEGEND GLOW ================= */
+
+.pack-card-legend-glow {
+  position: absolute;
+  inset: -20px;
+  background: radial-gradient(ellipse at center, rgba(194, 109, 255, 0.35) 0%, transparent 70%);
+  animation: legend-pulse 1.5s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+@keyframes legend-pulse {
+
+  0%,
+  100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+}
+
+/* ================= BOTÕES ================= */
+
+.pack-opening__btn {
+  padding: 14px 40px;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.4rem;
+  letter-spacing: 0.08em;
+  background: linear-gradient(135deg, #c8900a, #ffd700, #c8900a);
+  color: #1a1200;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(255, 210, 0, 0.35);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  position: relative;
+  z-index: 3;
+}
+
+.pack-opening__btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 28px rgba(255, 210, 0, 0.5);
+}
+
+.pack-opening__btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.pack-opening__btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.pack-opening__btn--reset {
+  margin-top: 8px;
+  background: linear-gradient(135deg, #2a2a3e, #4a4a6e, #2a2a3e);
+  color: #c8b8ff;
+  box-shadow: 0 4px 20px rgba(100, 80, 200, 0.3);
+}
+
+.pack-opening__btn--reset:hover {
+  box-shadow: 0 6px 28px rgba(100, 80, 200, 0.5);
+}
+
+.pack-card-flip--flipped {
+  cursor: default;
+  pointer-events: none;
+}
