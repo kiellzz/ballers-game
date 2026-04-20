@@ -6,7 +6,6 @@
 </div>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Status-In%20Development-F2A65A?style=for-the-badge" alt="Project Status" />
   <img src="https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React" />
   <img src="https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
   <img src="https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white" alt="Vite" />
