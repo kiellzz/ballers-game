@@ -36,8 +36,8 @@ Ballers is a web-based football application focused on **interaction, squad buil
 
 ### 🏠 Home & Navigation
 <div align="center">
-  <img src="./media/home1.jpg" width="49%" alt="Home Screen">
-  <img src="./media/home2.jpg" width="49%" alt="Home Navigation">
+  <img src="./media/home1.png" width="49%" alt="Home Screen">
+  <img src="./media/home2.png" width="49%" alt="Home Navigation">
 </div>
 
 ### 🎴 Pack Opening & Filters
@@ -49,7 +49,7 @@ Ballers is a web-based football application focused on **interaction, squad buil
 ### 👥 Squad & Lineup System
 <div align="center">
   <img src="./media/lineup.gif" width="49%" alt="Lineup Drag and Drop">
-  <img src="./media/lineup.jpg" width="49%" alt="Static Lineup View">
+  <img src="./media/lineup.png" width="49%" alt="Static Lineup View">
 </div>
 
 ### 🎯 Player Interaction
@@ -60,7 +60,7 @@ Ballers is a web-based football application focused on **interaction, squad buil
 
 ### 🆚 Pre-Match
 <div align="center">
-  <img src="./media/prematch.jpg" width="49%" alt="Pre-Match Opponent Selection">
+  <img src="./media/prematch.png" width="49%" alt="Pre-Match Opponent Selection">
   <img src="./media/prematch_opplineup.png" width="49%" alt="Opponent Squad Reveal">
 </div>
 
