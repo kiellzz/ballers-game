@@ -16,17 +16,17 @@ export function useToast(duration = 3500) {
     playerName: string,
     playerPosition: string,
     type: 'error' | 'success' = 'error',
-    silent: boolean = false // 3. Novo parâmetro para silenciar o visual
+    silent: boolean = false // 3. New parameter for silent toast
   ) => {
     const id = ++counterRef.current;
 
-    // Se for silent, apenas logamos (opcional) e não atualizamos o estado visual
+    // If it's silent toast, we only log in (optional) and don't update the visual state.
     if (silent) {
       console.log(`[Silent Toast] ${playerName} - ${playerPosition} (${type})`);
       return;
     }
 
-    // Lógica normal para toasts visíveis
+    // Logic for visible toasts
     setToasts(prev => [...prev, { id, playerName, playerPosition, type }]);
 
     if (timeoutsRef.current.has(id)) {
