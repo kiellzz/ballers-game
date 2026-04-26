@@ -34,7 +34,7 @@ export const ACTION_DEFINITIONS: Record<ActionType, ActionDefinition> = {
       { stat: "pace", weight: 0.35 },
     ],
     successAdvanceRange: { min: 0, max: 1 },
-    failRecoilRange: { min: 1, max: 1 },
+    failRecoilRange: { min: 1, max: 2 },
   },
 
   forward_pass: {
@@ -65,7 +65,7 @@ export const ACTION_DEFINITIONS: Record<ActionType, ActionDefinition> = {
       { stat: "pace", weight: 0.44 },
     ],
     successAdvanceRange: { min: 1, max: 2 },
-    failRecoilRange: { min: 1, max: 2 },
+    failRecoilRange: { min: 1, max: 3 },
   },
 
   long_pass: {
@@ -94,7 +94,7 @@ export const ACTION_DEFINITIONS: Record<ActionType, ActionDefinition> = {
       { stat: "defending", weight: 0.6 },
       { stat: "pace", weight: 0.6 },
     ],
-    successAdvanceRange: { min: 2, max: 4 },
+    successAdvanceRange: { min: 2, max: 3 },
     failRecoilRange: { min: 1, max: 3 },
   },
 
@@ -115,19 +115,19 @@ export const ACTION_DEFINITIONS: Record<ActionType, ActionDefinition> = {
     "atk_bigchance",
   ],
   allowedLanes: ALL_LANES,
-  volatility: 0.49,
+  volatility: 0.55,
   risk: 0.48,
   canCreateBigChance: true,
   canLeadToShot: true,
   offensiveWeights: [
-    { stat: "overall", weight: 0.4 },
-    { stat: "dribbling", weight: 1.18 },
+    { stat: "overall", weight: 0.47 },
+    { stat: "dribbling", weight: 1.23 },
   ],
   defensiveWeights: [
     { stat: "overall", weight: 0.5 },
-    { stat: "defending", weight: 1.45 },
+    { stat: "defending", weight: 1.3 },
   ],
-  successAdvanceRange: { min: 1, max: 3 },
+  successAdvanceRange: { min: 1, max: 2 },
   failRecoilRange: { min: 1, max: 2 },
 },
 
@@ -159,7 +159,7 @@ export const ACTION_DEFINITIONS: Record<ActionType, ActionDefinition> = {
       { stat: "pace", weight: 0.78 },
       { stat: "physical", weight: 0.7 },
     ],
-    successAdvanceRange: { min: 1, max: 3 },
+    successAdvanceRange: { min: 1, max: 2 },
     failRecoilRange: { min: 1, max: 2 },
   },
 
@@ -193,7 +193,7 @@ export const ACTION_DEFINITIONS: Record<ActionType, ActionDefinition> = {
       { stat: "defending", weight: 0.55 },
     ],
     successAdvanceRange: { min: 0, max: 1 },
-    failRecoilRange: { min: 1, max: 1 },
+    failRecoilRange: { min: 1, max: 2 },
   },
 
     long_shot: {
@@ -244,7 +244,7 @@ export const ACTION_DEFINITIONS: Record<ActionType, ActionDefinition> = {
       { stat: "positioning", weight: 0.55 },
     ],
     successAdvanceRange: { min: 0, max: 0 },
-    failRecoilRange: { min: 1, max: 1 },
+    failRecoilRange: { min: 1, max: 2 },
   },
 
   header: {
@@ -295,7 +295,7 @@ export const ACTION_DEFINITIONS: Record<ActionType, ActionDefinition> = {
       { stat: "defending", weight: 0.25 },
     ],
     successAdvanceRange: { min: 2, max: 4 },
-    failRecoilRange: { min: 1, max: 1 },
+    failRecoilRange: { min: 1, max: 3 },
   },
 
   intercept: {
@@ -324,7 +324,7 @@ export const ACTION_DEFINITIONS: Record<ActionType, ActionDefinition> = {
       { stat: "passing", weight: 1.65 },
     ],
     defensiveRecoverRange: { min: 1, max: 2 },
-    failRecoilRange: { min: 1, max: 2 },
+    failRecoilRange: { min: 1, max: 3 },
   },
   gk_clearance: {
   type: "gk_clearance",
@@ -370,7 +370,7 @@ export const ACTION_DEFINITIONS: Record<ActionType, ActionDefinition> = {
     { stat: "pace", weight: 0.25 },
   ],
   defensiveRecoverRange: { min: 1, max: 1 },
-  failRecoilRange: { min: 1, max: 2 },
+  failRecoilRange: { min: 1, max: 3 },
 },
 
   slide_tackle: {
@@ -404,7 +404,7 @@ export const ACTION_DEFINITIONS: Record<ActionType, ActionDefinition> = {
       { stat: "dribbling", weight: 0.9 },
     ],
     defensiveRecoverRange: { min: 1, max: 2 },
-    failRecoilRange: { min: 2, max: 3 },
+    failRecoilRange: { min: 2, max: 2 },
   },
 
   block: {
@@ -426,7 +426,7 @@ export const ACTION_DEFINITIONS: Record<ActionType, ActionDefinition> = {
       { stat: "shooting", weight: 0.95 },
     ],
     defensiveRecoverRange: { min: 1, max: 3 },
-    failRecoilRange: { min: 1, max: 1 },
+    failRecoilRange: { min: 1, max: 2 },
   },
 
   shoulder_charge: {
@@ -456,7 +456,7 @@ export const ACTION_DEFINITIONS: Record<ActionType, ActionDefinition> = {
       { stat: "physical", weight: 0.8 },
       { stat: "dribbling", weight: 0.5 },
     ],
-    defensiveRecoverRange: { min: 1, max: 2 },
+    defensiveRecoverRange: { min: 1, max: 1 },
     failRecoilRange: { min: 1, max: 2 },
   },
 
@@ -480,7 +480,7 @@ export const ACTION_DEFINITIONS: Record<ActionType, ActionDefinition> = {
     { stat: "physical", weight: 0.75 },
   ],
   defensiveRecoverRange: { min: 1, max: 3 },
-  failRecoilRange: { min: 1, max: 2 },
+  failRecoilRange: { min: 1, max: 3 },
 },
 
   counterattack: {
@@ -505,8 +505,8 @@ export const ACTION_DEFINITIONS: Record<ActionType, ActionDefinition> = {
       { stat: "dribbling", weight: 0.55 },
       { stat: "overall", weight: 0.3 },
     ],
-    defensiveRecoverRange: { min: 2, max: 3 },
-    failRecoilRange: { min: 2, max: 2 },
+    defensiveRecoverRange: { min: 2, max: 2 },
+    failRecoilRange: { min: 2, max: 3 },
   },
   cross: {
   type: "cross",
@@ -530,8 +530,8 @@ export const ACTION_DEFINITIONS: Record<ActionType, ActionDefinition> = {
     { stat: "physical", weight: 0.5 },
     { stat: "height", weight: 0.5 },
   ],
-  successAdvanceRange: { min: 1, max: 1 },
-  failRecoilRange: { min: 1, max: 2 },
+  successAdvanceRange: { min: 1, max: 3 },
+  failRecoilRange: { min: 1, max: 3 },
 },
   rush_save: {
   type: "rush_save",
@@ -561,7 +561,7 @@ export const ACTION_DEFINITIONS: Record<ActionType, ActionDefinition> = {
   ],
 
   defensiveRecoverRange: { min: 0, max: 1 },
-  failRecoilRange: { min: 1, max: 2 }, // heavier punishment
+  failRecoilRange: { min: 1, max: 2 }, 
 },
 
   wait: {

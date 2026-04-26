@@ -70,6 +70,7 @@ export function selectPlayersForSituation(
       ["st", "am", "wing"],
       "center",
       zone,
+      "user",   // ← perspective added
       random,
       excludedUserPlayerId
     );
@@ -90,6 +91,7 @@ export function selectPlayersForSituation(
       ["st", "am", "wing"],
       "center",
       zone,
+      "opponent", // ← perspective added
       random,
       excludedOpponentPlayerId
     );
@@ -111,6 +113,7 @@ export function selectPlayersForSituation(
       ["st", "am", "wing"],
       "center",
       zone,
+      "user",   // ← perspective added
       random,
       excludedUserPlayerId
     );
@@ -131,6 +134,7 @@ export function selectPlayersForSituation(
       ["st", "am", "wing"],
       "center",
       zone,
+      "opponent", // ← perspective added
       random,
       excludedOpponentPlayerId
     );
@@ -166,6 +170,7 @@ export function selectPlayersForSituation(
           userPools.inPossession,
           userLane,
           zone,
+          "user",   // ← perspective added
           random,
           excludedUserPlayerId
         )
@@ -176,6 +181,7 @@ export function selectPlayersForSituation(
             userPools.outOfPossession,
             userLane,
             zone,
+            "user",   // ← perspective added
             random,
             excludedUserPlayerId
           ));
@@ -188,6 +194,7 @@ export function selectPlayersForSituation(
           opponentPools.inPossession,
           opponentLane,
           zone,
+          "opponent", // ← perspective added
           random,
           excludedOpponentPlayerId
         )
@@ -198,6 +205,7 @@ export function selectPlayersForSituation(
             opponentPools.outOfPossession,
             opponentLane,
             zone,
+            "opponent", // ← perspective added
             random,
             excludedOpponentPlayerId
           ));
@@ -215,6 +223,7 @@ export function selectPlayersForSituation(
           mainPlayerId: userPlayer.id,
           lane: userLane,
           zone,
+          teamPerspective: "user",    // ← perspective added
           random,
         })
       : null,
@@ -224,10 +233,35 @@ export function selectPlayersForSituation(
           mainPlayerId: opponentPlayer.id,
           lane: opponentLane,
           zone,
+          teamPerspective: "opponent", // ← perspective added
           random,
         })
       : null,
   };
+}
+
+/**
+ * Normalizes the zone to the team's own perspective.
+ *
+ * All zones are named from the user's point of view (def_* = user defending,
+ * atk_* = user attacking). When computing weights for the opponent's players
+ * we flip the prefix so the same weight logic applies symmetrically.
+ *
+ * Examples:
+ *   normalizeZoneForTeam("def_box",  "user")     → "def_box"   (no change)
+ *   normalizeZoneForTeam("def_box",  "opponent") → "atk_box"   (opponent is attacking there)
+ *   normalizeZoneForTeam("atk_third","opponent") → "def_third" (opponent is defending there)
+ */
+function normalizeZoneForTeam(zone: Zone, teamPerspective: PossessionSide): Zone {
+  if (teamPerspective === "user") return zone;
+
+  if (zone.startsWith("def_")) {
+    return zone.replace("def_", "atk_") as Zone;
+  }
+  if (zone.startsWith("atk_")) {
+    return zone.replace("atk_", "def_") as Zone;
+  }
+  return zone;
 }
 
 function getTeamLane(fieldLane: Lane, team: PossessionSide): Lane {
@@ -338,9 +372,10 @@ function pickSupportPlayer(params: {
   mainPlayerId: number;
   lane: Lane;
   zone: Zone;
+  teamPerspective: PossessionSide; // ← new param
   random: () => number;
 }): MatchPlayer | null {
-  const { team, mainPlayerId, lane, zone, random } = params;
+  const { team, mainPlayerId, lane, zone, teamPerspective, random } = params;
 
   const candidates = getOutfieldPlayers(team).filter(
     (player) => player.id !== mainPlayerId
@@ -349,7 +384,14 @@ function pickSupportPlayer(params: {
   if (candidates.length === 0) return null;
 
   const supportGroups = getSupportGroups(zone);
-  const weighted = buildWeightedCandidates(candidates, supportGroups, lane, zone, random);
+  const weighted = buildWeightedCandidates(
+    candidates,
+    supportGroups,
+    lane,
+    zone,
+    teamPerspective, // ← passed through
+    random
+  );
 
   return pickWeightedOutfield(weighted, random);
 }
@@ -376,6 +418,7 @@ function pickOutfieldByGroups(
   groups: PositionGroup[],
   lane: Lane,
   zone: Zone,
+  teamPerspective: PossessionSide, // ← new param
   random: () => number,
   excludedPlayerId: number | null = null
 ): OutfieldPlayer {
@@ -386,11 +429,11 @@ function pickOutfieldByGroups(
   if (players.length === 0) {
     // safety fallback: ignore the exclusion
     const all = getOutfieldPlayers(team);
-    const weighted = buildWeightedCandidates(all, groups, lane, zone, random);
+    const weighted = buildWeightedCandidates(all, groups, lane, zone, teamPerspective, random);
     return pickWeightedOutfield(weighted, random);
   }
 
-  const weighted = buildWeightedCandidates(players, groups, lane, zone, random);
+  const weighted = buildWeightedCandidates(players, groups, lane, zone, teamPerspective, random);
   return pickWeightedOutfield(weighted, random);
 }
 
@@ -403,6 +446,7 @@ function buildWeightedCandidates(
   groups: PositionGroup[],
   lane: Lane,
   zone: Zone,
+  teamPerspective: PossessionSide, // ← new param
   random: () => number
 ): WeightedPlayer[] {
   // Track the best group priority for each player
@@ -430,7 +474,14 @@ function buildWeightedCandidates(
       seen.add(player.id);
       result.push({
         player,
-        weight: getPlayerSelectionWeight(player, priority, lane, zone, random),
+        weight: getPlayerSelectionWeight(
+          player,
+          priority,
+          lane,
+          zone,
+          teamPerspective, // ← passed through
+          random
+        ),
       });
     }
   }
@@ -441,7 +492,14 @@ function buildWeightedCandidates(
       if (seen.has(player.id)) continue;
       result.push({
         player,
-        weight: getPlayerSelectionWeight(player, groups.length, lane, zone, random),
+        weight: getPlayerSelectionWeight(
+          player,
+          groups.length,
+          lane,
+          zone,
+          teamPerspective, // ← passed through
+          random
+        ),
       });
     }
   }
@@ -454,8 +512,13 @@ function getPlayerSelectionWeight(
   groupPriority: number,
   lane: Lane,
   zone: Zone,
+  teamPerspective: PossessionSide, // ← new param
   random: () => number
 ): number {
+  // Normalize the zone so all weight rules are applied from this team's perspective.
+  // e.g. the opponent's attackers in "def_box" see it as "atk_box" — their offensive zone.
+  const normalizedZone = normalizeZoneForTeam(zone, teamPerspective);
+
   let weight = 1;
 
   // Bonus by group priority (the lower the index, the larger the bonus)
@@ -496,38 +559,20 @@ function getPlayerSelectionWeight(
     if (hasAnyPosition(positions, ["CM", "CDM", "CAM", "ST", "CB"])) weight += 0.8;
   }
 
-  // Zone bonus
-  if (zone === "def_box" || zone === "def_nearbox") {
+  // Zone bonuses and penalties — all evaluated against the normalizedZone
+  // so the same rules work correctly for both teams.
+  if (normalizedZone === "def_box" || normalizedZone === "def_nearbox") {
     if (hasAnyPosition(positions, ["CB", "LB", "RB", "CDM"])) weight += 1.0;
-  } else if (zone === "def_third") {
+  } else if (normalizedZone === "def_third") {
     if (hasAnyPosition(positions, ["CB", "LB", "RB", "CDM"])) weight += 0.8;
-  } else if (zone === "def_mid") {
+  } else if (normalizedZone === "def_mid") {
     if (hasAnyPosition(positions, ["CDM", "CM", "CB"])) weight += 0.6;
-  } else if (zone === "atk_mid") {
+  } else if (normalizedZone === "atk_mid") {
     if (hasAnyPosition(positions, ["CM", "CAM", "RW", "LW"])) weight += 0.6;
-  } else if (zone === "atk_third") {
+  } else if (normalizedZone === "atk_third") {
     if (hasAnyPosition(positions, ["CAM", "ST", "LW", "RW"])) weight += 0.8;
-  } else if (zone === "atk_nearbox" || zone === "atk_box") {
+  } else if (normalizedZone === "atk_nearbox" || normalizedZone === "atk_box") {
     if (hasAnyPosition(positions, ["ST", "CAM", "LW", "RW"])) weight += 1.0;
-  }
-
-  // Penalty: wingers / attacking midfielders in very defensive zones
-  if (
-    zone === "def_box" ||
-    zone === "def_nearbox" ||
-    zone === "def_third" ||
-    zone === "def_bigchance"
-  ) {
-    if (hasAnyPosition(positions, ["LW", "RW", "LM", "RM"])) {
-      weight *= 0.15;
-    }
-  }
-
-  // Extra penalty: any non-defensive player inside / near the box
-  if (zone === "def_box" || zone === "def_nearbox") {
-    if (!hasAnyPosition(positions, ["CB", "LB", "RB", "LWB", "RWB", "CDM", "CM"])) {
-      weight *= 0.1;
-    }
   }
 
   // Small random factor (0.85-1.15) to avoid full determinism
@@ -586,11 +631,9 @@ function belongsToGroup(player: OutfieldPlayer, group: PositionGroup): boolean {
       return hasAnyPosition(positions, ["CAM", "RM", "LM", "LW", "RW"]);
 
     case "wing":
-
       return hasAnyPosition(positions, ["LW", "RW", "LM", "RM"]);
 
     case "st":
-
       return hasAnyPosition(positions, ["ST"]);
 
     case "any":

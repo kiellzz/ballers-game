@@ -236,64 +236,64 @@ export function resolveEventTransition(
   }
 
   // CROSS FAIL -> resolvido de forma controlada (anti-loop)
-if (
-  context.action === "cross" &&
-  (outcome === "fail" || outcome === "fail_high")
-) {
-  const cornerChance =
-    zone === "atk_nearbox" || zone === "def_nearbox"
-      ? 0.32
-      : 0.18;
+  if (
+    context.action === "cross" &&
+    (outcome === "fail" || outcome === "fail_high")
+  ) {
+    const cornerChance =
+      zone === "atk_nearbox" || zone === "def_nearbox"
+        ? 0.48
+        : 0.28;
 
-  const secondBallChance =
-    zone === "atk_nearbox" || zone === "def_nearbox"
-      ? 0.45
-      : 0.35;
+    const secondBallChance =
+      zone === "atk_nearbox" || zone === "def_nearbox"
+        ? 0.45
+        : 0.35;
 
-  const becomesCorner = random() < cornerChance;
-  const secondBall = !becomesCorner && random() < secondBallChance;
+    const becomesCorner = random() < cornerChance;
+    const secondBall = !becomesCorner && random() < secondBallChance;
 
-  const goalkeeperZone: Zone =
-    possession === "user" ? "atk_goalkeeper" : "def_goalkeeper";
+    const goalkeeperZone: Zone =
+      possession === "user" ? "atk_goalkeeper" : "def_goalkeeper";
 
-  const cornerZone: Zone =
-    possession === "user" ? "atk_corner" : "def_corner";
+    const cornerZone: Zone =
+      possession === "user" ? "atk_corner" : "def_corner";
 
-  const secondBallZone: Zone =
-    possession === "user" ? "atk_nearbox" : "def_nearbox";
+    const secondBallZone: Zone =
+      possession === "user" ? "atk_nearbox" : "def_nearbox";
 
-  const nextPossession: PossessionSide = becomesCorner
-    ? possession
-    : secondBall
+    const nextPossession: PossessionSide = becomesCorner
       ? possession
-      : possession === "user"
-        ? "opponent"
-        : "user";
+      : secondBall
+        ? possession
+        : possession === "user"
+          ? "opponent"
+          : "user";
 
-  const nextZone = becomesCorner
-    ? cornerZone
-    : secondBall
-      ? secondBallZone
-      : goalkeeperZone;
+    const nextZone = becomesCorner
+      ? cornerZone
+      : secondBall
+        ? secondBallZone
+        : goalkeeperZone;
 
-  return {
-    fromZone: zone,
-    toZone: nextZone,
-    fromLane: lane,
-    toLane: becomesCorner
-      ? lane === "left" || lane === "right"
-        ? lane
-        : random() < 0.5
-          ? "left"
-          : "right"
-      : "center",
-    fromPossession: possession,
-    toPossession: nextPossession,
-    createdBigChance: false,
-    nextSituationType: becomesCorner ? "set_piece" : "open_play",
-    nextSetPieceType: becomesCorner ? "corner" : null,
-  };
-}
+    return {
+      fromZone: zone,
+      toZone: nextZone,
+      fromLane: lane,
+      toLane: becomesCorner
+        ? lane === "left" || lane === "right"
+          ? lane
+          : random() < 0.5
+            ? "left"
+            : "right"
+        : "center",
+      fromPossession: possession,
+      toPossession: nextPossession,
+      createdBigChance: false,
+      nextSituationType: becomesCorner ? "set_piece" : "open_play",
+      nextSetPieceType: becomesCorner ? "corner" : null,
+    };
+  }
 
   // DEF BIG CHANCE -> locked until resolved through a shot (mini duel between GK and attacker)
   if (zone === "def_bigchance" && situationType === "open_play") {
@@ -473,8 +473,10 @@ function resolveClearanceTransition(params: {
   const { zone, lane, possession } = context;
   const isEmergency = context.action === "emergency_clearance";
 
-  // Chance to keep possession: 20% for clearance, 15% for emergency_clearance
-  const keepPossessionChance = isEmergency ? 0.15 : 0.2;
+  // Emergency clearance has a much lower chance of retaining possession —
+  // it's a desperate action under pressure, not a controlled play.
+  // Normal clearance: 20% | Emergency: 5%
+  const keepPossessionChance = isEmergency ? 0.05 : 0.2;
 
   const nextLane: Lane = random() < 0.5 ? "left" : "right";
 
@@ -486,7 +488,6 @@ function resolveClearanceTransition(params: {
         ? "opponent"
         : "user";
 
-    // clearance leaves the box; emergency_clearance travels even less far
     const nextZone = resolveClearanceSuccessZone({
       fromZone: zone,
       isEmergency,
@@ -531,22 +532,25 @@ function resolveClearanceSuccessZone(params: {
 }): Zone {
   const { fromZone, isEmergency, outcome, random } = params;
 
-  // emergency_clearance: the ball travels less far
   if (isEmergency) {
+    // Emergency clearance = desperate kick under pressure.
+    // The ball barely escapes the danger zone — it should never reach atk_mid
+    // and only occasionally leave the defensive third.
     if (fromZone === "def_bigchance" || fromZone === "def_box") {
-      return random() < 0.6 ? "def_third" : "def_mid";
+      // Usually stays in the box area or just reaches the near box
+      return random() < 0.7 ? "def_box" : "def_nearbox";
     }
     if (fromZone === "def_nearbox") {
-      return random() < 0.5 ? "def_mid" : "atk_mid";
+      return random() < 0.6 ? "def_nearbox" : "def_third";
     }
     if (fromZone === "def_third") {
-      return random() < 0.5 ? "def_mid" : "atk_mid";
+      return random() < 0.5 ? "def_third" : "def_mid";
     }
-    // fallback: move forward by a reasonable step
-    return "def_mid";
+    // Fallback: stays in defensive shape
+    return "def_third";
   }
 
-  // normal clearance: the ball travels farther
+  // Normal clearance: the ball travels farther
   if (fromZone === "def_bigchance" || fromZone === "def_box") {
     if (outcome === "success_high") {
       return random() < 0.5 ? "atk_mid" : "def_mid";
@@ -568,7 +572,7 @@ function resolveClearanceSuccessZone(params: {
     return random() < 0.5 ? "atk_mid" : "def_mid";
   }
 
-  // more advanced zones: smaller relief
+  // More advanced zones: smaller relief
   return "def_mid";
 }
 
@@ -579,13 +583,13 @@ function resolveClearanceFailZone(params: {
   const { fromZone, isEmergency } = params;
 
   if (isEmergency) {
-    // desperate failure: the ball stays in a very dangerous zone
+    // Desperate failure: the ball stays in a very dangerous zone
     if (fromZone === "def_bigchance") return "def_bigchance";
     if (fromZone === "def_box") return "def_box";
     return "def_nearbox";
   }
 
-  // failed regular clearance: dangerous / semi-dangerous zone
+  // Failed regular clearance: dangerous / semi-dangerous zone
   if (fromZone === "def_bigchance" || fromZone === "def_box") {
     return "def_box";
   }

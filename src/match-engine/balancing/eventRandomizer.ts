@@ -49,7 +49,7 @@ function getOutcomeFromDelta(delta: number): EventOutcome {
     return "fail_high";
   }
 
-  if (delta < -2) {
+  if (delta < -1) {
     return "fail";
   }
 
