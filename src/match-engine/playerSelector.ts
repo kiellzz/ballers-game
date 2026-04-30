@@ -413,7 +413,7 @@ function getSupportGroups(zone: Zone): PositionGroup[] {
   return ["wing", "am", "st"];
 }
 
-function pickOutfieldByGroups(
+export function pickOutfieldByGroups(
   team: MatchTeam,
   groups: PositionGroup[],
   lane: Lane,

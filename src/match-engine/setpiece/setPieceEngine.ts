@@ -401,30 +401,44 @@ function resolveCornerFromInteraction(
   }
 
   if (resolution.result === "cross_bigchance") {
-    return {
-      setPieceType: "corner",
-      shotResult: emptyShot,
-      nextZone: nextBigChanceZone,
-      nextLane: "center",
-      nextPossession: attackingSide,
-      nextSituationType: "open_play",
-      createdBigChance: true,
-      description: "Perfect corner. A huge chance is created.",
-    };
-  }
+  const takerId =
+    attackingSide === "user"
+      ? context.actors.userPlayer.id
+      : context.actors.opponentPlayer.id;
 
-  if (resolution.result === "cross_box") {
-    return {
-      setPieceType: "corner",
-      shotResult: emptyShot,
-      nextZone: nextBoxZone,
-      nextLane: "center",
-      nextPossession: attackingSide,
-      nextSituationType: "open_play",
-      createdBigChance: false,
-      description: "The cross finds someone in the box.",
-    };
-  }
+  return {
+    setPieceType: "corner",
+    shotResult: emptyShot,
+    nextZone: nextBigChanceZone,
+    nextLane: "center",
+    nextPossession: attackingSide,
+    nextSituationType: "open_play",
+    createdBigChance: true,
+    excludedUserPlayerId: attackingSide === "user" ? takerId : null,
+    excludedOpponentPlayerId: attackingSide === "opponent" ? takerId : null,
+    description: "Perfect corner. A huge chance is created.",
+  };
+}
+
+if (resolution.result === "cross_box") {
+  const takerId =
+    attackingSide === "user"
+      ? context.actors.userPlayer.id
+      : context.actors.opponentPlayer.id;
+
+  return {
+    setPieceType: "corner",
+    shotResult: emptyShot,
+    nextZone: nextBoxZone,
+    nextLane: "center",
+    nextPossession: attackingSide,
+    nextSituationType: "open_play",
+    createdBigChance: false,
+    excludedUserPlayerId: attackingSide === "user" ? takerId : null,
+    excludedOpponentPlayerId: attackingSide === "opponent" ? takerId : null,
+    description: "The cross finds someone in the box.",
+  };
+}
 
   if (resolution.result === "cross_cleared") {
     const secondBall = random() < 0.45;

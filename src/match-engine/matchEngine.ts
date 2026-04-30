@@ -31,6 +31,7 @@ import type {
   ShotResult,
   Zone,
 } from "./matchTypes";
+import { pickOutfieldByGroups } from "./playerSelector";
 
 const CLEARANCE_AFTER_LOOSE_BALL = 0.9;
 
@@ -369,23 +370,52 @@ export function runMatchStep(params: RunMatchStepParams): MatchState {
         : duelContext.actors.opponentPlayer.id;
 
     if (transition.toPossession === "user") {
-      const receiver = pickNewBallCarrier({
-        team: state.userTeam,
-        excludeId: currentCarrierId,
-        preferredPlayer: duelContext.actors.supportUserPlayer ?? null,
-        random,
-      });
-      forcedUserPlayerId = receiver?.id ?? null;
-    } else if (transition.toPossession === "opponent") {
-      const receiver = pickNewBallCarrier({
-        team: state.opponentTeam,
-        excludeId: currentCarrierId,
-        preferredPlayer: duelContext.actors.supportOpponentPlayer ?? null,
-        random,
-      });
-      forcedOpponentPlayerId = receiver?.id ?? null;
-    }
+  const receiver = pickNewBallCarrier({
+    team: state.userTeam,
+    excludeId: currentCarrierId,
+    preferredPlayer: duelContext.actors.supportUserPlayer ?? null,
+    random,
+  });
+  forcedUserPlayerId = receiver?.id ?? null;
+
+  // Fallback ponderado para cross: se pickNewBallCarrier retornou null
+  // (sem supportUserPlayer e candidates vazio), seleciona por zona/posição
+  if (forcedUserPlayerId === null && resolvedAction === "cross") {
+    const fallback = pickOutfieldByGroups(
+      state.userTeam,
+      ["st", "am", "wing"],
+      "center",
+      transition.toZone,
+      "user",
+      random,
+      currentCarrierId,
+    );
+    forcedUserPlayerId = fallback?.id ?? null;
   }
+
+} else if (transition.toPossession === "opponent") {
+  const receiver = pickNewBallCarrier({
+    team: state.opponentTeam,
+    excludeId: currentCarrierId,
+    preferredPlayer: duelContext.actors.supportOpponentPlayer ?? null,
+    random,
+  });
+  forcedOpponentPlayerId = receiver?.id ?? null;
+
+  if (forcedOpponentPlayerId === null && resolvedAction === "cross") {
+    const fallback = pickOutfieldByGroups(
+      state.opponentTeam,
+      ["st", "am", "wing"],
+      "center",
+      transition.toZone,
+      "opponent",
+      random,
+      currentCarrierId,
+    );
+    forcedOpponentPlayerId = fallback?.id ?? null;
+  }
+}
+}
 
   const nextSituation =
     nextPhase === "finished"
@@ -801,6 +831,7 @@ function shouldForceNewBallCarrier(action: ActionType): boolean {
   );
 }
 
+// Substituir a função atual
 function pickNewBallCarrier(params: {
   team: MatchTeam;
   excludeId: number;
@@ -814,10 +845,16 @@ function pickNewBallCarrier(params: {
   }
 
   const candidates = team.starters.filter(
-    (p) => p.role === "outfield" && p.id !== excludeId
+    (p): p is Extract<MatchPlayer, { role: "outfield" }> =>
+      p.role === "outfield" && p.id !== excludeId
   );
 
-  if (candidates.length === 0) return null;
+  if (candidates.length === 0) {
+    const anyone = team.starters.filter(
+      (p): p is Extract<MatchPlayer, { role: "outfield" }> => p.role === "outfield"
+    );
+    return anyone[Math.floor(random() * anyone.length)] ?? null;
+  }
 
   return candidates[Math.floor(random() * candidates.length)] ?? null;
 }
