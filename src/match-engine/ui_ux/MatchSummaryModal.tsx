@@ -174,7 +174,7 @@ const itemVariants = {
     opacity: 1,
     x: 0,
     filter: "blur(0px)",
-    transition: { type: "spring", damping: 15, stiffness: 120 },
+    transition: { type: "spring", damping: 15, stiffness: 120 } as const,
   },
 };
 
@@ -184,7 +184,7 @@ const itemRightVariants = {
     opacity: 1,
     x: 0,
     filter: "blur(0px)",
-    transition: { type: "spring", damping: 15, stiffness: 120 },
+    transition: { type: "spring", damping: 15, stiffness: 120 } as const,
   },
 };
 

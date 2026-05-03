@@ -430,3 +430,67 @@
     right: 8px;
   }
 }
+
+/* ─── Web-only banner ────────────────────────────────────────────────────────── */
+
+.web-only-banner {
+  position: fixed;
+  top: 32px;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  width: fit-content;
+  z-index: 4;
+  /* remover o transform: translateX(-50%) completamente */
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: #e9d5ff;
+  background: linear-gradient(135deg, rgba(109, 40, 217, 0.75), rgba(76, 29, 149, 0.65));
+  border: 1px solid rgba(192, 132, 252, 0.55);
+  padding: 14px 32px;
+  border-radius: 10px;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  white-space: nowrap;
+  animation: btnReveal 0.6s ease 0.4s both;
+  opacity: 0;
+  box-shadow:
+    0 0 0 1px rgba(147, 51, 234, 0.25),
+    0 8px 32px rgba(109, 40, 217, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  text-shadow: 0 0 20px rgba(192, 132, 252, 0.6);
+}
+
+.web-only-banner svg {
+  flex-shrink: 0;
+  color: #c084fc;
+  filter: drop-shadow(0 0 6px rgba(192, 132, 252, 0.8));
+  width: 18px;
+  height: 18px;
+}
+
+@media (max-width: 768px) {
+  .web-only-banner {
+    font-size: 0.72rem;
+    letter-spacing: 1.5px;
+    padding: 10px 16px;
+    top: 16px;
+    border-radius: 8px;
+    white-space: normal;
+    max-width: calc(100vw - 32px);
+    line-height: 1.4;
+    text-align: center;
+  }
+
+  .web-only-banner svg {
+    flex-shrink: 0;
+    align-self: flex-start;
+    margin-top: 2px;
+  }
+}

@@ -210,6 +210,7 @@ export interface PlayerMatchStatLine {
   penaltySaves: number;        // GK only — save during penalty resolution
   goalsConceded: number;       // GK only — goal scored against their side
   teamGoalsConceded?: number;  // team-level conceded goals for clean-sheet logic
+  teamGoalsScored?: number;    // team-level scored goals for rating logic
 
   // ── Negative ───────────────────────────────────────────────────────────────
   failedDribbles: number;      // action=dribble && outcome=fail|fail_high
@@ -257,6 +258,7 @@ export function emptyStatLine(): PlayerMatchStatLine {
     penaltySaves: 0,
     goalsConceded: 0,
     teamGoalsConceded: 0,
+    teamGoalsScored: 0,
     failedDribbles: 0,
     lostPossessions: 0,
     successfulActions: 0,
