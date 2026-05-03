@@ -28,6 +28,8 @@ interface SavedSquad {
 }
 
 export interface MatchHistoryEntry {
+  /** Same as engine `MatchEvent.turn` — one log row per turn. */
+  turn: number;
   id: string;
   minute: number;
   actionType: ActionType;
@@ -42,6 +44,9 @@ export interface MatchHistoryEntry {
   scoredBy: PossessionSide | null;
   scorerName: string | null;
   scorerSide: PossessionSide | null;
+  assisterName: string | null;
+  /** Mirrors `MatchEvent.isPenaltyGoal` when present. */
+  isPenaltyGoal?: boolean;
   setPieceType: string | null;
   // The zone and lane WHERE the shot originated — always the pre-transition
   // position. Goal animation in Match.tsx reads these instead of matchState
@@ -189,22 +194,45 @@ function buildHistoryEntry(
   let scoredBy: PossessionSide | null = null;
   let scorerName: string | null = null;
   let scorerSide: PossessionSide | null = null;
+  let assisterName: string | null = null;
 
   if (isGoal) {
     scoredBy = event.shotResult.scoredBy ?? possessionBefore;
-    scorerName = attackerName;
     scorerSide = scoredBy;
+
+    // 🧠 Fonte de verdade: goalDetails
+    if (event.goalDetails) {
+      const scoringTeam =
+        event.goalDetails.scorerSide === "user"
+          ? state.userTeam
+          : state.opponentTeam;
+
+      const scorerPlayer = scoringTeam.starters.find(
+        (p) => p.id === event.goalDetails!.scorerId
+      );
+
+      scorerName = scorerPlayer?.name ?? "Unknown";
+
+      // Assist
+      if (event.goalDetails.assistPlayerId != null) {
+        const assistPlayer = scoringTeam.starters.find(
+          (p) => p.id === event.goalDetails!.assistPlayerId
+        );
+
+        assisterName = assistPlayer?.name ?? null;
+      }
+    } else {
+      // 🛟 fallback (caso raro)
+      scorerName = attackerName;
+    }
   }
 
-  // fromZone/fromLane always reflect where the ball was BEFORE this event
-  // resolved — i.e. the shot origin. The engine writes these into
-  // event.transition before advancing the situation, so they are stable and
-  // never affected by when React schedules the next render.
   const fromZone = event.transition.fromZone;
   const fromLane = event.transition.fromLane;
 
   return {
-    id: `${state.context.turn}-${index}-${event.action}`,
+    turn: event.turn,
+    id: `${event.turn}-${index}-${event.action}`,
     minute: state.context.clock.minute,
     actionType: event.action,
     outcome: event.outcome,
@@ -218,6 +246,8 @@ function buildHistoryEntry(
     scoredBy,
     scorerName,
     scorerSide,
+    assisterName,
+    isPenaltyGoal: event.isPenaltyGoal,
     setPieceType:
       event.transition.nextSetPieceType ??
       event.shotResult.setPieceAwarded ??
@@ -237,6 +267,16 @@ function appendHistoryEntryIfNew(params: {
 
   if (!nextState.lastEvent || nextState.lastEvent === previousState.lastEvent) {
     return previousHistory;
+  }
+
+  const eventTurn = nextState.lastEvent.turn;
+  const lastRow = previousHistory[previousHistory.length - 1];
+
+  // Same turn as the last row: replace (engine may commit a new object for the same turn;
+  // reference equality alone would append a duplicate line — common on set-piece goals.)
+  if (lastRow !== undefined && lastRow.turn === eventTurn) {
+    const entry = buildHistoryEntry(nextState, previousHistory.length - 1);
+    return entry ? [...previousHistory.slice(0, -1), entry] : previousHistory;
   }
 
   const entry = buildHistoryEntry(nextState, previousHistory.length);

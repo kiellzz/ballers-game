@@ -103,6 +103,19 @@ export function createInitialMatchState(
   };
 }
 
+function commitEvent(state: MatchState, event: MatchEvent): MatchState {
+  const last = state.history[state.history.length - 1];
+  const history =
+    last !== undefined && last.turn === event.turn
+      ? [...state.history.slice(0, -1), event]
+      : [...state.history, event];
+  return {
+    ...state,
+    history,
+    lastEvent: event,
+  };
+}
+
 export function runMatchStep(params: RunMatchStepParams): MatchState {
   const { state, action, random = Math.random } = params;
 
@@ -244,7 +257,11 @@ export function runMatchStep(params: RunMatchStepParams): MatchState {
       random,
     });
 
+  const nextTurn = state.context.turn + 1;
+  const nextMinute = calculateNextMinute(nextTurn);
+
   const lastEvent: MatchEvent = {
+    turn: nextTurn,
     action: resolvedAction,
     outcome: randomized.outcome,
     shotResult,
@@ -254,9 +271,6 @@ export function runMatchStep(params: RunMatchStepParams): MatchState {
     goalDetails,
     narration: looseBallClearance?.event.message,
   };
-
-  const nextTurn = state.context.turn + 1;
-  const nextMinute = calculateNextMinute(nextTurn);
   const nextLastTouch = resolveLastTouchAfterOpenPlay({
     previousPlayerId: state.lastTouchPlayerId,
     previousSide: state.lastTouchSide,
@@ -348,24 +362,28 @@ export function runMatchStep(params: RunMatchStepParams): MatchState {
       });
     }
 
-    return {
-      ...state,
-      context: {
-        ...state.context,
-        turn: nextTurn,
-        clock: {
-          minute: nextMinute,
+    const { history, lastEvent: _prevEvent, ...withoutPersistence } = state;
+    return commitEvent(
+      {
+        ...withoutPersistence,
+        history,
+        lastEvent: _prevEvent,
+        context: {
+          ...state.context,
+          turn: nextTurn,
+          clock: {
+            minute: nextMinute,
+          },
         },
+        currentSituation: setPieceSituation,
+        interactiveSetPiece,
+        lastTouchPlayerId: nextLastTouch.playerId,
+        lastTouchSide: nextLastTouch.side,
+        playerMatchStats: nextPlayerMatchStats,
+        lastGoal: nextLastGoal,
       },
-      currentSituation: setPieceSituation,
-      interactiveSetPiece,
-      lastEvent,
-      history: [...state.history, lastEvent],
-      lastTouchPlayerId: nextLastTouch.playerId,
-      lastTouchSide: nextLastTouch.side,
-      playerMatchStats: nextPlayerMatchStats,
-      lastGoal: nextLastGoal,
-    };
+      lastEvent
+    );
   }
 
   const nextScore = applyScoreFromShot(state.context.score, shotResult);
@@ -442,25 +460,29 @@ export function runMatchStep(params: RunMatchStepParams): MatchState {
           random,
         });
 
-  return {
-    ...state,
-    context: {
-      phase: nextPhase,
-      turn: nextTurn,
-      score: nextScore,
-      clock: {
-        minute: nextMinute,
+  const { history, lastEvent: _prevEvent, ...withoutPersistence } = state;
+  return commitEvent(
+    {
+      ...withoutPersistence,
+      history,
+      lastEvent: _prevEvent,
+      context: {
+        phase: nextPhase,
+        turn: nextTurn,
+        score: nextScore,
+        clock: {
+          minute: nextMinute,
+        },
       },
+      currentSituation: nextSituation,
+      interactiveSetPiece: null,
+      lastTouchPlayerId: nextLastTouch.playerId,
+      lastTouchSide: nextLastTouch.side,
+      playerMatchStats: nextPlayerMatchStats,
+      lastGoal: nextLastGoal,
     },
-    currentSituation: nextSituation,
-    lastEvent,
-    history: [...state.history, lastEvent],
-    interactiveSetPiece: null,
-    lastTouchPlayerId: nextLastTouch.playerId,
-    lastTouchSide: nextLastTouch.side,
-    playerMatchStats: nextPlayerMatchStats,
-    lastGoal: nextLastGoal,
-  };
+    lastEvent
+  );
 }
 
 export function runInteractiveSetPieceStep(
@@ -533,6 +555,7 @@ function applyFinalResolution(params: {
   const nextTurn = state.context.turn + 1;
   const nextMinute = calculateNextMinute(nextTurn);
   const nextPhase = nextMinute >= 90 ? "finished" : "playing";
+
   const scorerId =
     resolution.shotResult.outcome === "goal" &&
     resolution.shotResult.scoredBy &&
@@ -580,6 +603,72 @@ function applyFinalResolution(params: {
     });
   }
 
+  // ── Create a MatchEvent for set-piece resolution so UI history can capture goals ──
+  const fromZone = setPieceContext?.zone ?? state.currentSituation.zone;
+  const fromLane = setPieceContext?.lane ?? state.currentSituation.lane;
+  const fromPossession =
+    setPieceContext?.possession ?? state.currentSituation.possession;
+
+  const nextSetPieceTypeForTransition =
+    resolution.nextSituationType === "set_piece"
+      ? (resolution.shotResult.setPieceAwarded ?? null)
+      : null;
+
+  const scorerSide = goalDetails?.scorerSide ?? null;
+const scorerIdResolved = goalDetails?.scorerId ?? null;
+
+let resolvedActors = setPieceContext?.actors ?? state.currentSituation.actors;
+
+// 🔥 FIX: garantir que o cobrador (scorer) seja o attacker correto
+if (scorerIdResolved && scorerSide && setPieceContext) {
+  const team =
+    scorerSide === "user" ? state.userTeam : state.opponentTeam;
+
+  const scorerPlayer = team.starters.find(
+    (p) => p.id === scorerIdResolved
+  );
+
+  if (scorerPlayer) {
+    resolvedActors = {
+      ...resolvedActors,
+      ...(scorerSide === "user"
+        ? { userPlayer: scorerPlayer }
+        : { opponentPlayer: scorerPlayer }),
+    };
+  }
+}
+
+const setPieceEvent: MatchEvent = {
+  turn: nextTurn,
+  action: setPieceContext?.action ?? "wait",
+  outcome: "success",
+  isPenaltyGoal:
+    resolution.setPieceType === "penalty" &&
+    resolution.shotResult.outcome === "goal",
+  shotResult: resolution.shotResult,
+  foulResult: {
+    committed: false,
+    by: null,
+    card: "none",
+    setPieceAwarded: null,
+    awardedTo: null,
+  },
+  transition: {
+    fromZone,
+    toZone: resolution.nextZone,
+    fromLane,
+    toLane: resolution.nextLane,
+    fromPossession,
+    toPossession: resolution.nextPossession,
+    createdBigChance: false,
+    nextSituationType: resolution.nextSituationType,
+    nextSetPieceType: nextSetPieceTypeForTransition,
+  },
+  actors: resolvedActors,
+  goalDetails,
+  narration: undefined,
+};
+
   const nextPlayerMatchStats = applyEventToPlayerMatchStats(
     state.playerMatchStats,
     goalDetails,
@@ -589,7 +678,7 @@ function applyFinalResolution(params: {
       transition: null,
       shotResult: resolution.shotResult,
       actors: setPieceContext?.actors ?? state.currentSituation.actors,
-      possession: setPieceContext?.possession ?? state.currentSituation.possession,
+      possession: fromPossession,
     }
   );
 
@@ -601,8 +690,8 @@ function applyFinalResolution(params: {
   const nextLastGoal =
     createLastGoalRecord({
       goalDetails,
-      fromZone: setPieceContext?.zone ?? state.currentSituation.zone,
-      fromLane: setPieceContext?.lane ?? state.currentSituation.lane,
+      fromZone,
+      fromLane,
       minute: nextMinute,
       turn: nextTurn,
     }) ?? state.lastGoal;
@@ -613,25 +702,29 @@ function applyFinalResolution(params: {
       : null;
 
   if (nextPhase === "finished") {
-    return {
-      ...state,
-      context: {
-        phase: nextPhase,
-        turn: nextTurn,
-        score: nextScore,
-        clock: {
-          minute: nextMinute,
+    const { history, lastEvent: _prevEvent, ...withoutPersistence } = state;
+    return commitEvent(
+      {
+        ...withoutPersistence,
+        history,
+        lastEvent: _prevEvent,
+        context: {
+          phase: nextPhase,
+          turn: nextTurn,
+          score: nextScore,
+          clock: {
+            minute: nextMinute,
+          },
         },
+        currentSituation: state.currentSituation,
+        interactiveSetPiece: null,
+        lastTouchPlayerId: nextLastTouch.playerId,
+        lastTouchSide: nextLastTouch.side,
+        playerMatchStats: nextPlayerMatchStats,
+        lastGoal: nextLastGoal,
       },
-      currentSituation: state.currentSituation,
-      interactiveSetPiece: null,
-      lastEvent: state.lastEvent,
-      history: state.history,
-      lastTouchPlayerId: nextLastTouch.playerId,
-      lastTouchSide: nextLastTouch.side,
-      playerMatchStats: nextPlayerMatchStats,
-      lastGoal: nextLastGoal,
-    };
+      setPieceEvent
+    );
   }
 
   if (resolution.nextSituationType === "set_piece" && nextSetPieceType) {
@@ -646,7 +739,7 @@ function applyFinalResolution(params: {
       random,
     });
 
-    const setPieceContext: DuelContext = {
+    const nextContext: DuelContext = {
       action: state.currentSituation.availableActions[0] ?? "wait",
       zone: resolution.nextZone,
       lane: resolution.nextLane,
@@ -657,29 +750,33 @@ function applyFinalResolution(params: {
     };
 
     const interactiveSetPiece = startInteractiveSetPieceFlow({
-      context: setPieceContext,
+      context: nextContext,
       actors: setPieceSituation.actors,
     });
 
-    return {
-      ...state,
-      context: {
-        phase: nextPhase,
-        turn: nextTurn,
-        score: nextScore,
-        clock: {
-          minute: nextMinute,
+    const { history, lastEvent: _prevEvent, ...withoutPersistence } = state;
+    return commitEvent(
+      {
+        ...withoutPersistence,
+        history,
+        lastEvent: _prevEvent,
+        context: {
+          phase: nextPhase,
+          turn: nextTurn,
+          score: nextScore,
+          clock: {
+            minute: nextMinute,
+          },
         },
+        currentSituation: setPieceSituation,
+        interactiveSetPiece,
+        lastTouchPlayerId: nextLastTouch.playerId,
+        lastTouchSide: nextLastTouch.side,
+        playerMatchStats: nextPlayerMatchStats,
+        lastGoal: nextLastGoal,
       },
-      currentSituation: setPieceSituation,
-      interactiveSetPiece,
-      lastEvent: state.lastEvent,
-      history: state.history,
-      lastTouchPlayerId: nextLastTouch.playerId,
-      lastTouchSide: nextLastTouch.side,
-      playerMatchStats: nextPlayerMatchStats,
-      lastGoal: nextLastGoal,
-    };
+      setPieceEvent
+    );
   }
 
   const nextSituation = createSituation({
@@ -697,25 +794,29 @@ function applyFinalResolution(params: {
     random,
   });
 
-  return {
-    ...state,
-    context: {
-      phase: nextPhase,
-      turn: nextTurn,
-      score: nextScore,
-      clock: {
-        minute: nextMinute,
+  const { history, lastEvent: _prevEvent, ...withoutPersistence } = state;
+  return commitEvent(
+    {
+      ...withoutPersistence,
+      history,
+      lastEvent: _prevEvent,
+      context: {
+        phase: nextPhase,
+        turn: nextTurn,
+        score: nextScore,
+        clock: {
+          minute: nextMinute,
+        },
       },
+      currentSituation: nextSituation,
+      interactiveSetPiece: null,
+      lastTouchPlayerId: nextLastTouch.playerId,
+      lastTouchSide: nextLastTouch.side,
+      playerMatchStats: nextPlayerMatchStats,
+      lastGoal: nextLastGoal,
     },
-    currentSituation: nextSituation,
-    interactiveSetPiece: null,
-    lastEvent: state.lastEvent,
-    history: state.history,
-    lastTouchPlayerId: nextLastTouch.playerId,
-    lastTouchSide: nextLastTouch.side,
-    playerMatchStats: nextPlayerMatchStats,
-    lastGoal: nextLastGoal,
-  };
+    setPieceEvent
+  );
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

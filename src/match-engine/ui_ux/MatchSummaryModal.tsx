@@ -2,8 +2,14 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import MatchModal from "../../components/match/MatchModal";
 import type { Player } from "../../types/PlayerTypes";
-import type { PlayerMatchStats, PossessionSide } from "../../match-engine/matchTypes";
+import {
+  emptyStatLine,
+  type PlayerMatchStats,
+  type PossessionSide,
+} from "../../match-engine/matchTypes";
+import { calculatePlayerRating } from "../playerRating";
 import type { MatchHistoryEntry } from "./useMatchEngine";
+import { getDisplayName } from "../../utils/getDisplayName";
 import { getPlayerImage } from "../../utils/getPlayerImage";
 import "./MatchSummaryModal.css";
 
@@ -32,62 +38,92 @@ function getResult(userScore: number, opponentScore: number): MatchResult {
   return "draw";
 }
 
+interface PlayerWithRating {
+  player: Player;
+  side: "user" | "opponent";
+  rating: number;
+}
+
+function buildPlayersWithRatings(
+  userPlayers: Player[],
+  opponentPlayers: Player[],
+  playerMatchStats: PlayerMatchStats
+): PlayerWithRating[] {
+  const rows: PlayerWithRating[] = [];
+  for (const p of userPlayers) {
+    const line = playerMatchStats[`user:${p.id}`] ?? emptyStatLine();
+    rows.push({
+      player: p,
+      side: "user",
+      rating: calculatePlayerRating(line, p.position),
+    });
+  }
+  for (const p of opponentPlayers) {
+    const line = playerMatchStats[`opponent:${p.id}`] ?? emptyStatLine();
+    rows.push({
+      player: p,
+      side: "opponent",
+      rating: calculatePlayerRating(line, p.position),
+    });
+  }
+  return rows;
+}
+
+function pickRandom<T>(items: T[]): T {
+  return items[Math.floor(Math.random() * items.length)]!;
+}
+
 /**
- * Builds goal entries for one side, with correct minute from match history.
- *
- * Strategy:
- *  1. Filter history entries that are goals for this side → gives us
- *     scorerName + minute in chronological order.
- *  2. Build assister pool from playerMatchStats (one slot per assist).
- *  3. Pair each goal entry with one assist slot via findIndex (excludes
- *     self-assist, which the engine already prevents, but safe).
+ * Highest match rating wins. Tie-break: non-draw → prefer winning side if any
+ * tied player is on that side (then random among them); else random among all
+ * tied. Draw → random among tied.
+ */
+function getMatchMVP(
+  players: PlayerWithRating[],
+  result: MatchResult
+): PlayerWithRating | null {
+  if (players.length === 0) {
+    return null;
+  }
+
+  const maxRating = Math.max(...players.map((p) => p.rating));
+  const candidates = players.filter((p) => p.rating === maxRating);
+
+  if (candidates.length === 1) {
+    return candidates[0]!;
+  }
+
+  if (result === "draw") {
+    return pickRandom(candidates);
+  }
+
+  const winningSide: "user" | "opponent" =
+    result === "win" ? "user" : "opponent";
+  const fromWinner = candidates.filter((c) => c.side === winningSide);
+
+  if (fromWinner.length > 0) {
+    return pickRandom(fromWinner);
+  }
+
+  return pickRandom(candidates);
+}
+
+/**
+ * Builds goal entries for one side from match history.
+ * Now uses assisterName directly from history entries instead of heuristic matching.
  */
 function buildGoalEntries(
   side: PossessionSide,
-  playerMatchStats: PlayerMatchStats,
-  players: Player[],
   history: MatchHistoryEntry[]
 ): GoalEntry[] {
-  // Pull goals in order from history — gives us scorerName + minute
-  const goalEvents = history.filter(
-    (entry) => entry.isGoal && entry.scorerSide === side && entry.scorerName
-  );
-
-  // Build assister pool from playerMatchStats
-  const assisterPool: Array<{ name: string; id: number }> = [];
-
-  for (const [key, stats] of Object.entries(playerMatchStats)) {
-    if (!key.startsWith(`${side}:`)) continue;
-    if (stats.assists === 0) continue;
-
-    const playerId = Number(key.split(":")[1]);
-    const player = players.find((p) => Number(p.id) === playerId);
-    if (!player) continue;
-
-    for (let i = 0; i < stats.assists; i++) {
-      assisterPool.push({ name: player.name, id: playerId });
-    }
-  }
-
-  return goalEvents.map((event) => {
-    // Find scorer id to exclude self-assist (safety check)
-    const scorerPlayer = players.find((p) => p.name === event.scorerName);
-    const scorerId = scorerPlayer ? Number(scorerPlayer.id) : -1;
-
-    const assistIdx = assisterPool.findIndex((a) => a.id !== scorerId);
-    let assistName: string | null = null;
-
-    if (assistIdx !== -1) {
-      const [assist] = assisterPool.splice(assistIdx, 1);
-      assistName = assist.name;
-    }
-
-    return {
-      scorerName: event.scorerName ?? "",
-      assistName,
+  return history
+    .filter((entry) => entry.isGoal && entry.scorerSide === side && entry.scorerName)
+    .map((event) => ({
+      scorerName:
+        (event.scorerName ?? "") + (event.isPenaltyGoal ? " (P)" : ""),
+      assistName: event.assisterName,
       minute: event.minute,
-    };
-  });
+    }));
 }
 
 function getResultConfig(result: MatchResult) {
@@ -242,30 +278,19 @@ export default function MatchSummaryModal({
 
   const userGoals = buildGoalEntries(
     "user",
-    playerMatchStats,
-    userPlayers,
     history
   );
   const opponentGoals = buildGoalEntries(
     "opponent",
-    playerMatchStats,
-    opponentPlayers,
     history
   );
 
-  const mvpSide: "user" | "opponent" | null =
-    result === "win" ? "user" : result === "loss" ? "opponent" : null;
-
-  const mvpPlayer =
-    mvpSide === "user"
-      ? userPlayers.find(
-          (p) => (playerMatchStats[`user:${p.id}`]?.goals ?? 0) > 0
-        )
-      : mvpSide === "opponent"
-      ? opponentPlayers.find(
-          (p) => (playerMatchStats[`opponent:${p.id}`]?.goals ?? 0) > 0
-        )
-      : null;
+  const mvpPick = getMatchMVP(
+    buildPlayersWithRatings(userPlayers, opponentPlayers, playerMatchStats),
+    result
+  );
+  const mvpPlayer = mvpPick?.player ?? null;
+  const mvpSide = mvpPick?.side ?? null;
 
   return (
     <MatchModal
@@ -306,7 +331,9 @@ export default function MatchSummaryModal({
                   />
                 </div>
                 <div className="summary-mvp__name-bar">
-                  <span className="summary-mvp__name">{mvpPlayer.name}</span>
+                  <span className="summary-mvp__name">
+                    {getDisplayName(mvpPlayer)}
+                  </span>
                 </div>
               </div>
               <p className="summary-mvp__label">MVP</p>

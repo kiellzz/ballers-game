@@ -338,6 +338,7 @@ export interface GoalDetails {
 }
 
 export interface MatchEvent {
+  turn: number;
   action: ActionType;
   outcome: EventOutcome;
   shotResult: ShotResult;
@@ -346,6 +347,8 @@ export interface MatchEvent {
   actors: MatchActors;
   goalDetails?: GoalDetails | null;
   narration?: string;
+  /** Set only for goals scored from a penalty (set-piece resolution). */
+  isPenaltyGoal?: boolean;
 }
 
 export interface MatchGoalRecord {
