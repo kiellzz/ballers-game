@@ -1,4 +1,3 @@
-
 <div>
 
 > 🚧 **Project Status:** In active development  
@@ -14,6 +13,7 @@
   <img src="https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
   <img src="https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white" alt="Vite" />
   <img src="https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white" alt="CSS3" />
+  <img src="https://img.shields.io/badge/Framer_Motion-EF008F?style=for-the-badge&logo=framer&logoColor=white" alt="Framer Motion" />
 </p>
 
 <div>
@@ -67,6 +67,33 @@ It combines high-quality UI/UX with a **custom-built interactive match engine**,
     * Duel-based gameplay system
     * Zone-based match progression
     * Real-time event resolution
+
+* 🏆 **Match Summary & MVP System**
+    * Post-match summary modal with delay
+    * Displays result (win/draw/loss)
+    * Goal scorers and assists for both teams
+    * MVP selection based on **highest rating in the match**
+    * Tie-breaking logic (winner priority or random fallback)
+    * Penalty goals tagged with **(P)**
+
+* 📊 **Dynamic Player Rating System**
+    * Base rating starts at **6.0 for all players**
+    * Every action impacts rating (+/- micro adjustments)
+    * Duel-based rating impact (winner gains, loser loses)
+    * Offensive players penalized for missed chances
+    * Defensive line impacted when conceding goals
+    * Clean sheet bonus:
+      * GK → +1.0
+      * DEF → +0.6
+    * Enhanced goalkeeper logic:
+      * Saves, high saves, penalty saves
+      * Weak goal detection (long shots)
+    * Balanced to avoid rating inflation
+
+* 🎬 **Smooth UI Animations**
+    * Powered by **Framer Motion**
+    * Transition-based UI feedback
+    * Animated modals and match elements
 
 * 🔊 **Audio & Immersion**
     * Music player
@@ -123,14 +150,13 @@ Instead of passive simulation:
 ### 📜 Match Event Log
 
 A real-time duel-based log system
+
 Examples:
-```
 
 User Player vs GK Opponent → Finish → Goal
 Opponent Winger vs User CB → Sprint → Stopped
 FK taker vs GK → Free Kick → Saved
 
-````
 
 Features:
 
@@ -154,16 +180,19 @@ Features:
   - Penalty
   - Free Kick
   - Corner
+  - Match Summary
 
 - Visual feedback:
   - Action → Outcome transitions
   - Ball animations
   - Goal modal
   - Goal scorers & assisters in the sidebar
+  - MVP highlight in post-match
 
 - Strong UI consistency:
   - Same card system across lineup + match
   - Mini cards in event log
+  - Player ratings visible in lineup
 
 ---
 
@@ -180,6 +209,7 @@ Features:
   - More realistic corner generation
   - Better possession retention
   - Goalkeeper logic adjustments
+  - Fair rating distribution across all positions
 
 ---
 
@@ -238,6 +268,7 @@ Interactive, decision-based match flow powered by a custom engine.
   - duelEngine
   - eventResolver
   - setPieceEngine
+  - playerRating
 * **Separation of concerns:**
   - Engine logic vs UI layer
 * **State-driven gameplay loop**
@@ -251,30 +282,23 @@ git clone https://github.com/kiellzz/ballers-game.git
 cd ballers-game
 npm install
 npm run dev
-```
 
-> App: [http://localhost:5173](http://localhost:5173)
+App: http://localhost:5173
 
----
+🗺 Roadmap
+ ⚔️ Interactive Match Engine
+ 🏆 Match Summary & MVP System
+ 📊 Player Rating System
+ 🏗 Improve frontend architecture
+ 📊 Advanced match stats (xG, possession)
+ 🎙 Commentary system
+ 💾 Backend integration
+ 🎮 Draft Mode
+👨‍💻 Author
 
-## 🗺 Roadmap
+Developed by Ezequiel Borges
 
-* [x] ⚔️ Interactive Match Engine 
-* [ ] 🏗 Improve frontend architecture 
-* [ ] 📊 Match statistics (xG, possession, shots)
-* [ ] 🎙 Commentary system
-* [ ] 💾 Backend integration 
-* [ ] 🎮 Draft Mode
+GitHub: https://github.com/kiellzz
+LinkedIn: https://www.linkedin.com/in/ezequielborgesdev
 
----
-
-## 👨‍💻 Author
-
-Developed by **Ezequiel Borges**
-
-* GitHub: [https://github.com/kiellzz](https://github.com/kiellzz)
-* LinkedIn: [https://www.linkedin.com/in/ezequielborgesdev](https://www.linkedin.com/in/ezequielborgesdev)
-
----
-
-> This project represents the transition from building UI applications to designing interactive systems with real gameplay structure, focusing on architecture, logic, and user experience.
+This project represents the transition from building UI applications to designing interactive systems with real gameplay structure, focusing on architecture, logic, and user experience.
