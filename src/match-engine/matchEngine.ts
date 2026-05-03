@@ -1,3 +1,4 @@
+// src/match-engine/matchEngine.ts
 import { createSituation } from "./balancing/situationMaker";
 import { resolveDuel } from "./balancing/duelEngine";
 import { randomizeEventOutcome } from "./balancing/eventRandomizer";
@@ -17,9 +18,11 @@ import type { SetPieceResolution } from "./setpiece/setPieceEngine";
 import type {
   ActionType,
   DuelContext,
+  EventOutcome,
   EventTransition,
   FoulResult,
   GoalDetails,
+  MatchActors,
   MatchEvent,
   MatchGoalRecord,
   MatchPlayer,
@@ -31,6 +34,7 @@ import type {
   ShotResult,
   Zone,
 } from "./matchTypes";
+import { emptyStatLine } from "./matchTypes";
 import { pickOutfieldByGroups } from "./playerSelector";
 
 const CLEARANCE_AFTER_LOOSE_BALL = 0.9;
@@ -261,9 +265,17 @@ export function runMatchStep(params: RunMatchStepParams): MatchState {
     shotResult,
   });
 
-  const nextPlayerMatchStats = applyGoalToPlayerMatchStats(
+  const nextPlayerMatchStats = applyEventToPlayerMatchStats(
     state.playerMatchStats,
-    goalDetails
+    goalDetails,
+    {
+      action,
+      outcome: randomized.outcome,
+      transition,
+      shotResult,
+      actors: duelContext.actors,
+      possession: duelContext.possession,
+    }
   );
 
   const nextLastGoal =
@@ -370,52 +382,49 @@ export function runMatchStep(params: RunMatchStepParams): MatchState {
         : duelContext.actors.opponentPlayer.id;
 
     if (transition.toPossession === "user") {
-  const receiver = pickNewBallCarrier({
-    team: state.userTeam,
-    excludeId: currentCarrierId,
-    preferredPlayer: duelContext.actors.supportUserPlayer ?? null,
-    random,
-  });
-  forcedUserPlayerId = receiver?.id ?? null;
+      const receiver = pickNewBallCarrier({
+        team: state.userTeam,
+        excludeId: currentCarrierId,
+        preferredPlayer: duelContext.actors.supportUserPlayer ?? null,
+        random,
+      });
+      forcedUserPlayerId = receiver?.id ?? null;
 
-  // Fallback ponderado para cross: se pickNewBallCarrier retornou null
-  // (sem supportUserPlayer e candidates vazio), seleciona por zona/posição
-  if (forcedUserPlayerId === null && resolvedAction === "cross") {
-    const fallback = pickOutfieldByGroups(
-      state.userTeam,
-      ["st", "am", "wing"],
-      "center",
-      transition.toZone,
-      "user",
-      random,
-      currentCarrierId,
-    );
-    forcedUserPlayerId = fallback?.id ?? null;
+      if (forcedUserPlayerId === null && resolvedAction === "cross") {
+        const fallback = pickOutfieldByGroups(
+          state.userTeam,
+          ["st", "am", "wing"],
+          "center",
+          transition.toZone,
+          "user",
+          random,
+          currentCarrierId,
+        );
+        forcedUserPlayerId = fallback?.id ?? null;
+      }
+    } else if (transition.toPossession === "opponent") {
+      const receiver = pickNewBallCarrier({
+        team: state.opponentTeam,
+        excludeId: currentCarrierId,
+        preferredPlayer: duelContext.actors.supportOpponentPlayer ?? null,
+        random,
+      });
+      forcedOpponentPlayerId = receiver?.id ?? null;
+
+      if (forcedOpponentPlayerId === null && resolvedAction === "cross") {
+        const fallback = pickOutfieldByGroups(
+          state.opponentTeam,
+          ["st", "am", "wing"],
+          "center",
+          transition.toZone,
+          "opponent",
+          random,
+          currentCarrierId,
+        );
+        forcedOpponentPlayerId = fallback?.id ?? null;
+      }
+    }
   }
-
-} else if (transition.toPossession === "opponent") {
-  const receiver = pickNewBallCarrier({
-    team: state.opponentTeam,
-    excludeId: currentCarrierId,
-    preferredPlayer: duelContext.actors.supportOpponentPlayer ?? null,
-    random,
-  });
-  forcedOpponentPlayerId = receiver?.id ?? null;
-
-  if (forcedOpponentPlayerId === null && resolvedAction === "cross") {
-    const fallback = pickOutfieldByGroups(
-      state.opponentTeam,
-      ["st", "am", "wing"],
-      "center",
-      transition.toZone,
-      "opponent",
-      random,
-      currentCarrierId,
-    );
-    forcedOpponentPlayerId = fallback?.id ?? null;
-  }
-}
-}
 
   const nextSituation =
     nextPhase === "finished"
@@ -571,9 +580,17 @@ function applyFinalResolution(params: {
     });
   }
 
-  const nextPlayerMatchStats = applyGoalToPlayerMatchStats(
+  const nextPlayerMatchStats = applyEventToPlayerMatchStats(
     state.playerMatchStats,
-    goalDetails
+    goalDetails,
+    {
+      action: setPieceContext?.action ?? "wait",
+      outcome: null,
+      transition: null,
+      shotResult: resolution.shotResult,
+      actors: setPieceContext?.actors ?? state.currentSituation.actors,
+      possession: setPieceContext?.possession ?? state.currentSituation.possession,
+    }
   );
 
   const nextLastTouch = resolveLastTouchAfterSetPiece({
@@ -700,6 +717,188 @@ function applyFinalResolution(params: {
     lastGoal: nextLastGoal,
   };
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Player match stats — full event tracking
+// ─────────────────────────────────────────────────────────────────────────────
+
+interface EventStatContext {
+  action: ActionType;
+  outcome: EventOutcome | null;
+  transition: EventTransition | null;
+  shotResult: ShotResult;
+  actors: MatchActors;
+  possession: PossessionSide;
+}
+
+function statCarrierKey(possession: PossessionSide, actors: MatchActors): string {
+  const id =
+    possession === "user"
+      ? actors.userPlayer.id
+      : actors.opponentPlayer.id;
+  return `${possession}:${id}`;
+}
+
+function statDefenderKey(possession: PossessionSide, actors: MatchActors): string {
+  const defSide: PossessionSide = possession === "user" ? "opponent" : "user";
+  const id =
+    defSide === "user"
+      ? actors.userPlayer.id
+      : actors.opponentPlayer.id;
+  return `${defSide}:${id}`;
+}
+
+function statGkKey(side: PossessionSide, actors: MatchActors): string {
+  const gk = side === "user" ? actors.userGoalkeeper : actors.opponentGoalkeeper;
+  return `${side}:${gk.id}`;
+}
+
+/**
+ * Replaces the old applyGoalToPlayerMatchStats.
+ * Tracks goals, assists, saves, defensive actions, dribbles,
+ * crosses, key passes, big chances, lost possessions, and GK concedes.
+ */
+function applyEventToPlayerMatchStats(
+  playerMatchStats: PlayerMatchStats,
+  goalDetails: GoalDetails | null,
+  ctx: EventStatContext
+): PlayerMatchStats {
+  const next: PlayerMatchStats = { ...playerMatchStats };
+
+  function get(key: string) {
+    return next[key] ? { ...next[key] } : emptyStatLine();
+  }
+
+  const { action, outcome, transition, shotResult, actors, possession } = ctx;
+
+  const isSuccess = outcome === "success" || outcome === "success_high";
+  const isFail    = outcome === "fail"    || outcome === "fail_high";
+
+  // ── 1. Goals, assists & GK concedes ────────────────────────────────────────
+  if (goalDetails) {
+    // Scorer
+    const scorerKey = `${goalDetails.scorerSide}:${goalDetails.scorerId}`;
+    const sc = get(scorerKey);
+    sc.goals += 1;
+    next[scorerKey] = sc;
+
+    // Assist
+    if (goalDetails.assistPlayerId !== null) {
+      const assistKey = `${goalDetails.scorerSide}:${goalDetails.assistPlayerId}`;
+      const as = get(assistKey);
+      as.assists += 1;
+      next[assistKey] = as;
+    }
+
+    // GK conceded
+    const gkSide: PossessionSide =
+      goalDetails.scorerSide === "user" ? "opponent" : "user";
+    const gkk = statGkKey(gkSide, actors);
+    const gkSt = get(gkk);
+    gkSt.goalsConceded += 1;
+    next[gkk] = gkSt;
+  }
+
+  // ── 2. Shots on target & GK saves ──────────────────────────────────────────
+  if (shotResult.happened && shotResult.outcome === "save") {
+    // Attacker — shot on target
+    const attKey = statCarrierKey(possession, actors);
+    const att = get(attKey);
+    att.shotsOnTarget += 1;
+    next[attKey] = att;
+
+    // GK — save
+    const defSide: PossessionSide = possession === "user" ? "opponent" : "user";
+    const gkk = statGkKey(defSide, actors);
+    const gkSt = get(gkk);
+    gkSt.saves += 1;
+    next[gkk] = gkSt;
+  }
+
+  // ── 3. Offensive actions (open play only — outcome is non-null) ─────────────
+  if (outcome !== null) {
+    // Dribble
+    if (action === "dribble") {
+      const key = statCarrierKey(possession, actors);
+      const st = get(key);
+      if (isSuccess) st.successfulDribbles += 1;
+      if (isFail)    st.failedDribbles     += 1;
+      next[key] = st;
+    }
+
+    // Cross
+    if (action === "cross" && isSuccess) {
+      const key = statCarrierKey(possession, actors);
+      const st = get(key);
+      st.crosses += 1;
+      next[key] = st;
+    }
+
+    // Key pass — pass that directly created a big chance
+    if (
+      isSuccess &&
+      transition?.createdBigChance &&
+      (action === "forward_pass" ||
+        action === "long_pass" ||
+        action === "side_pass")
+    ) {
+      const key = statCarrierKey(possession, actors);
+      const st = get(key);
+      st.keyPasses += 1;
+      next[key] = st;
+    }
+
+    // Big chance created — any action that set up a big chance
+    if (isSuccess && transition?.createdBigChance) {
+      const key = statCarrierKey(possession, actors);
+      const st = get(key);
+      st.bigChancesCreated += 1;
+      next[key] = st;
+    }
+
+    // Lost possession — offensive action failed and possession flipped
+    if (
+      isFail &&
+      transition !== null &&
+      transition.toPossession !== possession &&
+      (action === "dribble" ||
+        action === "sprint" ||
+        action === "shield" ||
+        action === "forward_pass" ||
+        action === "long_pass" ||
+        action === "side_pass" ||
+        action === "cross")
+    ) {
+      const key = statCarrierKey(possession, actors);
+      const st = get(key);
+      st.lostPossessions += 1;
+      next[key] = st;
+    }
+  }
+
+  // ── 4. Defensive actions ────────────────────────────────────────────────────
+  if (
+    outcome !== null &&
+    isSuccess &&
+    (action === "intercept" ||
+      action === "tackle" ||
+      action === "slide_tackle" ||
+      action === "block" ||
+      action === "shoulder_charge" ||
+      action === "emergency_clearance")
+  ) {
+    const key = statDefenderKey(possession, actors);
+    const st = get(key);
+    st.defensiveActions += 1;
+    next[key] = st;
+  }
+
+  return next;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Remaining private helpers (unchanged)
+// ─────────────────────────────────────────────────────────────────────────────
 
 function createEmptyShotResult(): ShotResult {
   return {
@@ -831,7 +1030,6 @@ function shouldForceNewBallCarrier(action: ActionType): boolean {
   );
 }
 
-// Substituir a função atual
 function pickNewBallCarrier(params: {
   team: MatchTeam;
   excludeId: number;
@@ -865,17 +1063,10 @@ function getPossessionPlayerId(context: DuelContext): number {
     : context.actors.opponentPlayer.id;
 }
 
-/**
- * Returns the player id of the side that WINS possession after this action.
- * For defensive actions that successfully recover the ball, this is the
- * defender (opposite of context.possession). For all other actions it is
- * the current ball carrier.
- */
 function getLastTouchPlayerAndSide(
   context: DuelContext,
   transition: EventTransition
 ): { playerId: number; side: PossessionSide } {
-  // Possession changed → the defensive player who won the ball gets credit.
   if (transition.toPossession !== context.possession) {
     const side = transition.toPossession;
     const playerId =
@@ -885,7 +1076,6 @@ function getLastTouchPlayerAndSide(
     return { playerId, side };
   }
 
-  // Possession stayed with the same side → the ball carrier touched it.
   return {
     playerId: getPossessionPlayerId(context),
     side: context.possession,
@@ -925,39 +1115,6 @@ function buildGoalDetails(params: {
   };
 }
 
-function applyGoalToPlayerMatchStats(
-  playerMatchStats: PlayerMatchStats,
-  goalDetails: GoalDetails | null
-): PlayerMatchStats {
-  if (!goalDetails) {
-    return playerMatchStats;
-  }
-
-  const nextStats: PlayerMatchStats = {
-    ...playerMatchStats,
-  };
-
-  const scorerKey = `${goalDetails.scorerSide}:${goalDetails.scorerId}`;
-  const scorerStats = nextStats[scorerKey] ?? { goals: 0, assists: 0 };
-
-  nextStats[scorerKey] = {
-    ...scorerStats,
-    goals: scorerStats.goals + 1,
-  };
-
-  if (goalDetails.assistPlayerId !== null) {
-    const assistKey = `${goalDetails.scorerSide}:${goalDetails.assistPlayerId}`;
-    const assistStats = nextStats[assistKey] ?? { goals: 0, assists: 0 };
-
-    nextStats[assistKey] = {
-      ...assistStats,
-      assists: assistStats.assists + 1,
-    };
-  }
-
-  return nextStats;
-}
-
 function resolveLastTouchAfterOpenPlay(params: {
   previousPlayerId: number | null;
   previousSide: PossessionSide | null;
@@ -970,20 +1127,14 @@ function resolveLastTouchAfterOpenPlay(params: {
 } {
   const { previousPlayerId, previousSide, context, transition, shotResult } = params;
 
-  // After a shot or when transitioning into a set piece, always clear lastTouch.
-  // The goal/assist has already been computed at this point, and the next
-  // sequence starts fresh (kickoff, penalty spot, etc.).
   if (shotResult.happened || transition.nextSituationType === "set_piece") {
     return { playerId: null, side: null };
   }
 
-  // Actions that don't produce a meaningful touch on the ball (e.g. duel
-  // failures that simply lose possession silently) keep the previous value.
   if (!shouldTrackLastTouchFromOpenPlay(context.action)) {
     return { playerId: previousPlayerId, side: previousSide };
   }
 
-  // Use the helper that is possession-change aware.
   return getLastTouchPlayerAndSide(context, transition);
 }
 
@@ -1039,9 +1190,6 @@ function shouldTrackLastTouchFromOpenPlay(action: ActionType): boolean {
     action === "shield" ||
     action === "clearance" ||
     action === "gk_clearance" ||
-    // Defensive actions: when these succeed they recover the ball — the
-    // defending player is the last to touch it and must be recorded with
-    // the correct side (transition.toPossession).
     action === "intercept" ||
     action === "tackle" ||
     action === "slide_tackle" ||

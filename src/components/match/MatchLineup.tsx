@@ -1,5 +1,6 @@
 import React from 'react';
 import type { PlayerMatchStats } from '../../match-engine/matchTypes';
+import { calculatePlayerRating, getRatingClass } from '../../match-engine/playerRating';
 import type { Player } from '../../types/PlayerTypes';
 import { getFlagUrl } from '../../utils/getFlagUrl';
 import './MatchLineup.css';
@@ -19,8 +20,6 @@ export const MatchLineup: React.FC<MatchLineupProps> = ({
   isOpponent = false,
   playerMatchStats,
 }) => {
-  // Key format must match what applyGoalToPlayerMatchStats writes:
-  // `"${side}:${playerId}"` — e.g. "user:12" or "opponent:12".
   const side = isOpponent ? "opponent" : "user";
 
   return (
@@ -34,6 +33,13 @@ export const MatchLineup: React.FC<MatchLineupProps> = ({
             player != null
               ? playerMatchStats?.[`${side}:${Number(player.id)}`]
               : undefined;
+
+          const rating =
+            stats && player
+              ? calculatePlayerRating(stats, positions[idx] ?? player.position ?? "CM")
+              : null;
+
+          const ratingClass = rating !== null ? getRatingClass(rating) : null;
 
           return (
             <div key={`${title}-${idx}`} className="lineup-item">
@@ -60,6 +66,12 @@ export const MatchLineup: React.FC<MatchLineupProps> = ({
                       className="lineup-badge__icon"
                     />
                     {stats.assists}
+                  </span>
+                ) : null}
+
+                {rating !== null && ratingClass !== null ? (
+                  <span className={`lineup-rating lineup-rating--${ratingClass}`}>
+                    {rating.toFixed(1)}
                   </span>
                 ) : null}
 

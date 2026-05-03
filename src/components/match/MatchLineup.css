@@ -133,3 +133,48 @@ white-space: nowrap;
   border-right: 1px solid #2d2a3d; /* Border levemente arroxeado também */
   overflow-y: auto;
 }
+
+/* Rating badge — número flutuante com cor de fundo por tier */
+.lineup-rating {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.6rem;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #0a0a0a;
+  flex-shrink: 0;
+}
+
+/* elite  ≥ 8.5 — gold */
+.lineup-rating--elite {
+  background-color: #f5c518;
+  color: #1a1100;
+}
+
+/* good   ≥ 7.0 — green */
+.lineup-rating--good {
+  background-color: #3ddc84;
+  color: #001a09;
+}
+
+/* average ≥ 6.0 — yellow */
+.lineup-rating--average {
+  background-color: #f0e040;
+  color: #1a1800;
+}
+
+/* poor   ≥ 5.0 — orange */
+.lineup-rating--poor {
+  background-color: #f0820d;
+  color: #1a0800;
+}
+
+/* bad    < 5.0  — red */
+.lineup-rating--bad {
+  background-color: #e03030;
+  color: #fff;
+}

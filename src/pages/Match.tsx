@@ -17,6 +17,7 @@ import PenModal from "../match-engine/interactive/user/PenModal";
 import OppCornerModal from "../match-engine/interactive/opponent/OppCornerModal";
 import OppFkModal from "../match-engine/interactive/opponent/OppFkModal";
 import OppPenModal from "../match-engine/interactive/opponent/OppPenModal";
+import MatchSummaryModal from "../match-engine/ui_ux/MatchSummaryModal";
 import {
   getMatchActionLabel,
   getMatchOutcomeLabel,
@@ -63,10 +64,6 @@ type MatchLocationState = {
   userSquad: SavedSquad;
 } | null;
 
-// lockedZone/lockedLane are populated from latestEntry.fromZone/fromLane,
-// which the engine writes from event.transition before advancing the situation.
-// They are therefore immune to React render-order races: the shot origin is
-// captured at engine resolution time, not at UI paint time.
 interface GoalVisualLock {
   active: boolean;
   scoredBy: PossessionSide | null;
@@ -517,8 +514,8 @@ export default function Match() {
   const latestGoal = matchState.lastGoal ?? null;
 
   useEffect(() => {
-  if (!latestEntry) return;
-}, [latestEntry]);
+    if (!latestEntry) return;
+  }, [latestEntry]);
 
   const [pendingSetPieceResolution, setPendingSetPieceResolution] =
     useState<InteractiveSetPieceResolutionInput | null>(null);
@@ -539,15 +536,15 @@ export default function Match() {
     scorerSide: null,
   });
 
+  const [showSummary, setShowSummary] = useState(false);
+
   const goalVisualTimeoutRef = useRef<number | null>(null);
   const goalModalTimeoutRef = useRef<number | null>(null);
+  const summaryTimeoutRef = useRef<number | null>(null);
   const handledGoalEventIdRef = useRef<string | null>(null);
   const handledGoalModalIdRef = useRef<string | null>(null);
   const processedHistoryCountRef = useRef(0);
   const setPieceEventCountRef = useRef(0);
-  // Tracks the id of the goal that is CURRENTLY allowed to open the modal.
-  // Reset to null on any non-goal entry so a pending timeout can detect that
-  // the entry it was scheduled for is no longer the active goal.
   const latestGoalModalIdRef = useRef<string | null>(null);
   const [eventLogEntries, setEventLogEntries] = useState<EventLogEntry[]>([]);
 
@@ -566,13 +563,28 @@ export default function Match() {
       if (goalModalTimeoutRef.current !== null) {
         window.clearTimeout(goalModalTimeoutRef.current);
       }
+
+      if (summaryTimeoutRef.current !== null) {
+        window.clearTimeout(summaryTimeoutRef.current);
+      }
     };
   }, []);
 
-  // fromZone/fromLane come from event.transition (engine-recorded before state
-  // advances) so this effect is immune to render-order races.
-  // scoredBy falls back to scorerSide so opponent goals are never missed when
-  // the engine populates one field but not the other.
+  // Match summary: opens 2 seconds after the match finishes
+  useEffect(() => {
+    if (!matchState.isFinished) return;
+
+    summaryTimeoutRef.current = window.setTimeout(() => {
+      setShowSummary(true);
+    }, 2000);
+
+    return () => {
+      if (summaryTimeoutRef.current !== null) {
+        window.clearTimeout(summaryTimeoutRef.current);
+      }
+    };
+  }, [matchState.isFinished]);
+
   useLayoutEffect(() => {
     if (!latestGoal) {
       if (goalVisualTimeoutRef.current !== null) {
@@ -609,8 +621,6 @@ export default function Match() {
 
   useEffect(() => {
     if (!latestGoal) {
-      // Reset the live-goal ref so any in-flight timeout finds a mismatch
-      // and aborts — this is the real stale-timeout guard.
       latestGoalModalIdRef.current = null;
 
       if (goalModalTimeoutRef.current !== null) {
@@ -618,8 +628,6 @@ export default function Match() {
         goalModalTimeoutRef.current = null;
       }
 
-      // Close any modal that may still be visible from a previous goal
-      // so it never persists into a non-goal event.
       setGoalModalState({
         isOpen: false,
         scorer: null,
@@ -650,8 +658,6 @@ export default function Match() {
     }
 
     goalModalTimeoutRef.current = window.setTimeout(() => {
-      // Check the ref — not a closure variable — so we always see the latest
-      // value even if React re-ran the effect while the timeout was pending.
       if (latestGoalModalIdRef.current !== goalKey) return;
 
       setGoalModalState({
@@ -764,16 +770,6 @@ export default function Match() {
           }),
         },
       ];
-
-    /* const duelInfo = entry.duelType
-      ? `${entry.attackerName ?? "Alguém"} vs ${defenderName} • ${
-          entry.duelType
-        }`
-      : null;
-
-    return duelInfo
-      ? `[${entry.minute}'] ${duelInfo} — ${entry.narration}`
-      : `[${entry.minute}'] ${entry.narration}`; */
     });
   }, [
     history,
@@ -1130,9 +1126,6 @@ export default function Match() {
     });
   }
 
-  // While the lock is active, MatchMap receives the engine-sourced shot origin
-  // (lockedZone/lockedLane) rather than the live matchState values, which may
-  // already reflect the post-goal kickoff transition.
   const mapZone = goalVisualLock.active
     ? goalVisualLock.lockedZone
     : matchState.zone;
@@ -1295,6 +1288,17 @@ export default function Match() {
             scorerSide: null,
           })
         }
+      />
+
+      <MatchSummaryModal
+        isOpen={showSummary}
+        userScore={score.user}
+        opponentScore={score.opponent}
+        opponentName={opponent.name}
+        playerMatchStats={matchState.playerMatchStats}
+        userPlayers={userPlayers}
+        opponentPlayers={opponentPlayers}
+        history={history}
       />
     </div>
   );

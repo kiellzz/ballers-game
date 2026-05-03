@@ -72,7 +72,7 @@ export type ActionType =
   | "block"
   | "shoulder_charge"
   | "emergency_clearance"
-  | "counterattack" 
+  | "counterattack"
   | "rush_save" // goalkeeper action in def_bigchance -> rush straight at the attacker
   | "wait" // goalkeeper action in def_bigchance -> wait for the shooter to finish
 
@@ -193,8 +193,44 @@ export interface MatchClock {
 }
 
 export interface PlayerMatchStatLine {
+  // ── Offensive ──────────────────────────────────────────────────────────────
   goals: number;
   assists: number;
+  keyPasses: number;           // pass that directly sets up a shot (createdBigChance)
+  bigChancesCreated: number;   // any action with createdBigChance && success
+  successfulDribbles: number;  // action=dribble && outcome=success|success_high
+  crosses: number;             // action=cross && outcome=success|success_high
+  shotsOnTarget: number;       // shot outcome=save (on target, saved by GK)
+
+  // ── Defensive ──────────────────────────────────────────────────────────────
+  defensiveActions: number;    // intercept/tackle/slide_tackle/block/shoulder_charge/emergency_clearance success
+  saves: number;               // GK only — shot outcome=save on their side
+  goalsConceded: number;       // GK only — goal scored against their side
+
+  // ── Negative ───────────────────────────────────────────────────────────────
+  failedDribbles: number;      // action=dribble && outcome=fail|fail_high
+  lostPossessions: number;     // offensive action failed and possession changed
+}
+
+/**
+ * Creates a zeroed-out stat line. Use this wherever a new entry is initialised
+ * in playerMatchStats instead of relying on partial object literals.
+ */
+export function emptyStatLine(): PlayerMatchStatLine {
+  return {
+    goals: 0,
+    assists: 0,
+    keyPasses: 0,
+    bigChancesCreated: 0,
+    successfulDribbles: 0,
+    crosses: 0,
+    shotsOnTarget: 0,
+    defensiveActions: 0,
+    saves: 0,
+    goalsConceded: 0,
+    failedDribbles: 0,
+    lostPossessions: 0,
+  };
 }
 
 /**
