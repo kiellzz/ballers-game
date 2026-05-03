@@ -282,6 +282,7 @@ git clone https://github.com/kiellzz/ballers-game.git
 cd ballers-game
 npm install
 npm run dev
+````
 
 App: http://localhost:5173
 
