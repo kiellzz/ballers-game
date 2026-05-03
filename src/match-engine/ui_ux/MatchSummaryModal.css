@@ -687,3 +687,30 @@
     animation: none !important;
   }
 }
+
+.summary-mvp__name {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  font-size: 12px; /* Tamanho equilibrado */
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  color: rgb(255, 255, 255);
+  max-width: 130px; /* Largura segura para não vazar do círculo de 142px */
+}
+
+/* O nome pode ser cortado com '...' se for muito grande */
+.mvp-text-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-shrink: 1; /* Permite que este elemento encolha */
+}
+
+
+.mvp-text-rating {
+  white-space: nowrap;
+  flex-shrink: 0; /* Impede que este elemento encolha, protegendo a nota */
+}

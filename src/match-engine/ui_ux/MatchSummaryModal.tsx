@@ -354,9 +354,12 @@ export default function MatchSummaryModal({
                   />
                 </div>
                 <div className="summary-mvp__name-bar">
-                  <span className="summary-mvp__name">
-                    {getDisplayName(mvpPlayer)}{mvpRating !== null ? ` (${mvpRating.toFixed(1)})` : ""}
-                  </span>
+                  <div className="summary-mvp__name">
+                    <span className="mvp-text-name">{getDisplayName(mvpPlayer)}</span>
+                    {mvpRating !== null && (
+                      <span className="mvp-text-rating">&nbsp;({mvpRating.toFixed(1)})</span>
+                    )}
+                  </div>
                 </div>
               </div>
               <p className="summary-mvp__label">MVP</p>
