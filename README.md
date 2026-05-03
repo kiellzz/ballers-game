@@ -282,11 +282,11 @@ git clone https://github.com/kiellzz/ballers-game.git
 cd ballers-game
 npm install
 npm run dev
-````
 
 App: http://localhost:5173
+````
 
-🗺 Roadmap
+### 🗺 Roadmap
  ⚔️ Interactive Match Engine
  🏆 Match Summary & MVP System
  📊 Player Rating System
@@ -295,7 +295,8 @@ App: http://localhost:5173
  🎙 Commentary system
  💾 Backend integration
  🎮 Draft Mode
-👨‍💻 Author
+ 
+### 👨‍💻 Author
 
 Developed by Ezequiel Borges
 
