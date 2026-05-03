@@ -1059,6 +1059,14 @@ function applyEventToPlayerMatchStats(
     next[atkKey] = atk;
   }
 
+   if (
+    setPieceType === "penalty" && shotResult.happened && shotResult.outcome !== "goal"
+  ) {
+    const atk = get(atkKey);
+    atk.penaltyMisses += 1;
+    next[atkKey] = atk;
+  }
+
   // ── 3. Open-play outcome tracking (outcome is non-null) ────────────────────
   if (outcome !== null) {
 

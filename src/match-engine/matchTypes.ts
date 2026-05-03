@@ -215,6 +215,7 @@ export interface PlayerMatchStatLine {
   // ── Negative ───────────────────────────────────────────────────────────────
   failedDribbles: number;      // action=dribble && outcome=fail|fail_high
   lostPossessions: number;     // offensive action failed and possession changed
+  penaltyMisses: number;       // penalty attempt that did not result in a goal
 
   // ── Granular action tracking for rating model ──────────────────────────────
   successfulActions: number;   // any open-play action with success|success_high
@@ -261,6 +262,7 @@ export function emptyStatLine(): PlayerMatchStatLine {
     teamGoalsScored: 0,
     failedDribbles: 0,
     lostPossessions: 0,
+    penaltyMisses: 0,
     successfulActions: 0,
     failedActions: 0,
     failedHighActions: 0,

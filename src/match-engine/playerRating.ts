@@ -47,6 +47,35 @@ function getPositionGroup(position: string): PositionGroup {
 //   • keyPass ATT          0.5  → 0.4
 //   • shotOnTarget ATT     0.4  → 0.3   (on-target shots are common for forwards)
 //   • pass weights         slight trim  (volume stat)
+//
+//
+// ATT DEFLATION PASS (latest)
+//   • goal             1.80 → 1.65
+//   • assist           1.40 → 1.20
+//   • keyPass          0.40 → 0.30  (stat de volume, stackava fácil)
+//   • bigChanceCreated 0.50 → 0.38  (stackava com keyPass)
+//   • shotOnTarget     0.30 → 0.22  (comum para atacantes)
+//   • successfulDribble 0.22 → 0.16
+//   • cross            0.20 → 0.14
+//   • pass             0.022 → 0.016
+//   • successfulAction 0.032 → 0.022 (stat de volume inflacionava nota base)
+//   • duelWin          0.15 → 0.12
+//   • shotAttempt      0.04 → 0.03
+//   • defensiveAction      0.35 → 0.45  (core stat for defenders, was under-rewarded)
+//   • successfulAction     0.038 → 0.050 (positive open-play actions valued more)
+//   • duelWin              0.18 → 0.24  (winning duels is central to defending)
+//   • duelLoss             -0.15 → -0.13 (slightly less punitive)
+//   • tackleWon            0.28 → 0.36
+//   • interception         0.24 → 0.32
+//   • block                0.22 → 0.30
+//   • clearance            0.14 → 0.18
+//   • cleanSheetDef        0.55 → 0.65
+//   • pass                 0.022 → 0.028 (routine positive contribution)
+//   • failedDribble        -0.10 → -0.08 (slightly less punitive)
+//   • lostPossession       -0.15 → -0.12
+//   • failedAction         -0.06 → -0.05
+//   • failedHighAction     -0.12 → -0.10
+//   • concededByDefense    -0.25 → -0.22
 // ─────────────────────────────────────────────────────────────────────────────
 
 interface RatingWeights {
@@ -75,6 +104,7 @@ interface RatingWeights {
   shotMiss: number;
   shotBlocked: number;
   bigChanceMiss: number;
+  penaltyMiss: number;
   tackleWon: number;
   interception: number;
   block: number;
@@ -121,7 +151,7 @@ const WEIGHTS: Record<PositionGroup, RatingWeights> = {
     shotMiss:           0,
     shotBlocked:        0,
     bigChanceMiss:      0,
-
+    penaltyMiss:       -0.80,
     // Defensive specifics
     tackleWon:          0.20,   // 0.25 → 0.20
     interception:       0.15,   // 0.20 → 0.15
@@ -139,45 +169,46 @@ const WEIGHTS: Record<PositionGroup, RatingWeights> = {
 
   // ── Defender ───────────────────────────────────────────────────────────────
   def: {
-    goal:               1.2,
-    assist:             0.9,
+    goal:               1.0,    // 1.2 → 1.0
+    assist:             0.8,    // 0.9 → 0.8
     keyPass:            0.20,   // 0.25 → 0.20
     bigChanceCreated:   0.28,   // 0.35 → 0.28
     successfulDribble:  0.08,   // 0.10 → 0.08
     cross:              0.12,   // 0.15 → 0.12
     shotOnTarget:       0.15,   // 0.20 → 0.15
-    pass:               0.022,  // 0.03 → 0.022
+    pass:               0.028,  // 0.022 → 0.028  ★ passe é contribuição positiva rotineira
 
     save:               0.0,
-    defensiveAction:    0.35,   // 0.30 → 0.35
+    defensiveAction:    0.45,   // 0.35 → 0.45  ★ stat central do defensor
     goalConceded:       0.0,
-    failedDribble:     -0.10,
-    lostPossession:    -0.15,
-    successfulAction:   0.038,  // 0.032 → 0.038
-    failedAction:      -0.06,
-    failedHighAction:  -0.12,
-    duelWin:            0.18,   // 0.15 → 0.18
-    duelLoss:          -0.15,
+    failedDribble:     -0.08,   // -0.10 → -0.08
+    lostPossession:    -0.12,   // -0.15 → -0.12
+    successfulAction:   0.050,  // 0.038 → 0.050  ★ ações positivas mais valorizadas
+    failedAction:      -0.05,   // -0.06 → -0.05
+    failedHighAction:  -0.10,   // -0.12 → -0.10
+    duelWin:            0.24,   // 0.18 → 0.24  ★ duelo ganho é core do defensor
+    duelLoss:          -0.13,   // -0.15 → -0.13
     shotAttempt:        0.04,
     shotMiss:          -0.10,
     shotBlocked:       -0.05,
     bigChanceMiss:     -0.20,
-    tackleWon:          0.28,   // 0.25 → 0.28
-    interception:       0.24,   // 0.20 → 0.24
-    block:              0.22,   // 0.20 → 0.22
-    clearance:          0.14,   // 0.12 → 0.14
-    concededByDefense: -0.25,   // -0.30 → -0.25
+    penaltyMiss:       -0.80,
+    tackleWon:          0.36,   // 0.28 → 0.36  ★
+    interception:       0.32,   // 0.24 → 0.32  ★
+    block:              0.30,   // 0.22 → 0.30  ★
+    clearance:          0.18,   // 0.14 → 0.18  ★
+    concededByDefense: -0.22,   // -0.25 → -0.22
     weakGoalConceded:   0,
     highSave:           0,
     penaltySave:        0,
     cleanSheetGk:       0,
-    cleanSheetDef:      0.55,   // 0.40 → 0.55
+    cleanSheetDef:      0.65,   // 0.55 → 0.65  ★ clean sheet mais recompensado
   },
 
   // ── Midfielder ─────────────────────────────────────────────────────────────
   mid: {
-    goal:               1.5,
-    assist:             1.2,
+    goal:               1.0,    // 1.5 → 1.0
+    assist:             0.8,    // 1.2 → 0.8
     keyPass:            0.35,   // 0.42 → 0.35
     bigChanceCreated:   0.42,   // 0.50 → 0.42
     successfulDribble:  0.15,   // 0.20 → 0.15
@@ -202,6 +233,7 @@ const WEIGHTS: Record<PositionGroup, RatingWeights> = {
     shotMiss:          -0.20,
     shotBlocked:       -0.15,
     bigChanceMiss:     -0.30,
+    penaltyMiss:       -0.80,
 
     tackleWon:          0.25,   // 0.30 → 0.25
     interception:       0.20,   // 0.25 → 0.20
@@ -218,14 +250,14 @@ const WEIGHTS: Record<PositionGroup, RatingWeights> = {
 
   // ── Attacker ───────────────────────────────────────────────────────────────
   att: {
-    goal:               1.80,   // 2.00 → 1.80
-    assist:             1.40,
-    keyPass:            0.40,   // 0.50 → 0.40
-    bigChanceCreated:   0.50,   // 0.68 → 0.50  ★ main change (was stacking with keyPass)
-    successfulDribble:  0.22,   // 0.30 → 0.22
-    cross:              0.20,   // 0.25 → 0.20
-    shotOnTarget:       0.30,   // 0.40 → 0.30
-    pass:               0.022,  // 0.03 → 0.022
+    goal:               1.0,    // 1.65 → 1.0
+    assist:             0.8,    // 1.20 → 0.8
+    keyPass:            0.30,   // 0.40 → 0.30  ★ stat de volume, stackava fácil
+    bigChanceCreated:   0.38,   // 0.50 → 0.38  ★ stackava com keyPass
+    successfulDribble:  0.16,   // 0.22 → 0.16
+    cross:              0.14,   // 0.20 → 0.14
+    shotOnTarget:       0.22,   // 0.30 → 0.22  ★ stat comum para atacantes
+    pass:               0.016,  // 0.022 → 0.016
 
     save:               0.0,
     defensiveAction:    0.08,   // 0.10 → 0.08
@@ -234,16 +266,17 @@ const WEIGHTS: Record<PositionGroup, RatingWeights> = {
     failedDribble:     -0.20,
     lostPossession:    -0.20,
 
-    successfulAction:   0.032,  // 0.045 → 0.032
+    successfulAction:   0.022,  // 0.032 → 0.022  ★ stat de volume inflacionava nota base
     failedAction:      -0.06,
     failedHighAction:  -0.12,
-    duelWin:            0.15,   // 0.20 → 0.15
-    duelLoss:          -0.15,   // -0.20 → -0.15
+    duelWin:            0.12,   // 0.15 → 0.12
+    duelLoss:          -0.15,
 
-    shotAttempt:        0.04,   // 0.05 → 0.04
+    shotAttempt:        0.03,   // 0.04 → 0.03
     shotMiss:          -0.30,
     shotBlocked:       -0.20,
     bigChanceMiss:     -0.60,
+    penaltyMiss:       -0.80,
 
     tackleWon:          0.25,   // 0.30 → 0.25
     interception:       0.20,   // 0.25 → 0.20
@@ -327,6 +360,7 @@ export function calculatePlayerRating(
     stats.shotsMissed        * w.shotMiss +
     stats.shotsBlocked       * w.shotBlocked +
     stats.bigChanceMisses    * w.bigChanceMiss +
+    (stats.penaltyMisses ?? 0) * w.penaltyMiss +
     stats.tacklesWon         * w.tackleWon +
     stats.interceptions      * w.interception +
     stats.blocks             * w.block +
@@ -348,11 +382,12 @@ function clamp(value: number, min: number, max: number): number {
 // Rating colour helper (for UI badges)
 // ─────────────────────────────────────────────────────────────────────────────
 
-export type RatingTier = "elite" | "good" | "average" | "poor" | "bad";
+export type RatingTier = "perfect" | "elite" | "good" | "average" | "poor" | "bad";
 
 /**
  * Maps a numeric rating to a display tier used for badge colouring.
  *
+ *  perfect ≥ 10.0 →  special (reserved for a flawless match)
  *  elite   ≥ 8.5  →  gold
  *  good    ≥ 7.0  →  green
  *  average ≥ 6.0  →  yellow
@@ -360,6 +395,7 @@ export type RatingTier = "elite" | "good" | "average" | "poor" | "bad";
  *  bad     < 5.0  →  red
  */
 export function getRatingTier(rating: number): RatingTier {
+  if (rating >= 10.0) return "perfect";
   if (rating >= 8.5) return "elite";
   if (rating >= 7.0) return "good";
   if (rating >= 6.0) return "average";

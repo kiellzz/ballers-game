@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { useMemo, useRef } from "react";
 import MatchModal from "../../components/match/MatchModal";
 import type { Player } from "../../types/PlayerTypes";
 import {
@@ -43,6 +44,7 @@ interface PlayerWithRating {
   player: Player;
   side: "user" | "opponent";
   rating: number;
+  goalContributions: number; // goals + assists
 }
 
 function buildPlayersWithRatings(
@@ -57,6 +59,7 @@ function buildPlayersWithRatings(
       player: p,
       side: "user",
       rating: calculatePlayerRating(line, p.position),
+      goalContributions: line.goals + line.assists,
     });
   }
   for (const p of opponentPlayers) {
@@ -65,53 +68,60 @@ function buildPlayersWithRatings(
       player: p,
       side: "opponent",
       rating: calculatePlayerRating(line, p.position),
+      goalContributions: line.goals + line.assists,
     });
   }
   return rows;
 }
 
-function pickRandom<T>(items: T[]): T {
-  return items[Math.floor(Math.random() * items.length)]!;
+/**
+ * Deterministic seed from player id + rating, so "random" tie-break is
+ * stable across re-renders without needing external state.
+ */
+function seededPick<T extends { player: Player }>(items: T[]): T {
+  // Use the sum of all candidate ids as a stable seed — same candidates
+  // always produce the same winner.
+  const seed = items.reduce((acc, c) => acc + c.player.id, 0);
+  return items[seed % items.length]!;
 }
 
 /**
- * Highest match rating wins. Tie-break: non-draw → prefer winning side if any
- * tied player is on that side (then random among them); else random among all
- * tied. Draw → random among tied.
+ * MVP selection:
+ *  1. Highest rating wins.
+ *  2. Tie → most goal contributions (goals + assists).
+ *  3. Still tied → non-draw: prefer winning side; draw: stable deterministic pick.
+ *  4. Stable pick is seeded from candidate ids — never changes on re-render.
  */
 function getMatchMVP(
   players: PlayerWithRating[],
   result: MatchResult
 ): PlayerWithRating | null {
-  if (players.length === 0) {
-    return null;
-  }
+  if (players.length === 0) return null;
 
   const maxRating = Math.max(...players.map((p) => p.rating));
-  const candidates = players.filter((p) => p.rating === maxRating);
+  let candidates = players.filter((p) => p.rating === maxRating);
 
-  if (candidates.length === 1) {
-    return candidates[0]!;
+  if (candidates.length === 1) return candidates[0]!;
+
+  // Tie-break 1: most goal contributions
+  const maxContributions = Math.max(...candidates.map((c) => c.goalContributions));
+  candidates = candidates.filter((c) => c.goalContributions === maxContributions);
+
+  if (candidates.length === 1) return candidates[0]!;
+
+  // Tie-break 2: prefer winning side (non-draw only)
+  if (result !== "draw") {
+    const winningSide: "user" | "opponent" = result === "win" ? "user" : "opponent";
+    const fromWinner = candidates.filter((c) => c.side === winningSide);
+    if (fromWinner.length > 0) candidates = fromWinner;
   }
 
-  if (result === "draw") {
-    return pickRandom(candidates);
-  }
-
-  const winningSide: "user" | "opponent" =
-    result === "win" ? "user" : "opponent";
-  const fromWinner = candidates.filter((c) => c.side === winningSide);
-
-  if (fromWinner.length > 0) {
-    return pickRandom(fromWinner);
-  }
-
-  return pickRandom(candidates);
+  // Tie-break 3: stable deterministic pick (same candidates → same winner always)
+  return seededPick(candidates);
 }
 
 /**
  * Builds goal entries for one side from match history.
- * Now uses assisterName directly from history entries instead of heuristic matching.
  */
 function buildGoalEntries(
   side: PossessionSide,
@@ -224,7 +234,6 @@ function GoalList({
           variants={variants}
         >
           <div className="summary-goal-row">
-            {/* Minuto — lado esquerdo para user, direito para opponent */}
             {!isOpp && (
               <span className="summary-goal-minute">{entry.minute}'</span>
             )}
@@ -278,19 +287,30 @@ export default function MatchSummaryModal({
   const result = getResult(userScore, opponentScore);
   const config = getResultConfig(result);
 
-  const userGoals = buildGoalEntries(
-    "user",
-    history
-  );
-  const opponentGoals = buildGoalEntries(
-    "opponent",
-    history
+  const userGoals = buildGoalEntries("user", history);
+  const opponentGoals = buildGoalEntries("opponent", history);
+
+  // Build ratings once. useMemo keeps this stable as long as stats don't change.
+  const playersWithRatings = useMemo(
+    () => buildPlayersWithRatings(userPlayers, opponentPlayers, playerMatchStats),
+    // playerMatchStats is a new object reference every render in some setups,
+    // so we stringify it as a stable cache key.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [userPlayers, opponentPlayers, JSON.stringify(playerMatchStats)]
   );
 
-  const mvpPick = getMatchMVP(
-    buildPlayersWithRatings(userPlayers, opponentPlayers, playerMatchStats),
-    result
-  );
+  // MVP is computed once when the modal first opens and pinned in a ref so it
+  // never changes across re-renders or open/close cycles.
+  // We use a separate "locked" flag so the pick only happens after isOpen=true,
+  // guaranteeing playerMatchStats is fully populated with final match data.
+  const mvpRef = useRef<PlayerWithRating | null>(null);
+  const mvpLockedRef = useRef(false);
+  if (isOpen && !mvpLockedRef.current) {
+    mvpRef.current = getMatchMVP(playersWithRatings, result);
+    mvpLockedRef.current = true;
+  }
+  const mvpPick = mvpRef.current;
+
   const mvpPlayer = mvpPick?.player ?? null;
   const mvpSide = mvpPick?.side ?? null;
   const mvpRating = mvpPick?.rating ?? null;
