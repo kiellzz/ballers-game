@@ -31,6 +31,7 @@ import type {
   MatchTeam,
   PlayerMatchStats,
   PossessionSide,
+  SetPieceType,
   ShotResult,
   Zone,
 } from "./matchTypes";
@@ -66,6 +67,27 @@ export function createInitialMatchState(
   params: CreateInitialMatchStateParams
 ): MatchState {
   const { userTeam, opponentTeam, random = Math.random } = params;
+  const initialPlayerMatchStats: PlayerMatchStats = {};
+
+  for (const player of userTeam.starters) {
+    const key = `user:${player.id}`;
+    const st = emptyStatLine();
+    const pos = player.position.toLowerCase();
+    if (pos === "gk" || pos === "cb" || pos === "lb" || pos === "rb") {
+      st.cleanSheetBonusEligible = 1;
+    }
+    initialPlayerMatchStats[key] = st;
+  }
+
+  for (const player of opponentTeam.starters) {
+    const key = `opponent:${player.id}`;
+    const st = emptyStatLine();
+    const pos = player.position.toLowerCase();
+    if (pos === "gk" || pos === "cb" || pos === "lb" || pos === "rb") {
+      st.cleanSheetBonusEligible = 1;
+    }
+    initialPlayerMatchStats[key] = st;
+  }
 
   const currentSituation = createSituation({
     zone: "def_mid",
@@ -98,7 +120,7 @@ export function createInitialMatchState(
     interactiveSetPiece: null,
     lastTouchPlayerId: null,
     lastTouchSide: null,
-    playerMatchStats: {},
+    playerMatchStats: initialPlayerMatchStats,
     lastGoal: null,
   };
 }
@@ -289,6 +311,8 @@ export function runMatchStep(params: RunMatchStepParams): MatchState {
       shotResult,
       actors: duelContext.actors,
       possession: duelContext.possession,
+      isBigChance: state.currentSituation.isBigChance,
+      setPieceType: duelContext.setPieceType ?? null,
     }
   );
 
@@ -679,6 +703,8 @@ const setPieceEvent: MatchEvent = {
       shotResult: resolution.shotResult,
       actors: setPieceContext?.actors ?? state.currentSituation.actors,
       possession: fromPossession,
+      isBigChance: false,
+      setPieceType: resolution.setPieceType,
     }
   );
 
@@ -830,9 +856,31 @@ interface EventStatContext {
   shotResult: ShotResult;
   actors: MatchActors;
   possession: PossessionSide;
+  isBigChance?: boolean;
+  setPieceType?: SetPieceType | null;
 }
 
-function statCarrierKey(possession: PossessionSide, actors: MatchActors): string {
+// ─── Key helpers ──────────────────────────────────────────────────────────────
+//
+// All attribution is derived from `possession` (who has the ball), never from
+// the literal "user" or "opponent" label. This ensures full symmetry: the same
+// action by the opponent awards stats to the opponent in exactly the same way
+// the same action by the user awards stats to the user.
+//
+// attackerKey  → the player currently carrying the ball (in possession)
+// defenderKey  → the player on the opposing side (not in possession)
+// attackerSide → the PossessionSide that is attacking
+// defenderSide → the PossessionSide that is defending
+
+function attackerSide(possession: PossessionSide): PossessionSide {
+  return possession;
+}
+
+function defenderSide(possession: PossessionSide): PossessionSide {
+  return possession === "user" ? "opponent" : "user";
+}
+
+function attackerKey(possession: PossessionSide, actors: MatchActors): string {
   const id =
     possession === "user"
       ? actors.userPlayer.id
@@ -840,13 +888,13 @@ function statCarrierKey(possession: PossessionSide, actors: MatchActors): string
   return `${possession}:${id}`;
 }
 
-function statDefenderKey(possession: PossessionSide, actors: MatchActors): string {
-  const defSide: PossessionSide = possession === "user" ? "opponent" : "user";
+function defenderKey(possession: PossessionSide, actors: MatchActors): string {
+  const side = defenderSide(possession);
   const id =
-    defSide === "user"
+    side === "user"
       ? actors.userPlayer.id
       : actors.opponentPlayer.id;
-  return `${defSide}:${id}`;
+  return `${side}:${id}`;
 }
 
 function statGkKey(side: PossessionSide, actors: MatchActors): string {
@@ -855,9 +903,12 @@ function statGkKey(side: PossessionSide, actors: MatchActors): string {
 }
 
 /**
- * Replaces the old applyGoalToPlayerMatchStats.
- * Tracks goals, assists, saves, defensive actions, dribbles,
- * crosses, key passes, big chances, lost possessions, and GK concedes.
+ * Applies all per-event stat changes to playerMatchStats.
+ *
+ * INVARIANT: every reward/penalty is derived from `possession` (who has the
+ * ball), never from whether a side is literally "user" or "opponent".
+ * This guarantees full symmetry — opponent actions are scored identically to
+ * equivalent user actions.
  */
 function applyEventToPlayerMatchStats(
   playerMatchStats: PlayerMatchStats,
@@ -870,12 +921,53 @@ function applyEventToPlayerMatchStats(
     return next[key] ? { ...next[key] } : emptyStatLine();
   }
 
-  const { action, outcome, transition, shotResult, actors, possession } = ctx;
+  const {
+    action,
+    outcome,
+    transition,
+    shotResult,
+    actors,
+    possession,
+    isBigChance = false,
+    setPieceType = null,
+  } = ctx;
+
+  // Convenience: who is acting with the ball vs who is defending
+  const atkKey  = attackerKey(possession, actors);
+  const defKey  = defenderKey(possession, actors);
+  const atkSide = attackerSide(possession);
+  const defSide = defenderSide(possession);
 
   const isSuccess = outcome === "success" || outcome === "success_high";
   const isFail    = outcome === "fail"    || outcome === "fail_high";
 
-  // ── 1. Goals, assists & GK concedes ────────────────────────────────────────
+  // ── 0. Mark clean-sheet eligible roles (GK + back line) ────────────────────
+  // Done unconditionally every step so late-joined players are captured.
+  {
+    const userGKKey = statGkKey("user", actors);
+    const oppGKKey  = statGkKey("opponent", actors);
+    const ugk = get(userGKKey);
+    const ogk = get(oppGKKey);
+    ugk.cleanSheetBonusEligible = 1;
+    ogk.cleanSheetBonusEligible = 1;
+    next[userGKKey] = ugk;
+    next[oppGKKey]  = ogk;
+
+    const userPos = actors.userPlayer.position.toLowerCase();
+    const oppPos  = actors.opponentPlayer.position.toLowerCase();
+    if (["cb", "lb", "rb"].includes(userPos)) {
+      const st = get(`user:${actors.userPlayer.id}`);
+      st.cleanSheetBonusEligible = 1;
+      next[`user:${actors.userPlayer.id}`] = st;
+    }
+    if (["cb", "lb", "rb"].includes(oppPos)) {
+      const st = get(`opponent:${actors.opponentPlayer.id}`);
+      st.cleanSheetBonusEligible = 1;
+      next[`opponent:${actors.opponentPlayer.id}`] = st;
+    }
+  }
+
+  // ── 1. Goals, assists & GK/defense conceded tracking ───────────────────────
   if (goalDetails) {
     // Scorer
     const scorerKey = `${goalDetails.scorerSide}:${goalDetails.scorerId}`;
@@ -891,48 +983,146 @@ function applyEventToPlayerMatchStats(
       next[assistKey] = as;
     }
 
-    // GK conceded
-    const gkSide: PossessionSide =
+    // GK on the conceding side
+    const concedingSide: PossessionSide =
       goalDetails.scorerSide === "user" ? "opponent" : "user";
-    const gkk = statGkKey(gkSide, actors);
-    const gkSt = get(gkk);
+    const gkk   = statGkKey(concedingSide, actors);
+    const gkSt  = get(gkk);
     gkSt.goalsConceded += 1;
+    if (action === "long_shot") {
+      gkSt.weakGoalsConceded += 1;
+    }
     next[gkk] = gkSt;
+
+    // Team-wide conceded tracking for every player on the conceding side.
+    // concededByDefense is applied only to back-line players (cleanSheetBonusEligible)
+    // and NOT to the GK (already tracked separately above).
+    for (const key of Object.keys(next)) {
+      if (!key.startsWith(`${concedingSide}:`)) continue;
+      const st = get(key);
+      st.teamGoalsConceded = (st.teamGoalsConceded ?? 0) + 1;
+      if (key !== gkk && st.cleanSheetBonusEligible > 0) {
+        st.concededByDefense += 1;
+      }
+      next[key] = st;
+    }
+
+    // Team-wide scored tracking for every player on the scoring side.
+    for (const key of Object.keys(next)) {
+      if (!key.startsWith(`${goalDetails.scorerSide}:`)) continue;
+      const st = get(key);
+      st.teamGoalsScored = (st.teamGoalsScored ?? 0) + 1;
+      next[key] = st;
+    }
   }
 
   // ── 2. Shots on target & GK saves ──────────────────────────────────────────
   if (shotResult.happened && shotResult.outcome === "save") {
-    // Attacker — shot on target
-    const attKey = statCarrierKey(possession, actors);
-    const att = get(attKey);
-    att.shotsOnTarget += 1;
-    next[attKey] = att;
+    // Attacker got a shot on target
+    const atk = get(atkKey);
+    atk.shotsOnTarget += 1;
+    next[atkKey] = atk;
 
-    // GK — save
-    const defSide: PossessionSide = possession === "user" ? "opponent" : "user";
-    const gkk = statGkKey(defSide, actors);
+    // GK on the defending side makes the save
+    const gkk  = statGkKey(defSide, actors);
     const gkSt = get(gkk);
     gkSt.saves += 1;
+    if (outcome === "success_high") {
+      gkSt.highSaves += 1;
+    }
+    if (setPieceType === "penalty") {
+      gkSt.penaltySaves += 1;
+    }
     next[gkk] = gkSt;
   }
 
-  // ── 3. Offensive actions (open play only — outcome is non-null) ─────────────
+  // Shot attempts (misses / blocks) — always attributed to the attacker
+  if (action === "long_shot" || action === "finish" || action === "header") {
+    const atk = get(atkKey);
+    const isRealBigChance = transition?.createdBigChance ?? isBigChance;
+    atk.shotAttempts += 1;
+
+    if (shotResult.happened && (shotResult.outcome === "miss" || shotResult.outcome === "post")) {
+      atk.shotsMissed += 1;
+      if (isRealBigChance) {
+        atk.bigChanceMisses += 1;
+      }
+    }
+
+    if (shotResult.happened && shotResult.outcome === "blocked") {
+      atk.shotsBlocked += 1;
+      if (isRealBigChance) {
+        atk.bigChanceMisses += 1;
+      }
+    }
+
+    next[atkKey] = atk;
+  }
+
+  // ── 3. Open-play outcome tracking (outcome is non-null) ────────────────────
   if (outcome !== null) {
+
+    // ── 3a. Volume action counters (attacker perspective) ──────────────────
+    {
+      const atk = get(atkKey);
+      if (isSuccess) {
+        atk.successfulActions += 1;
+      } else if (outcome === "fail_high") {
+        atk.failedHighActions += 1;
+      } else {
+        atk.failedActions += 1;
+      }
+      next[atkKey] = atk;
+    }
+
+    // ── 3b. Duel result: attacker vs defender ──────────────────────────────
+    // success → attacker wins the duel, defender loses
+    // fail    → attacker loses the duel, defender wins
+    if (isSuccess) {
+      const atk = get(atkKey);
+      const def = get(defKey);
+      atk.duelWins   += 1;
+      def.duelLosses += 1;
+      next[atkKey] = atk;
+      next[defKey] = def;
+    }
+
+    if (isFail) {
+      const atk = get(atkKey);
+      const def = get(defKey);
+      atk.duelLosses += 1;
+      def.duelWins   += 1;
+      next[atkKey] = atk;
+      next[defKey] = def;
+    }
+
+    // ── 3c. Offensive skill actions (always attacker) ─────────────────────
+
     // Dribble
     if (action === "dribble") {
-      const key = statCarrierKey(possession, actors);
-      const st = get(key);
-      if (isSuccess) st.successfulDribbles += 1;
-      if (isFail)    st.failedDribbles     += 1;
-      next[key] = st;
+      const atk = get(atkKey);
+      if (isSuccess) atk.successfulDribbles += 1;
+      if (isFail)    atk.failedDribbles     += 1;
+      next[atkKey] = atk;
     }
 
     // Cross
     if (action === "cross" && isSuccess) {
-      const key = statCarrierKey(possession, actors);
-      const st = get(key);
-      st.crosses += 1;
-      next[key] = st;
+      const atk = get(atkKey);
+      atk.crosses += 1;
+      next[atkKey] = atk;
+    }
+
+    // Successful passes
+    if (
+      isSuccess &&
+      (action === "side_pass" ||
+        action === "forward_pass" ||
+        action === "long_pass")
+    ) {
+      const atk = get(atkKey);
+      atk.successfulPasses = (atk.successfulPasses ?? 0) + 1;
+      next[atkKey] = atk;
     }
 
     // Key pass — pass that directly created a big chance
@@ -943,21 +1133,19 @@ function applyEventToPlayerMatchStats(
         action === "long_pass" ||
         action === "side_pass")
     ) {
-      const key = statCarrierKey(possession, actors);
-      const st = get(key);
-      st.keyPasses += 1;
-      next[key] = st;
+      const atk = get(atkKey);
+      atk.keyPasses += 1;
+      next[atkKey] = atk;
     }
 
     // Big chance created — any action that set up a big chance
     if (isSuccess && transition?.createdBigChance) {
-      const key = statCarrierKey(possession, actors);
-      const st = get(key);
-      st.bigChancesCreated += 1;
-      next[key] = st;
+      const atk = get(atkKey);
+      atk.bigChancesCreated += 1;
+      next[atkKey] = atk;
     }
 
-    // Lost possession — offensive action failed and possession flipped
+    // Lost possession — attacker failed and ball changed hands
     if (
       isFail &&
       transition !== null &&
@@ -970,28 +1158,53 @@ function applyEventToPlayerMatchStats(
         action === "side_pass" ||
         action === "cross")
     ) {
-      const key = statCarrierKey(possession, actors);
-      const st = get(key);
-      st.lostPossessions += 1;
-      next[key] = st;
+      const atk = get(atkKey);
+      atk.lostPossessions += 1;
+      next[atkKey] = atk;
     }
-  }
 
-  // ── 4. Defensive actions ────────────────────────────────────────────────────
-  if (
-    outcome !== null &&
-    isSuccess &&
-    (action === "intercept" ||
-      action === "tackle" ||
-      action === "slide_tackle" ||
-      action === "block" ||
-      action === "shoulder_charge" ||
-      action === "emergency_clearance")
-  ) {
-    const key = statDefenderKey(possession, actors);
-    const st = get(key);
-    st.defensiveActions += 1;
-    next[key] = st;
+    // ── 3d. Defensive skill actions (always defender) ─────────────────────
+    //
+    // Defensive actions are performed by the player who is NOT in possession.
+    // When possession === "user", the defender is the opponent player in actors,
+    // and vice-versa. defKey already resolves this correctly.
+    //
+    // Note: for actions like "intercept", "tackle", etc. the engine assigns
+    // `possession` to the side that *initiated* the action (i.e. the defender
+    // who wins the ball), so at the point this function is called the
+    // possession label matches the acting defender. We therefore use atkKey
+    // for the acting defender and defKey for the attacker they stopped.
+    //
+    // To avoid confusion we use an explicit `actingDefKey` derived solely from
+    // whether the current action is a defensive one.
+
+    if (
+      isSuccess &&
+      (action === "intercept" ||
+        action === "tackle" ||
+        action === "slide_tackle" ||
+        action === "block" ||
+        action === "shoulder_charge" ||
+        action === "emergency_clearance" ||
+        action === "clearance" ||
+        action === "gk_clearance")
+    ) {
+      // For defensive actions the "attacker" in actors is actually the
+      // defending player who won the duel. atkKey is correct here.
+      const def = get(atkKey);
+      def.defensiveActions += 1;
+      if (action === "tackle" || action === "slide_tackle") def.tacklesWon     += 1;
+      if (action === "intercept")                           def.interceptions  += 1;
+      if (action === "block")                               def.blocks         += 1;
+      if (
+        action === "clearance" ||
+        action === "emergency_clearance" ||
+        action === "gk_clearance"
+      ) {
+        def.clearances += 1;
+      }
+      next[atkKey] = def;
+    }
   }
 
   return next;

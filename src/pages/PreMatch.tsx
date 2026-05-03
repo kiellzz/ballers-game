@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { Player } from '../types/PlayerTypes';
 import { FORMATIONS } from '../utils/formations';
 import type { FormationKey } from '../utils/formations';
-import { MOCK_OPPONENTS } from '../opponents/opponents';
+import { MOCK_OPPONENTS, generateOpponents } from '../opponents/opponents';
 import type { OpponentTeam } from '../opponents/opponents';
 import { getFlagUrl } from '../utils/getFlagUrl';
 import { OpponentLineup } from '../components/prematch/OpponentLineup';
@@ -19,7 +19,11 @@ interface SavedSquad {
 export default function PreMatch() {
   const navigate = useNavigate();
   const [mySquad, setMySquad] = useState<SavedSquad | null>(null);
+  const [opponents, setOpponents] = useState<OpponentTeam[]>(MOCK_OPPONENTS);
   const [selectedOpponent, setSelectedOpponent] = useState<OpponentTeam | null>(null);
+  const [rerollKey, setRerollKey] = useState(0);
+  const [isSpinning, setIsSpinning] = useState(false);
+  const spinTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const saved = localStorage.getItem('ballers_active_squad');
@@ -35,11 +39,26 @@ export default function PreMatch() {
     }
   }, [navigate]);
 
+  useEffect(() => {
+    return () => {
+      if (spinTimeoutRef.current) clearTimeout(spinTimeoutRef.current);
+    };
+  }, []);
+
   const teamRating = useMemo(() => {
     if (!mySquad || !mySquad.pitch) return 0;
     const total = mySquad.pitch.reduce((acc: number, p: Player | null) => acc + (p?.overall || 0), 0);
     return Math.floor(total / 11);
   }, [mySquad]);
+
+  const handleReroll = () => {
+    setIsSpinning(true);
+    setSelectedOpponent(null);
+    setOpponents(generateOpponents());
+    setRerollKey(k => k + 1);
+
+    spinTimeoutRef.current = setTimeout(() => setIsSpinning(false), 600);
+  };
 
   const handleStartMatch = () => {
     if (!selectedOpponent || !mySquad) return;
@@ -127,17 +146,30 @@ export default function PreMatch() {
             </h1>
           </div>
 
+          <div className="prematch-reroll-wrapper">
+            <button
+              className={`btn-reroll${isSpinning ? ' is-spinning' : ''}`}
+              onClick={handleReroll}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M1 4v6h6M23 20v-6h-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              Reroll Teams
+            </button>
+          </div>
+
           <div className="opponent-list">
-            {MOCK_OPPONENTS.map((opp: OpponentTeam, idx: number) => {
+            {opponents.map((opp: OpponentTeam, idx: number) => {
               const isSelected = selectedOpponent?.id === opp.id;
 
               return (
                 <button
-                  key={opp.id}
-                  className={`btn-opponent ${isSelected ? 'btn-opponent--selected' : ''}`}
+                  key={`${rerollKey}-${opp.id}`}
+                  className={`btn-opponent reroll-enter${isSelected ? ' btn-opponent--selected' : ''}`}
                   onClick={() => setSelectedOpponent(opp)}
                   data-testid={`opponent-button-${idx}`}
-                  style={{ '--animation-delay': `${idx * 0.1}s` } as React.CSSProperties}
+                  style={{ '--animation-delay': `${idx * 0.08}s` } as React.CSSProperties}
                 >
                   <div className="btn-opponent__glow"></div>
                   <div className="btn-opponent__shine"></div>

@@ -1,5 +1,5 @@
 import React from 'react';
-import type { PlayerMatchStats } from '../../match-engine/matchTypes';
+import { emptyStatLine, type PlayerMatchStats } from '../../match-engine/matchTypes';
 import { calculatePlayerRating, getRatingClass } from '../../match-engine/playerRating';
 import type { Player } from '../../types/PlayerTypes';
 import { getFlagUrl } from '../../utils/getFlagUrl';
@@ -35,8 +35,11 @@ export const MatchLineup: React.FC<MatchLineupProps> = ({
               : undefined;
 
           const rating =
-            stats && player
-              ? calculatePlayerRating(stats, positions[idx] ?? player.position ?? "CM")
+            player
+              ? calculatePlayerRating(
+                  stats ?? emptyStatLine(),
+                  positions[idx] ?? player.position ?? "CM"
+                )
               : null;
 
           const ratingClass = rating !== null ? getRatingClass(rating) : null;

@@ -21,6 +21,7 @@ interface GoalEntry {
 
 interface MatchSummaryModalProps {
   isOpen: boolean;
+  onViewDetails?: () => void;
   userScore: number;
   opponentScore: number;
   opponentName: string;
@@ -264,6 +265,7 @@ function GoalList({
 
 export default function MatchSummaryModal({
   isOpen,
+  onViewDetails,
   userScore,
   opponentScore,
   opponentName,
@@ -291,6 +293,7 @@ export default function MatchSummaryModal({
   );
   const mvpPlayer = mvpPick?.player ?? null;
   const mvpSide = mvpPick?.side ?? null;
+  const mvpRating = mvpPick?.rating ?? null;
 
   return (
     <MatchModal
@@ -332,7 +335,7 @@ export default function MatchSummaryModal({
                 </div>
                 <div className="summary-mvp__name-bar">
                   <span className="summary-mvp__name">
-                    {getDisplayName(mvpPlayer)}
+                    {getDisplayName(mvpPlayer)}{mvpRating !== null ? ` (${mvpRating.toFixed(1)})` : ""}
                   </span>
                 </div>
               </div>
@@ -349,6 +352,15 @@ export default function MatchSummaryModal({
           autoFocus
         >
           Continue
+        </button>
+      }
+      secondaryAction={
+        <button
+          type="button"
+          className="summary-btn-details"
+          onClick={onViewDetails}
+        >
+          View match details
         </button>
       }
     >

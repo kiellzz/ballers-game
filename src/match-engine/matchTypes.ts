@@ -201,15 +201,40 @@ export interface PlayerMatchStatLine {
   successfulDribbles: number;  // action=dribble && outcome=success|success_high
   crosses: number;             // action=cross && outcome=success|success_high
   shotsOnTarget: number;       // shot outcome=save (on target, saved by GK)
+  successfulPasses?: number;   // side/forward/long pass with success
 
   // ── Defensive ──────────────────────────────────────────────────────────────
   defensiveActions: number;    // intercept/tackle/slide_tackle/block/shoulder_charge/emergency_clearance success
   saves: number;               // GK only — shot outcome=save on their side
+  highSaves: number;           // GK only — save tied to success_high outcome proxy
+  penaltySaves: number;        // GK only — save during penalty resolution
   goalsConceded: number;       // GK only — goal scored against their side
+  teamGoalsConceded?: number;  // team-level conceded goals for clean-sheet logic
 
   // ── Negative ───────────────────────────────────────────────────────────────
   failedDribbles: number;      // action=dribble && outcome=fail|fail_high
   lostPossessions: number;     // offensive action failed and possession changed
+
+  // ── Granular action tracking for rating model ──────────────────────────────
+  successfulActions: number;   // any open-play action with success|success_high
+  failedActions: number;       // any open-play action with fail
+  failedHighActions: number;   // any open-play action with fail_high
+  duelWins: number;            // defender wins duel when attacker fails
+  duelLosses: number;          // attacker loses duel on fail/fail_high
+
+  shotAttempts: number;        // long_shot/finish/header attempts
+  shotsMissed: number;         // shot outcome=miss|post
+  shotsBlocked: number;        // shot outcome=blocked
+  bigChanceMisses: number;     // missed high-quality chance proxy (finish/header not goal)
+
+  tacklesWon: number;          // tackle/slide_tackle success
+  interceptions: number;       // intercept success
+  blocks: number;              // block success
+  clearances: number;          // clearance/emergency_clearance/gk_clearance success
+
+  concededByDefense: number;   // goals conceded while player is in defensive line
+  weakGoalsConceded: number;   // GK only; long-shot goals as low-xG proxy
+  cleanSheetBonusEligible: number; // 1 if player role can receive clean sheet bonus
 }
 
 /**
@@ -225,11 +250,31 @@ export function emptyStatLine(): PlayerMatchStatLine {
     successfulDribbles: 0,
     crosses: 0,
     shotsOnTarget: 0,
+    successfulPasses: 0,
     defensiveActions: 0,
     saves: 0,
+    highSaves: 0,
+    penaltySaves: 0,
     goalsConceded: 0,
+    teamGoalsConceded: 0,
     failedDribbles: 0,
     lostPossessions: 0,
+    successfulActions: 0,
+    failedActions: 0,
+    failedHighActions: 0,
+    duelWins: 0,
+    duelLosses: 0,
+    shotAttempts: 0,
+    shotsMissed: 0,
+    shotsBlocked: 0,
+    bigChanceMisses: 0,
+    tacklesWon: 0,
+    interceptions: 0,
+    blocks: 0,
+    clearances: 0,
+    concededByDefense: 0,
+    weakGoalsConceded: 0,
+    cleanSheetBonusEligible: 0,
   };
 }
 

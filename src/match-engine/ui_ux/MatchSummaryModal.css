@@ -612,6 +612,33 @@
   filter: brightness(0.95);
 }
 
+.summary-btn-details {
+  appearance: none;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  cursor: pointer;
+  min-width: 180px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-size: 14px;
+  color: rgba(241, 245, 249, 0.95);
+  padding: 14px 30px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.55);
+  transition: all 0.25s ease;
+}
+
+.summary-btn-details:hover {
+  border-color: rgba(147, 197, 253, 0.65);
+  color: #dbeafe;
+  transform: translateY(-2px);
+}
+
+.summary-btn-details:focus-visible {
+  outline: 2px solid rgba(147, 197, 253, 0.85);
+  outline-offset: 2px;
+}
+
 .summary-badge--win  { background: linear-gradient(135deg, #3b8bff, #1f5ed1); }
 .summary-badge--win:hover  { box-shadow: 0 16px 32px rgba(56, 132, 255, 0.38), 0 10px 24px rgba(0,0,0,0.28); }
 .summary-badge--loss { background: linear-gradient(135deg, #ef4444, #991b1b); }

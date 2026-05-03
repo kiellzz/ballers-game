@@ -536,7 +536,7 @@ export default function Match() {
     scorerSide: null,
   });
 
-  const [showSummary, setShowSummary] = useState(false);
+  const [showSummary, setShowSummary] = useState(true);
 
   const goalVisualTimeoutRef = useRef<number | null>(null);
   const goalModalTimeoutRef = useRef<number | null>(null);
@@ -1143,6 +1143,16 @@ export default function Match() {
       />
 
       <main className="match-main-content">
+        {matchState.isFinished && !showSummary && (
+          <button
+            type="button"
+            className="match-summary-toggle"
+            onClick={() => setShowSummary(true)}
+          >
+            Return to Match Summary
+          </button>
+        )}
+
         <MatchMap
           zone={mapZone}
           lane={mapLane}
@@ -1291,7 +1301,8 @@ export default function Match() {
       />
 
       <MatchSummaryModal
-        isOpen={showSummary}
+        isOpen={showSummary && matchState.isFinished}
+        onViewDetails={() => setShowSummary(false)}
         userScore={score.user}
         opponentScore={score.opponent}
         opponentName={opponent.name}

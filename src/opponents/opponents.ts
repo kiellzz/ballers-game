@@ -11,147 +11,139 @@ export interface OpponentTeam {
   logo?: string;
 }
 
-const createTeamPlayers = (
-  playerNames: string[],
-  formationKey: FormationKey,
-  teamName: string
-): Player[] => {
-  const formation = FORMATIONS[formationKey];
-  if (!formation) throw new Error(`Formação ${formationKey} não existe.`);
-
-  return playerNames.map((name, index) => {
-    const basePlayer = playersData.find((p) => p.name === name);
-    const targetPos = formation.positions[index];
-
-    if (!basePlayer) {
-      throw new Error(`[${teamName}] Jogador não encontrado: ${name}`);
-    }
-
-    if (!canPlayerPlayInPosition(basePlayer, targetPos)) {
-      console.error(
-        `[TEAM VALIDATION - ${teamName}]: ` +
-          `${basePlayer.name} don't have ${targetPos} in these positions: (Main: ${
-            basePlayer.position
-          }, Secondary: ${
-            basePlayer.secondaryPositions?.join(", ") || "None"
-          }).`
-      );
-    }
-
-    return {
-      ...basePlayer,
-      position: targetPos,
-    };
-  });
+// Embaralhamento Fisher-Yates — garante ordem diferente a cada chamada
+const shuffle = <T>(arr: T[]): T[] => {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
 };
 
-/**
- * Random team generation
- */
+const pickRandom = <T>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
+
+// Formações agrupadas por tier para variar sem quebrar a média
+const TIER_FORMATIONS: Record<string, FormationKey[]> = {
+  low: [
+    "4-4-2", "4-4-2 (2)", "4-4-2 (3)",
+    "4-3-3", "4-3-3 (2)", "4-3-3 (3)", "4-3-3 (4)",
+    "4-2-4", "4-1-2-1-2",
+  ],
+  mid: [
+    "4-3-3", "4-3-3 (2)", "4-3-3 (3)",
+    "4-4-2", "4-4-2 (2)",
+    "3-4-3", "3-5-2", "3-5-2 (2)", "3-5-2 (3)",
+    "5-2-3",
+  ],
+  high: [
+    "3-5-2", "3-5-2 (2)", "3-5-2 (3)",
+    "4-3-3", "4-3-3 (2)", "4-3-3 (4)",
+    "5-3-2", "5-3-2 (2)", "5-3-2 (3)",
+    "5-2-3", "3-4-3",
+  ],
+  elite: [
+    "4-3-3", "4-3-3 (2)", "4-3-3 (3)", "4-3-3 (4)",
+    "3-4-3", "3-5-2", "3-5-2 (2)",
+    "5-2-3", "4-1-2-1-2",
+  ],
+};
+
 const createRandomTeam = (
   id: string,
   name: string,
-  formationKey: FormationKey
+  tier: keyof typeof TIER_FORMATIONS,
+  minOvrTarget: number,
+  maxOvrTarget: number
 ): OpponentTeam => {
+  // Sorteia a formação dentro do tier
+  const formationKey = pickRandom(TIER_FORMATIONS[tier]);
   const formation = FORMATIONS[formationKey];
-  const selectedPlayers: Player[] = [];
-  const usedIds = new Set<number>();
 
-  formation.positions.forEach((targetPos) => {
-    const validOptions = playersData.filter(
-      (p) => !usedIds.has(p.id) && canPlayerPlayInPosition(p, targetPos)
+  if (!formation) {
+    return createRandomTeam(id, name, tier, minOvrTarget, maxOvrTarget);
+  }
+
+  // Pool mais generoso: ±8 OVR em torno do alvo
+  const poolMin = minOvrTarget - 8;
+  const poolMax = maxOvrTarget + 8;
+
+  // Janela de média aceita também mais larga: ±1.5 em vez de ±0.5
+  const acceptMin = minOvrTarget - 1.5;
+  const acceptMax = maxOvrTarget + 1.5;
+
+  let finalPlayers: Player[] = [];
+  let bestAttempt: Player[] = [];
+  let bestDelta = Infinity;
+  const targetMid = (minOvrTarget + maxOvrTarget) / 2;
+  const MAX_ATTEMPTS = 80;
+
+  for (let attempts = 0; attempts < MAX_ATTEMPTS; attempts++) {
+    const usedIds = new Set<number>();
+    const currentTeam: Player[] = [];
+
+    // Pool embaralhado a cada tentativa — principal fix da repetição
+    const poolShuffled = shuffle(
+      playersData.filter((p) => p.overall >= poolMin && p.overall <= poolMax)
     );
 
-    if (validOptions.length === 0) {
-      console.warn(
-        `Alert: Few options for this position: ${targetPos}. Using fallback.`
+    for (const targetPos of formation.positions) {
+      // Filtra do pool embaralhado os elegíveis para essa posição
+      let candidates = poolShuffled.filter(
+        (p) => !usedIds.has(p.id) && canPlayerPlayInPosition(p, targetPos)
       );
-      const fallback =
-        playersData.find((p) => !usedIds.has(p.id)) || playersData[0];
-      validOptions.push(fallback);
+
+      // Fallback 1: qualquer jogador dentro do OVR geral, sem restrição de pool
+      if (candidates.length === 0) {
+        candidates = shuffle(playersData).filter(
+          (p) => !usedIds.has(p.id) && canPlayerPlayInPosition(p, targetPos)
+        );
+      }
+
+      // Fallback 2: qualquer jogador disponível
+      if (candidates.length === 0) {
+        candidates = playersData.filter((p) => !usedIds.has(p.id));
+      }
+
+      const chosen = candidates[0];
+      currentTeam.push({ ...chosen, position: targetPos });
+      usedIds.add(chosen.id);
     }
 
-    const chosenPlayer =
-      validOptions[Math.floor(Math.random() * validOptions.length)];
+    const avg =
+      currentTeam.reduce((acc, p) => acc + p.overall, 0) / currentTeam.length;
+    const delta = Math.abs(avg - targetMid);
 
-    selectedPlayers.push({
-      ...chosenPlayer,
-      position: targetPos,
-    });
+    // Guarda a melhor tentativa mesmo que não passe no critério
+    if (delta < bestDelta) {
+      bestDelta = delta;
+      bestAttempt = currentTeam;
+    }
 
-    usedIds.add(chosenPlayer.id);
-  });
+    if (avg >= acceptMin && avg <= acceptMax) {
+      finalPlayers = currentTeam;
+      break;
+    }
+  }
 
-  return { id, name, formation: formationKey, players: selectedPlayers };
+  // Se nenhuma tentativa passou, usa a mais próxima da média alvo
+  if (finalPlayers.length === 0) {
+    finalPlayers = bestAttempt;
+  }
+
+  return { id, name, formation: formationKey, players: finalPlayers };
 };
 
 export const MOCK_OPPONENTS: OpponentTeam[] = [
-  {
-    id: "team_1",
-    name: "Galácticos",
-    formation: "4-3-3",
-    players: createTeamPlayers(
-      [
-        "Lev Yashin",
-        "Nuno Mendes",
-        "William Saliba",
-        "Rúben Dias",
-        "Achraf Hakimi",
-        "Rodri",
-        "Pedri",
-        "Federico Valverde",
-        "Vini Jr",
-        "Erling Haaland",
-        "Mohamed Salah",
-      ],
-      "4-3-3",
-      "Galácticos"
-    ),
-  },
-  {
-    id: "team_2",
-    name: "Elite Europe",
-    formation: "4-4-2",
-    players: createTeamPlayers(
-      [
-        "Alisson",
-        "Alphonso Davies",
-        "Virgil van Dijk",
-        "Antonio Rüdiger",
-        "Dani Carvajal",
-        "Rafael Leão",
-        "Declan Rice",
-        "Kevin De Bruyne",
-        "Bukayo Saka",
-        "Harry Kane",
-        "Kylian Mbappé",
-      ],
-      "4-4-2",
-      "Elite Europe"
-    ),
-  },
-  {
-    id: "team_3",
-    name: "Super Ballers",
-    formation: "3-5-2",
-    players: createTeamPlayers(
-      [
-        "Mike Maignan",
-        "Marquinhos",
-        "Alessandro Bastoni",
-        "Gabriel Magalhães",
-        "Federico Dimarco",
-        "Nicolò Barella",
-        "Bruno Fernandes",
-        "Fabián Ruiz",
-        "Denzel Dumfries",
-        "Lautaro Martínez",
-        "Ousmane Dembélé",
-      ],
-      "3-5-2",
-      "Técnicos"
-    ),
-  },
-  // Time 4 gerado aleatoriamente a cada load
-  createRandomTeam("team_4", "All-Stars Random", "4-3-3 (2)"),
+  createRandomTeam("team_1", "Challengers FC", "low",   80, 81),
+  createRandomTeam("team_2", "Elite Pro",      "mid",   84, 85),
+  createRandomTeam("team_3", "Champions Squad","high",  87, 88),
+  createRandomTeam("team_4", "All-Stars Random","elite", 90, 91),
+];
+
+export const generateOpponents = (): OpponentTeam[] => [
+  createRandomTeam("team_1", "Challengers FC", "low",   80, 81),
+  createRandomTeam("team_2", "Elite Pro",      "mid",   84, 85),
+  createRandomTeam("team_3", "Champions Squad","high",  87, 88),
+  createRandomTeam("team_4", "All-Stars Random","elite", 90, 91),
 ];
