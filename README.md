@@ -14,6 +14,13 @@
   <img src="https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white" alt="Vite" />
   <img src="https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white" alt="CSS3" />
   <img src="https://img.shields.io/badge/Framer_Motion-EF008F?style=for-the-badge&logo=framer&logoColor=white" alt="Framer Motion" />
+  <img src="https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="Vercel" />
+</p>
+
+<p align="center">
+  <a href="https://ballers-game.vercel.app/" target="_blank">
+    <img src="https://img.shields.io/badge/🚀%20Live%20Demo-ballers--game.vercel.app-brightgreen?style=for-the-badge" alt="Live Demo" />
+  </a>
 </p>
 
 <div>
@@ -22,9 +29,17 @@ Ballers is a web-based football application focused on **interaction, squad buil
 
 It combines high-quality UI/UX with a **custom-built interactive match engine**, delivering a dynamic and immersive football experience directly in the browser.
 
-[Features](#-features) • [Match Engine](#-interactive-match-engine) • [Preview](#-preview) • [Running Locally](#%EF%B8%8F-running-locally) • [Roadmap](#-roadmap)
+[Live Demo](#-live-demo) • [Features](#-features) • [Match Engine](#-interactive-match-engine) • [Preview](#-preview) • [Running Locally](#%EF%B8%8F-running-locally) • [Roadmap](#-roadmap)
 
 </div>
+
+---
+
+## 🌐 Live Demo
+
+> **[▶ Play now at ballers-game.vercel.app](https://ballers-game.vercel.app/)**
+
+Deployed on **Vercel** — no installation required, runs directly in the browser.
 
 ---
 
@@ -153,10 +168,11 @@ A real-time duel-based log system
 
 Examples:
 
+```
 User Player vs GK Opponent → Finish → Goal
 Opponent Winger vs User CB → Sprint → Stopped
 FK taker vs GK → Free Kick → Saved
-
+```
 
 Features:
 
@@ -282,25 +298,41 @@ git clone https://github.com/kiellzz/ballers-game.git
 cd ballers-game
 npm install
 npm run dev
+```
 
 App: http://localhost:5173
-````
 
-### 🗺 Roadmap
- ⚔️ Interactive Match Engine
- 🏆 Match Summary & MVP System
- 📊 Player Rating System
- 🏗 Improve frontend architecture
- 📊 Advanced match stats (xG, possession)
- 🎙 Commentary system
- 💾 Backend integration
- 🎮 Draft Mode
- 
-### 👨‍💻 Author
+---
 
-Developed by Ezequiel Borges
+## 🚢 Deploy
 
-GitHub: https://github.com/kiellzz
-LinkedIn: https://www.linkedin.com/in/ezequielborgesdev
+Deployed on **Vercel** with automatic CI/CD — every push to `main` triggers a new production build.
 
-This project represents the transition from building UI applications to designing interactive systems with real gameplay structure, focusing on architecture, logic, and user experience.
+```
+Live: https://ballers-game.vercel.app/
+```
+
+---
+
+## 🗺 Roadmap
+
+- [x] ⚔️ Interactive Match Engine
+- [x] 🏆 Match Summary & MVP System
+- [x] 📊 Player Rating System
+- [x] 🚀 Deploy on Vercel
+- [ ] 🏗 Improve frontend architecture
+- [ ] 📊 Advanced match stats (xG, possession)
+- [ ] 🎙 Commentary system
+- [ ] 💾 Backend integration
+- [ ] 🎮 Draft Mode
+
+---
+
+## 👨‍💻 Author
+
+Developed by **Ezequiel Borges**
+
+- GitHub: [github.com/kiellzz](https://github.com/kiellzz)
+- LinkedIn: [linkedin.com/in/ezequielborgesdev](https://www.linkedin.com/in/ezequielborgesdev)
+
+> This project represents the transition from building UI applications to designing interactive systems with real gameplay structure, focusing on architecture, logic, and user experience.
