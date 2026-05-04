@@ -10,7 +10,7 @@ export interface Toast {
 export function useToast(duration = 3500) {
   const [toasts, setToasts] = useState<Toast[]>([]);
   const counterRef = useRef(0);
-  const timeoutsRef = useRef<Map<number, NodeJS.Timeout>>(new Map());
+  const timeoutsRef = useRef<Map<number, ReturnType<typeof setTimeout>>>(new Map());
 
   const addToast = useCallback((
     playerName: string,

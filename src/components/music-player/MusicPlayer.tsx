@@ -17,7 +17,7 @@ const MusicPlayer = forwardRef(({ isMuted }: MusicPlayerProps, ref) => {
 
   const audioRef = useRef<HTMLAudioElement>(null);
   // Ref para controlar o timer e evitar memory leaks se o componente for desmontado rápido
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const playRandom = () => {
     if (audioRef.current) {

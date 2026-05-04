@@ -64,7 +64,6 @@ export default function FkModal({
   onPick,
   onContinue,
   resolution,
-  goalkeeperName,
   goalkeeper,
   shooter,
   initialDistance = "mid",

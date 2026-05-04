@@ -31,7 +31,6 @@ export default function BenchSlot({
   onDragEnd,
   onDrop,
   onClick,
-  onRemovePlayer,
 }: Props) {
   return (
     <div

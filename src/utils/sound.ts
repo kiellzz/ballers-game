@@ -115,9 +115,9 @@ export function playCardReveal(tier: "legend" | "gold" | "silver" | "bronze") {
     ],
   };
 
-  configs[tier].forEach(({ f, t, d, v, delay = 0 }) =>
-    playTone(f, t, d, v, delay)
-  );
+  configs[tier].forEach((cfg) =>
+  playTone(cfg.f, cfg.t, cfg.d, cfg.v, "delay" in cfg ? (cfg as any).delay : 0)
+)
 }
 
 export function playShake() {

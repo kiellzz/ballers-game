@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import { useState, useCallback } from "react";
 import type { Player } from "../../types/PlayerTypes";
 import { drawPack } from "../../utils/packProbability";
 import { playPackOpen, playShake, playCardReveal, playButton, playConfirm, playPremiumPack, playLegendPack } from "../../utils/sound";

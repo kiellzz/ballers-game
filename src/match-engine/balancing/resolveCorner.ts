@@ -59,11 +59,6 @@ export function resolveCorner(input: ResolveCornerInput): ResolveCornerOutput {
     random = Math.random,
   } = input;
 
-  const takerPower =
-    taker.passing * 0.7 +
-    taker.shooting * 0.2 +
-    taker.overall * 0.1;
-
   const goalkeeperPower =
     goalkeeper.handling * 0.4 +
     goalkeeper.positioning * 0.3 +

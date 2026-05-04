@@ -872,10 +872,6 @@ interface EventStatContext {
 // attackerSide → the PossessionSide that is attacking
 // defenderSide → the PossessionSide that is defending
 
-function attackerSide(possession: PossessionSide): PossessionSide {
-  return possession;
-}
-
 function defenderSide(possession: PossessionSide): PossessionSide {
   return possession === "user" ? "opponent" : "user";
 }
@@ -935,7 +931,6 @@ function applyEventToPlayerMatchStats(
   // Convenience: who is acting with the ball vs who is defending
   const atkKey  = attackerKey(possession, actors);
   const defKey  = defenderKey(possession, actors);
-  const atkSide = attackerSide(possession);
   const defSide = defenderSide(possession);
 
   const isSuccess = outcome === "success" || outcome === "success_high";

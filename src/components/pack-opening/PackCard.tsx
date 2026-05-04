@@ -1,4 +1,3 @@
-import React from "react";
 import type { Player } from "../../types/PlayerTypes";
 import { getCardTier } from "../../utils/getCardTier";
 import PlayerCard from "../player-card/PlayerCard";
