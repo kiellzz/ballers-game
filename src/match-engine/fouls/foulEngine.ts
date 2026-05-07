@@ -152,19 +152,12 @@ function getFoulChance(params: {
     chance += canDrawFoul ? 0.02 : 0.01;
   }
 
-  // Zone bonus is currently quite strong; scale it down
-  const ZONE_FOUL_MULT = 0.6;
-  chance += getZoneFoulBonus(zone) * ZONE_FOUL_MULT;
+  chance += getZoneFoulBonus(zone);
 
   // Apply bias after all bonuses are summed so every component is scaled equally
   chance *= userFoulBias;
 
-  // Global tuning: reduce fouls across the board
-  const GLOBAL_FOUL_MULT = 0.45;
-  chance *= GLOBAL_FOUL_MULT;
-
-  // Lower overall ceiling to prevent foul-streaks
-  return clamp(chance, 0, 0.35);
+  return clamp(chance, 0, 0.65);
 }
 
 function getZoneFoulBonus(zone: Zone): number {
