@@ -8,6 +8,7 @@ import type { OpponentTeam } from '../opponents/opponents';
 import { getFlagUrl } from '../utils/getFlagUrl';
 import { OpponentLineup } from '../components/prematch/OpponentLineup';
 import PreMatchHeader from '../components/prematch/PreMatchHeader';
+import { playButton, playConfirm } from '../utils/sound';
 import './PreMatch.css';
 
 interface SavedSquad {
@@ -31,7 +32,7 @@ export default function PreMatch() {
       try {
         setMySquad(JSON.parse(saved));
       } catch (e) {
-        console.error("Erro ao carregar squad:", e);
+        console.error('Erro ao carregar squad:', e);
         navigate('/lineup');
       }
     } else {
@@ -47,7 +48,10 @@ export default function PreMatch() {
 
   const teamRating = useMemo(() => {
     if (!mySquad || !mySquad.pitch) return 0;
-    const total = mySquad.pitch.reduce((acc: number, p: Player | null) => acc + (p?.overall || 0), 0);
+    const total = mySquad.pitch.reduce(
+      (acc: number, p: Player | null) => acc + (p?.overall || 0),
+      0
+    );
     return Math.floor(total / 11);
   }, [mySquad]);
 
@@ -55,7 +59,7 @@ export default function PreMatch() {
     setIsSpinning(true);
     setSelectedOpponent(null);
     setOpponents(generateOpponents());
-    setRerollKey(k => k + 1);
+    setRerollKey((k) => k + 1);
 
     spinTimeoutRef.current = setTimeout(() => setIsSpinning(false), 600);
   };
@@ -66,8 +70,8 @@ export default function PreMatch() {
     navigate('/match', {
       state: {
         opponent: selectedOpponent,
-        userSquad: mySquad
-      }
+        userSquad: mySquad,
+      },
     });
   };
 
@@ -119,10 +123,10 @@ export default function PreMatch() {
 
         <div className="prematch-team-rating" data-testid="team-overall-rating">
           <div className="rating-icon-wrapper">
-            <svg className="rating-star" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <svg className="rating-star-prematch" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" />
             </svg>
-            <div className="rating-star-glow"></div>
+            <div className="rating-star-glow-prematch"></div>
           </div>
           <span className="rating-value">{teamRating} OVR</span>
         </div>
@@ -149,11 +153,33 @@ export default function PreMatch() {
           <div className="prematch-reroll-wrapper">
             <button
               className={`btn-reroll${isSpinning ? ' is-spinning' : ''}`}
-              onClick={handleReroll}
+              onMouseEnter={() => playButton()}
+              onClick={() => {
+                void playConfirm();
+                handleReroll();
+              }}
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M1 4v6h6M23 20v-6h-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M1 4v6h6M23 20v-6h-6"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
               </svg>
               Reroll Teams
             </button>
@@ -166,8 +192,14 @@ export default function PreMatch() {
               return (
                 <button
                   key={`${rerollKey}-${opp.id}`}
-                  className={`btn-opponent reroll-enter${isSelected ? ' btn-opponent--selected' : ''}`}
-                  onClick={() => setSelectedOpponent(opp)}
+                  className={`btn-opponent reroll-enter${
+                    isSelected ? ' btn-opponent--selected' : ''
+                  }`}
+                  onMouseEnter={() => playButton()}
+                  onClick={() => {
+                    void playConfirm();
+                    setSelectedOpponent(opp);
+                  }}
                   data-testid={`opponent-button-${idx}`}
                   style={{ '--animation-delay': `${idx * 0.08}s` } as React.CSSProperties}
                 >
@@ -183,8 +215,20 @@ export default function PreMatch() {
 
                   <span className="btn-opponent__right">
                     <span className="btn-opponent__arrow">
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      <svg
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M5 12H19M19 12L12 5M19 12L12 19"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
                       </svg>
                     </span>
                   </span>

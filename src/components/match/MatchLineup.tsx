@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo, useRef } from 'react';
 import { emptyStatLine, type PlayerMatchStats } from '../../match-engine/matchTypes';
 import { calculatePlayerRating, getRatingClass } from '../../match-engine/playerRating';
 import type { Player } from '../../types/PlayerTypes';
@@ -22,11 +22,34 @@ export const MatchLineup: React.FC<MatchLineupProps> = ({
 }) => {
   const side = isOpponent ? "opponent" : "user";
 
+  const initialPlayers = useRef(players);
+  const teamRating = useMemo(() => {
+    const starters = initialPlayers.current.filter(Boolean) as Player[];
+    if (starters.length === 0) return null;
+    const total = starters.reduce((acc, p) => acc + (p.overall || 0), 0);
+    return Math.floor(total / starters.length);
+  }, []);
+
   return (
     <aside
       className={`match-column ${isOpponent ? 'match-column--right' : 'match-column--left'}`}
     >
-      <h2 className="lineup-title">{title}</h2>
+      <div className="lineup-header">
+        <h2 className="lineup-title">{title}</h2>
+
+        {teamRating !== null && (
+          <div className="lineup-team-rating">
+            <div className="rating-icon-wrapper">
+              <svg className="rating-star" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" />
+              </svg>
+              <div className="rating-star-glow"></div>
+            </div>
+            <span className="rating-value">{teamRating} OVR</span>
+          </div>
+        )}
+      </div>
+
       <div className="lineup-list">
         {players.map((player, idx) => {
           const stats =
@@ -91,6 +114,12 @@ export const MatchLineup: React.FC<MatchLineupProps> = ({
             </div>
           );
         })}
+      </div>
+
+      <div className="lineup-logo-wrapper">
+        <img src="/images/logo.webp" alt="Ballers logo" className="lineup-logo" />
+        <p className="lineup-coming-soon__title">Coming soon!</p>
+        <p className="lineup-coming-soon__sub">Substitutions + Cards System</p>
       </div>
     </aside>
   );

@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import MatchModal from "../../components/match/MatchModal";
 import type { Player } from "../../types/PlayerTypes";
 import {
@@ -12,6 +12,7 @@ import { calculatePlayerRating } from "../playerRating";
 import type { MatchHistoryEntry } from "./useMatchEngine";
 import { getDisplayName } from "../../utils/getDisplayName";
 import { getPlayerImage } from "../../utils/getPlayerImage";
+import { matchSound } from "../../match-engine/sounds/matchSound";
 import "./MatchSummaryModal.css";
 
 interface GoalEntry {
@@ -23,6 +24,7 @@ interface GoalEntry {
 interface MatchSummaryModalProps {
   isOpen: boolean;
   onViewDetails?: () => void;
+  onOpen?: () => void;
   userScore: number;
   opponentScore: number;
   opponentName: string;
@@ -275,6 +277,7 @@ function GoalList({
 export default function MatchSummaryModal({
   isOpen,
   onViewDetails,
+  onOpen,
   userScore,
   opponentScore,
   opponentName,
@@ -289,6 +292,14 @@ export default function MatchSummaryModal({
 
   const userGoals = buildGoalEntries("user", history);
   const opponentGoals = buildGoalEntries("opponent", history);
+
+  // ─── Som de fim de partida ────────────────────────────────────────────────
+  // Dispara apenas uma vez por partida (endgamePlayed no singleton garante isso)
+  useEffect(() => {
+    if (!isOpen) return;
+    matchSound.onMatchFinished(result);
+    onOpen?.(); // Notifica o App.tsx que a partida terminou
+  }, [isOpen, onOpen]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Build ratings once. useMemo keeps this stable as long as stats don't change.
   const playersWithRatings = useMemo(

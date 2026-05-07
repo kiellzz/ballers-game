@@ -116,8 +116,8 @@ export function playCardReveal(tier: "legend" | "gold" | "silver" | "bronze") {
   };
 
   configs[tier].forEach((cfg) =>
-  playTone(cfg.f, cfg.t, cfg.d, cfg.v, "delay" in cfg ? (cfg as any).delay : 0)
-)
+    playTone(cfg.f, cfg.t, cfg.d, cfg.v, "delay" in cfg ? (cfg as any).delay : 0)
+  );
 }
 
 export function playShake() {
@@ -295,6 +295,35 @@ getLegendPackBuffer();
 
 export async function playLegendPack(volume = 0.9) {
   const buffer = await getLegendPackBuffer();
+  if (!buffer) return;
+  await playBuffer(buffer, volume);
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
+// ─── Cache startmatch.mp3 ───────────────────────────────────────────────────
+let startMatchBuffer: AudioBuffer | null = null;
+let startMatchLoading = false;
+
+async function getStartMatchBuffer(): Promise<AudioBuffer | null> {
+  if (startMatchBuffer) return startMatchBuffer;
+  if (startMatchLoading) return null;
+  startMatchLoading = true;
+  try {
+    const response = await fetch('/sounds/startmatch.mp3');
+    const arrayBuffer = await response.arrayBuffer();
+    startMatchBuffer = await getCtx().decodeAudioData(arrayBuffer);
+  } catch (e) {
+    console.warn('startmatch.mp3 não encontrado:', e);
+  } finally {
+    startMatchLoading = false;
+  }
+  return startMatchBuffer;
+}
+
+getStartMatchBuffer();
+
+export async function playStartMatch(volume = 0.85) {
+  const buffer = await getStartMatchBuffer();
   if (!buffer) return;
   await playBuffer(buffer, volume);
 }

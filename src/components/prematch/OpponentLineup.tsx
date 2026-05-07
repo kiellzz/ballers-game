@@ -1,6 +1,7 @@
 import React from 'react';
 import type { OpponentTeam } from '../../opponents/opponents';
 import { getFlagUrl } from '../../utils/getFlagUrl';
+import { playStartMatch } from '../../utils/sound';
 import './OpponentLineup.css';
 
 interface OpponentLineupProps {
@@ -30,11 +31,12 @@ export const OpponentLineup: React.FC<OpponentLineupProps> = ({
   return (
     <div className="opp-overlay" onClick={onClose}>
       <div className="opp-modal" onClick={(e) => e.stopPropagation()}>
-
         <div className="opp-modal__glow" />
 
         <div className="opp-modal__header">
-          <button className="opp-modal__close" onClick={onClose} aria-label="Fechar">✕</button>
+          <button className="opp-modal__close" onClick={onClose} aria-label="Fechar">
+            ✕
+          </button>
           <span className="opp-modal__tag">Opponent Found</span>
           <h2 className="opp-modal__name">{opponent.name}</h2>
           <div className="opp-modal__stats">
@@ -45,7 +47,14 @@ export const OpponentLineup: React.FC<OpponentLineupProps> = ({
               {averageOvr} OVR
             </div>
             <div className="opp-stat-badge">
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#fbbf24" strokeWidth="1.5">
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 12 12"
+                fill="none"
+                stroke="#fbbf24"
+                strokeWidth="1.5"
+              >
                 <rect x="1" y="2" width="10" height="8" rx="1" />
                 <line x1="1" y1="5" x2="11" y2="5" />
               </svg>
@@ -65,10 +74,7 @@ export const OpponentLineup: React.FC<OpponentLineupProps> = ({
                 <div className="opp-player-right">
                   <span className="opp-player-ovr">{player.overall}</span>
                   <div className="opp-flag-wrap">
-                    <img
-                      src={getFlagUrl(player.nationality)}
-                      alt={player.nationality}
-                    />
+                    <img src={getFlagUrl(player.nationality)} alt={player.nationality} />
                   </div>
                 </div>
               </div>
@@ -77,11 +83,16 @@ export const OpponentLineup: React.FC<OpponentLineupProps> = ({
         </div>
 
         <div className="opp-modal__footer">
-          <button className="opp-btn-start" onClick={onStart}>
+          <button
+            className="opp-btn-start"
+            onClick={() => {
+              void playStartMatch();
+              onStart();
+            }}
+          >
             Start Match
           </button>
         </div>
-
       </div>
     </div>
   );

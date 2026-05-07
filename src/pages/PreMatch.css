@@ -283,7 +283,7 @@
   justify-content: center;
 }
 
-.rating-star {
+.rating-star-prematch {
   width: 24px;
   height: 24px;
   fill: #fbbf24;
@@ -296,7 +296,7 @@
   z-index: 1;
 }
 
-.rating-star-glow {
+.rating-star-glow-prematch {
   position: absolute;
   width: 100%;
   height: 100%;

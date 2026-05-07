@@ -51,6 +51,7 @@ import type {
 import type { OpponentTeam } from "../opponents/opponents";
 import type { Player } from "../types/PlayerTypes";
 import { FORMATIONS } from "../utils/formations";
+import { matchSound } from "../match-engine/sounds/matchSound"; // ← integração
 import "./Match.css";
 
 interface SavedSquad {
@@ -69,6 +70,13 @@ interface GoalVisualLock {
   scoredBy: PossessionSide | null;
   lockedZone: Zone;
   lockedLane: Lane;
+}
+
+// ─── Props ────────────────────────────────────────────────────────────────────
+
+interface MatchProps {
+  isMuted: boolean; // ← recebido do App.tsx para controlar o crowd
+  onMatchFinished?: () => void; // ← callback para notificar fim da partida
 }
 
 const GOAL_VISUAL_LOCK_DEFAULT: GoalVisualLock = {
@@ -458,7 +466,7 @@ function getSetPieceOutcomeLabel(
   }
 }
 
-export default function Match() {
+export default function Match({ isMuted, onMatchFinished }: MatchProps) {
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -516,6 +524,16 @@ export default function Match() {
   useEffect(() => {
     if (!latestEntry) return;
   }, [latestEntry]);
+
+  // ─── matchSound: inicia/para o crowd ao montar/desmontar ─────────────────────
+    useEffect(() => {
+    matchSound.startMatch();
+  }, []);
+
+  // ─── matchSound: sincroniza com o botão de música do Settings ────────────────
+  useEffect(() => {
+    matchSound.setMusicEnabled(!isMuted);
+  }, [isMuted]);
 
   const [pendingSetPieceResolution, setPendingSetPieceResolution] =
     useState<InteractiveSetPieceResolutionInput | null>(null);
@@ -1310,6 +1328,7 @@ export default function Match() {
         userPlayers={userPlayers}
         opponentPlayers={opponentPlayers}
         history={history}
+        onOpen={() => onMatchFinished?.()}
       />
     </div>
   );

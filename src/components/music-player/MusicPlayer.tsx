@@ -1,42 +1,78 @@
-import { useEffect, useRef, useImperativeHandle, forwardRef } from "react";
+import { useCallback, useEffect, useRef, useImperativeHandle, forwardRef } from "react";
+import { useLocation } from "react-router-dom";
 
 interface MusicPlayerProps {
   isMuted: boolean;
+  matchFinished?: boolean;
 }
 
-const MusicPlayer = forwardRef(({ isMuted }: MusicPlayerProps, ref) => {
-  const playlist = [
-    "song1.mp3",
-    "song2.mp3",
-    "song3.mp3",
-    "song4.mp3",
-    "song5.mp3",
-    "song6.mp3",
-    "song7.mp3"
-  ];
+const PLAYLIST = [
+  "song1.mp3",
+  "song2.mp3",
+  "song3.mp3",
+  "song4.mp3",
+  "song5.mp3",
+  "song6.mp3",
+  "song7.mp3",
+];
 
-  const audioRef = useRef<HTMLAudioElement>(null);
-  // Ref para controlar o timer e evitar memory leaks se o componente for desmontado rápido
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+const MusicPlayer = forwardRef(({ isMuted, matchFinished }: MusicPlayerProps, ref) => {
+  const location  = useLocation();
+  const isInMatch = location.pathname.toLowerCase() === "/match";
+  const shouldPlayCrowd = isInMatch && !matchFinished;
 
-  const playRandom = () => {
-    if (audioRef.current) {
-      audioRef.current.volume = 0.10;
-      const randomIndex = Math.floor(Math.random() * playlist.length);
-      audioRef.current.src = `/songs/${playlist[randomIndex]}`;
-      audioRef.current.play().catch((err) =>
-        console.log("Erro ao reproduzir:", err)
-      );
-    }
-  };
+  const audioRef       = useRef<HTMLAudioElement>(null);
+  const timeoutRef     = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isInMatchRef   = useRef(isInMatch);
+  const initializedRef = useRef(false);
 
-  useImperativeHandle(ref, () => ({
-    skipTrack: () => {
-      // Se o usuário pular manualmente, limpamos o delay e tocamos na hora
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-      playRandom();
-    }
-  }));
+  isInMatchRef.current = isInMatch;
+
+  const playRandom = useCallback(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    audio.loop   = false;
+    audio.volume = 0.10;
+
+    const idx = Math.floor(Math.random() * PLAYLIST.length);
+
+    audio.src = `/songs/${PLAYLIST[idx]}`;
+
+    audio.play().catch(() => {});
+  }, []);
+
+  const playCrowd = useCallback(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    audio.loop   = true;
+    audio.volume = 0.45;
+    audio.src    = "/songs/crowd.mp3";
+
+    audio.play().catch(() => {
+      const resume = () => {
+        audio.play().catch(() => {});
+        document.removeEventListener("click", resume);
+      };
+
+      document.addEventListener("click", resume);
+    });
+  }, []);
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      skipTrack: () => {
+        if (isInMatchRef.current) return;
+
+        if (timeoutRef.current) clearTimeout(timeoutRef.current);
+
+        playRandom();
+      },
+    }),
+    [playRandom]
+  );
 
   useEffect(() => {
     if (audioRef.current) {
@@ -45,21 +81,37 @@ const MusicPlayer = forwardRef(({ isMuted }: MusicPlayerProps, ref) => {
   }, [isMuted]);
 
   useEffect(() => {
-    // Adicionando o delay de 2 segundos (2000ms)
-    timeoutRef.current = setTimeout(() => {
-      playRandom();
-    }, 2000);
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
 
-    // Cleanup para limpar o timer caso o componente saia da tela inesperadamente
+    if (shouldPlayCrowd) {
+      playCrowd();
+    } else {
+      const audio = audioRef.current;
+
+      if (audio) {
+        audio.loop = false;
+        audio.pause();
+        audio.src = "";
+      }
+
+      const delay = initializedRef.current ? 500 : 2000;
+
+      initializedRef.current = true;
+
+      timeoutRef.current = setTimeout(playRandom, delay);
+    }
+
     return () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
-  }, []);
+  }, [shouldPlayCrowd, playCrowd, playRandom]);
 
   return (
     <audio
       ref={audioRef}
-      onEnded={playRandom}
+      onEnded={() => {
+        if (!isInMatchRef.current) playRandom();
+      }}
       style={{ display: "none" }}
     />
   );
