@@ -270,7 +270,7 @@
   font-size: 0.8rem;
   font-weight: 600;
   letter-spacing: 3px;
-  color: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.55);
   text-transform: uppercase;
   white-space: nowrap;
 }
@@ -381,7 +381,7 @@
   font-size: 0.8rem;
   font-weight: 400;
   letter-spacing: 0.4px;
-  color: rgba(255, 255, 255, 0.18);
+  color: rgba(255, 255, 255, 0.55);
   line-height: 1.6;
 }
 
