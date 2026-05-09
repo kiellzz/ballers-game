@@ -19,6 +19,11 @@ export default function ToastContainer({ toasts, onRemove }: Props) {
       {toasts.map(toast => {
         const isSuccess = toast.type === 'success';
 
+        const isResetSquadToast =
+          isSuccess &&
+          toast.playerName === 'Squad' &&
+          toast.playerPosition?.toLowerCase() === 'squad reset';
+
         return (
           <div
             key={toast.id}
@@ -37,9 +42,15 @@ export default function ToastContainer({ toasts, onRemove }: Props) {
               {/* Message*/}
               <span className="toast__message">
                 {isSuccess ? (
-                  <>
-                    <strong>Your squad</strong> has been <strong>successfully saved!</strong>
-                  </>
+                  isResetSquadToast ? (
+                    <>
+                      <strong>Your squad</strong> has been <strong>reset!</strong>
+                    </>
+                  ) : (
+                    <>
+                      <strong>Your squad</strong> has been <strong>successfully saved!</strong>
+                    </>
+                  )
                 ) : (
                   <>
                     <strong>{toast.playerName}</strong> can't play as{' '}

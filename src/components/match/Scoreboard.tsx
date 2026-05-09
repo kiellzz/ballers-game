@@ -104,8 +104,11 @@ export const Scoreboard: React.FC<ScoreboardProps> = ({
 
   return (
     <header className="match-scoreboard">
+      {/* Shimmer sweep na barra inferior */}
+      <div className="match-scoreboard__shimmer" aria-hidden="true" />
+
       <div ref={homeTeamRef} className="score-team score-team--home">
-        <span className="score-label">HOME TEAM</span>
+        <span className="score-label">YOUR TEAM</span>
         <span ref={homeScoreRef} className="score-number">
           {homeScore}
         </span>
@@ -121,7 +124,7 @@ export const Scoreboard: React.FC<ScoreboardProps> = ({
       <span className="score-divider" aria-hidden="true" />
 
       <div ref={awayTeamRef} className="score-team score-team--away">
-        <span className="score-label">AWAY TEAM</span>
+        <span className="score-label">OPP. TEAM</span>
         <span ref={awayScoreRef} className="score-number">
           {awayScore}
         </span>

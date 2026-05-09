@@ -32,6 +32,9 @@ interface MatchSummaryModalProps {
   userPlayers: Player[];
   opponentPlayers: Player[];
   history: MatchHistoryEntry[];
+  // ── posições dos slots (mesmas que o MatchLineup recebe) ──
+  userPositions: string[];
+  opponentPositions: string[];
 }
 
 type MatchResult = "win" | "draw" | "loss";
@@ -46,54 +49,51 @@ interface PlayerWithRating {
   player: Player;
   side: "user" | "opponent";
   rating: number;
-  goalContributions: number; // goals + assists
+  goalContributions: number;
 }
 
 function buildPlayersWithRatings(
   userPlayers: Player[],
   opponentPlayers: Player[],
-  playerMatchStats: PlayerMatchStats
+  playerMatchStats: PlayerMatchStats,
+  userPositions: string[],      // ← novo
+  opponentPositions: string[],  // ← novo
 ): PlayerWithRating[] {
   const rows: PlayerWithRating[] = [];
-  for (const p of userPlayers) {
+
+  for (let i = 0; i < userPlayers.length; i++) {
+    const p = userPlayers[i]!;
     const line = playerMatchStats[`user:${p.id}`] ?? emptyStatLine();
+    // Usa a posição do slot; cai na posição nativa só como fallback
+    const slotPosition = userPositions[i] ?? p.position;
     rows.push({
       player: p,
       side: "user",
-      rating: calculatePlayerRating(line, p.position),
+      rating: calculatePlayerRating(line, slotPosition),
       goalContributions: line.goals + line.assists,
     });
   }
-  for (const p of opponentPlayers) {
+
+  for (let i = 0; i < opponentPlayers.length; i++) {
+    const p = opponentPlayers[i]!;
     const line = playerMatchStats[`opponent:${p.id}`] ?? emptyStatLine();
+    const slotPosition = opponentPositions[i] ?? p.position;
     rows.push({
       player: p,
       side: "opponent",
-      rating: calculatePlayerRating(line, p.position),
+      rating: calculatePlayerRating(line, slotPosition),
       goalContributions: line.goals + line.assists,
     });
   }
+
   return rows;
 }
 
-/**
- * Deterministic seed from player id + rating, so "random" tie-break is
- * stable across re-renders without needing external state.
- */
 function seededPick<T extends { player: Player }>(items: T[]): T {
-  // Use the sum of all candidate ids as a stable seed — same candidates
-  // always produce the same winner.
   const seed = items.reduce((acc, c) => acc + c.player.id, 0);
   return items[seed % items.length]!;
 }
 
-/**
- * MVP selection:
- *  1. Highest rating wins.
- *  2. Tie → most goal contributions (goals + assists).
- *  3. Still tied → non-draw: prefer winning side; draw: stable deterministic pick.
- *  4. Stable pick is seeded from candidate ids — never changes on re-render.
- */
 function getMatchMVP(
   players: PlayerWithRating[],
   result: MatchResult
@@ -105,26 +105,20 @@ function getMatchMVP(
 
   if (candidates.length === 1) return candidates[0]!;
 
-  // Tie-break 1: most goal contributions
   const maxContributions = Math.max(...candidates.map((c) => c.goalContributions));
   candidates = candidates.filter((c) => c.goalContributions === maxContributions);
 
   if (candidates.length === 1) return candidates[0]!;
 
-  // Tie-break 2: prefer winning side (non-draw only)
   if (result !== "draw") {
     const winningSide: "user" | "opponent" = result === "win" ? "user" : "opponent";
     const fromWinner = candidates.filter((c) => c.side === winningSide);
     if (fromWinner.length > 0) candidates = fromWinner;
   }
 
-  // Tie-break 3: stable deterministic pick (same candidates → same winner always)
   return seededPick(candidates);
 }
 
-/**
- * Builds goal entries for one side from match history.
- */
 function buildGoalEntries(
   side: PossessionSide,
   history: MatchHistoryEntry[]
@@ -132,8 +126,7 @@ function buildGoalEntries(
   return history
     .filter((entry) => entry.isGoal && entry.scorerSide === side && entry.scorerName)
     .map((event) => ({
-      scorerName:
-        (event.scorerName ?? "") + (event.isPenaltyGoal ? " (P)" : ""),
+      scorerName: (event.scorerName ?? "") + (event.isPenaltyGoal ? " (P)" : ""),
       assistName: event.assisterName,
       minute: event.minute,
     }));
@@ -171,7 +164,6 @@ function getResultConfig(result: MatchResult) {
   }
 }
 
-// ── Animação framer-motion ──
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
@@ -285,6 +277,8 @@ export default function MatchSummaryModal({
   userPlayers,
   opponentPlayers,
   history,
+  userPositions,
+  opponentPositions,
 }: MatchSummaryModalProps) {
   const navigate = useNavigate();
   const result = getResult(userScore, opponentScore);
@@ -293,27 +287,25 @@ export default function MatchSummaryModal({
   const userGoals = buildGoalEntries("user", history);
   const opponentGoals = buildGoalEntries("opponent", history);
 
-  // ─── Som de fim de partida ────────────────────────────────────────────────
-  // Dispara apenas uma vez por partida (endgamePlayed no singleton garante isso)
   useEffect(() => {
     if (!isOpen) return;
     matchSound.onMatchFinished(result);
-    onOpen?.(); // Notifica o App.tsx que a partida terminou
+    onOpen?.();
   }, [isOpen, onOpen]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Build ratings once. useMemo keeps this stable as long as stats don't change.
   const playersWithRatings = useMemo(
-    () => buildPlayersWithRatings(userPlayers, opponentPlayers, playerMatchStats),
-    // playerMatchStats is a new object reference every render in some setups,
-    // so we stringify it as a stable cache key.
+    () =>
+      buildPlayersWithRatings(
+        userPlayers,
+        opponentPlayers,
+        playerMatchStats,
+        userPositions,
+        opponentPositions,
+      ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [userPlayers, opponentPlayers, JSON.stringify(playerMatchStats)]
+    [userPlayers, opponentPlayers, JSON.stringify(playerMatchStats), userPositions, opponentPositions]
   );
 
-  // MVP is computed once when the modal first opens and pinned in a ref so it
-  // never changes across re-renders or open/close cycles.
-  // We use a separate "locked" flag so the pick only happens after isOpen=true,
-  // guaranteeing playerMatchStats is fully populated with final match data.
   const mvpRef = useRef<PlayerWithRating | null>(null);
   const mvpLockedRef = useRef(false);
   if (isOpen && !mvpLockedRef.current) {

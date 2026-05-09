@@ -51,7 +51,7 @@ import type {
 import type { OpponentTeam } from "../opponents/opponents";
 import type { Player } from "../types/PlayerTypes";
 import { FORMATIONS } from "../utils/formations";
-import { matchSound } from "../match-engine/sounds/matchSound"; // ← integração
+import { matchSound } from "../match-engine/sounds/matchSound";
 import "./Match.css";
 
 interface SavedSquad {
@@ -72,11 +72,9 @@ interface GoalVisualLock {
   lockedLane: Lane;
 }
 
-// ─── Props ────────────────────────────────────────────────────────────────────
-
 interface MatchProps {
-  isMuted: boolean; // ← recebido do App.tsx para controlar o crowd
-  onMatchFinished?: () => void; // ← callback para notificar fim da partida
+  isMuted: boolean;
+  onMatchFinished?: () => void;
 }
 
 const GOAL_VISUAL_LOCK_DEFAULT: GoalVisualLock = {
@@ -525,12 +523,10 @@ export default function Match({ isMuted, onMatchFinished }: MatchProps) {
     if (!latestEntry) return;
   }, [latestEntry]);
 
-  // ─── matchSound: inicia/para o crowd ao montar/desmontar ─────────────────────
-    useEffect(() => {
+  useEffect(() => {
     matchSound.startMatch();
   }, []);
 
-  // ─── matchSound: sincroniza com o botão de música do Settings ────────────────
   useEffect(() => {
     matchSound.setMusicEnabled(!isMuted);
   }, [isMuted]);
@@ -588,7 +584,6 @@ export default function Match({ isMuted, onMatchFinished }: MatchProps) {
     };
   }, []);
 
-  // Match summary: opens 2 seconds after the match finishes
   useEffect(() => {
     if (!matchState.isFinished) return;
 
@@ -722,6 +717,17 @@ export default function Match({ isMuted, onMatchFinished }: MatchProps) {
 
     return positions;
   }, [oppPositions, opponent.players]);
+
+  // ── Posições dos slots para o MatchSummaryModal ───────────────────────────
+  // userFormation.positions pode ter nulls (slots vazios do pitch), então
+  // alinhamos com userPlayers (já filtrados) pela mesma lógica do MatchLineup.
+  const userSlotPositions = useMemo(
+    () =>
+      userSquad.pitch.map(
+        (player, idx) => userFormation?.positions[idx] ?? player?.position ?? "CM"
+      ),
+    [userFormation, userSquad.pitch]
+  );
 
   const phase = matchState.isFinished ? "finished" : "playing";
 
@@ -1329,6 +1335,8 @@ export default function Match({ isMuted, onMatchFinished }: MatchProps) {
         opponentPlayers={opponentPlayers}
         history={history}
         onOpen={() => onMatchFinished?.()}
+        userPositions={userSlotPositions}
+        opponentPositions={oppPositions}
       />
     </div>
   );

@@ -130,6 +130,22 @@
   filter: grayscale(0.6);
 }
 
+.feature-button--danger {
+  background: linear-gradient(90deg, #ffb0b0 0%, #ef4444 100%);
+  color: #2a0606;
+  box-shadow: 0 5px 20px rgba(239, 68, 68, 0.28);
+}
+
+.feature-button--danger .feature-button__icon-circle {
+  background: #2a0606;
+  color: #ef4444;
+}
+
+.feature-button--danger:hover {
+  box-shadow: 0 0 35px rgba(239, 68, 68, 0.55);
+  filter: brightness(1.04);
+}
+
 /* ── Animação padrão ── */
 @keyframes feature-pulse {
   0% {

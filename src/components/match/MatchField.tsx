@@ -9,6 +9,7 @@ import "./MatchField.css";
 type MatchFieldPhase = "playing" | "finished";
 type Side = "left" | "right";
 type SideMode = "main" | "gk-protagonist";
+type SituationTone = "attack" | "defense" | "bigchance" | "neutral";
 
 interface MatchFieldProps {
   situation: string;
@@ -32,6 +33,44 @@ const LEFT_GOALKEEPER_FRONT_SITUATIONS: readonly Zone[] = [
   "def_bigchance",
   "def_corner",
 ];
+
+const ATK_BIGCHANCE_ZONES: readonly Zone[] = ["atk_bigchance", "atk_corner"];
+const DEF_BIGCHANCE_ZONES: readonly Zone[] = ["def_bigchance", "def_corner"];
+const ATK_ZONES: readonly Zone[] = [
+  "atk_bigchance",
+  "atk_corner",
+  "atk_box",
+  "atk_nearbox",
+  "atk_third",
+  "atk_mid",
+];
+const DEF_ZONES: readonly Zone[] = [
+  "def_bigchance",
+  "def_corner",
+  "def_box",
+  "def_nearbox",
+  "def_third",
+  "def_mid",
+];
+
+function getSituationTone(
+  zone: Zone | null,
+  isUserAttacking: boolean
+): SituationTone {
+  if (!zone) return "neutral";
+
+  if (isUserAttacking) {
+    if (ATK_BIGCHANCE_ZONES.includes(zone)) return "bigchance";
+    if (ATK_ZONES.includes(zone)) return "attack";
+    if (DEF_ZONES.includes(zone)) return "defense";
+  } else {
+    if (DEF_BIGCHANCE_ZONES.includes(zone)) return "bigchance";
+    if (DEF_ZONES.includes(zone)) return "defense";
+    if (ATK_ZONES.includes(zone)) return "attack";
+  }
+
+  return "neutral";
+}
 
 function pickBackgroundPlayer(
   mainPlayer: Player | null,
@@ -76,6 +115,11 @@ export const MatchField = ({
 
     return () => window.clearTimeout(timeout);
   }, [userPlayer?.id, opponentPlayer?.id, zone, hasSituation]);
+
+  const situationTone = useMemo(
+    () => getSituationTone(zone, isUserAttacking),
+    [zone, isUserAttacking]
+  );
 
   const goalkeeperProtagonistSide: Side | null = useMemo(() => {
     if (zone && RIGHT_GOALKEEPER_FRONT_SITUATIONS.includes(zone)) {
@@ -135,7 +179,8 @@ export const MatchField = ({
 
   return (
     <section className={`match-visual-area phase-${phase}`}>
-      <div className="situation-box">
+
+      <div className={`situation-box tone-${situationTone}`}>
         <span className="situation-label">Current situation:</span> {situation}
       </div>
 
@@ -154,8 +199,12 @@ export const MatchField = ({
 
           <div
             key={`left-main-${leftFrontPlayer?.id ?? "none"}-${animationSeed}`}
-            className="card-container main-card main-card-left"
+            className={`card-container main-card main-card-left user-side${showBallOnLeft ? " has-ball" : ""}`}
           >
+            {showBallOnLeft && (
+              <div className="possession-triangle possession-triangle--user" />
+            )}
+
             {showBallOnLeft && (
               <img
                 src="/images/ball.png"
@@ -168,7 +217,9 @@ export const MatchField = ({
           </div>
         </div>
 
-        <div className="vs-logo">VS</div>
+        <div className="vs-logo-wrapper">
+          <div className="vs-logo">VS</div>
+        </div>
 
         <div className={`side-stack right-side mode-${rightMode}`}>
           <div
@@ -180,8 +231,12 @@ export const MatchField = ({
 
           <div
             key={`right-main-${rightFrontPlayer?.id ?? "none"}-${animationSeed}`}
-            className="card-container main-card main-card-right"
+            className={`card-container main-card main-card-right opponent-side${showBallOnRight ? " has-ball" : ""}`}
           >
+            {showBallOnRight && (
+              <div className="possession-triangle possession-triangle--opponent" />
+            )}
+
             {showBallOnRight && (
               <img
                 src="/images/ball.png"

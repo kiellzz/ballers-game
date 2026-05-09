@@ -105,6 +105,16 @@ export default function Lineup() {
     setIsLineupModalOpen(false);
   };
 
+  const handleResetSquad = () => {
+    setPitchPlayers(Array(11).fill(null));
+    setBenchPlayers(Array(BENCH_SIZE).fill(null));
+
+    // Se você quiser manter a formação atual, apaga a linha de baixo:
+    setCurrentFormation(DEFAULT_FORMATION);
+
+    addToast("Squad", "Squad reset", "success");
+  };
+
   const handleDropToPitch = (targetPitchIndex: number) => {
     if (!dragSource) return;
     const targetPos = slotPositions[targetPitchIndex];
@@ -280,14 +290,21 @@ export default function Lineup() {
       />
 
       <div className="lineup__actions-sidebar">
+
+         <FeatureButton
+          label="RESET SQUAD"
+          variant="danger"
+          onClick={handleResetSquad}
+        />
+
         <FeatureButton
-          label="SAVE"
+          label="SAVE SQUAD"
           variant="save"
           onClick={handleSaveProgress}
         />
 
         <FeatureButton
-          label={isTeamComplete ? 'READY!' : 'FILL YOUR SQUAD'}
+          label={isTeamComplete ? 'READY!' : 'FILL YOUR SQUAD TO PLAY'}
           variant={isTeamComplete ? 'playMatch' : 'less'}
           disabled={!isTeamComplete}
           animated={isTeamComplete}

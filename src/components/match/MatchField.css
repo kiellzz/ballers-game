@@ -15,12 +15,14 @@
   background-position: center;
   position: relative;
   min-height: 500px;
-  overflow: hidden;
+  overflow: visible;
 }
+
+/* ─── SITUATION BOX ─── */
 
 .situation-box {
   background: rgba(0, 0, 0, 0.82);
-  padding: 12px 20px;
+  padding: 10px 18px;
   border-radius: 8px;
   border-left: 4px solid #bfff00;
   color: white;
@@ -28,7 +30,30 @@
   z-index: 10;
   max-width: 84%;
   text-align: center;
+  transition: border-color 0.3s ease;
 }
+
+/* Attack — green */
+.situation-box.tone-attack {
+  border-left-color: #4ade80;
+}
+
+/* Defense — red */
+.situation-box.tone-defense {
+  border-left-color: #f87171;
+}
+
+/* Big chance / corner — gold */
+.situation-box.tone-bigchance {
+  border-left-color: #fbbf24;
+}
+
+/* Neutral — default lime */
+.situation-box.tone-neutral {
+  border-left-color: #bfff00;
+}
+
+/* ─── VERSUS DISPLAY ─── */
 
 .versus-display {
   display: flex;
@@ -37,6 +62,7 @@
   width: 100%;
   flex: 1;
   gap: 70px;
+  overflow: visible;
   position: relative;
   transition:
     opacity 0.3s ease,
@@ -54,12 +80,46 @@
   flex-shrink: 0;
 }
 
+/* ─── CARD ENTRY ANIMATION ─── */
+
+@keyframes card-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .card-container {
   transition:
     transform 0.42s ease,
     opacity 0.42s ease,
     filter 0.42s ease;
   will-change: transform, opacity, filter;
+}
+
+/* Slide-up only triggers when the versus-display becomes active (not transitioning) */
+.versus-display.is-active .main-card {
+  animation: card-slide-up 0.28s ease-out both;
+}
+
+.versus-display.is-active .back-card {
+  animation: card-slide-up 0.28s ease-out 0.04s both;
+}
+
+/* ─── USER SIDE — subtle green glow ─── */
+
+.main-card.user-side {
+  filter: drop-shadow(0 0 10px rgba(74, 222, 128, 0.18));
+}
+
+/* ─── OPPONENT SIDE — subtle purple glow ─── */
+
+.main-card.opponent-side {
+  filter: drop-shadow(0 0 10px rgba(192, 132, 252, 0.15));
 }
 
 .main-card {
@@ -82,11 +142,11 @@
   right: -34px;
 }
 
-/* ESTADO PADRÃO */
+/* ─── SIDE MODES ─── */
+
 .side-stack.mode-main .main-card {
   opacity: 1;
   transform: translateY(18px) scale(1);
-  filter: none;
   z-index: 3;
 }
 
@@ -97,11 +157,9 @@
   z-index: 1;
 }
 
-/* GOLEIRO PROTAGONISTA */
 .side-stack.mode-gk-protagonist .main-card {
   opacity: 1;
   transform: translateY(14px) scale(1.02);
-  filter: none;
   z-index: 4;
 }
 
@@ -112,7 +170,6 @@
   z-index: 1;
 }
 
-/* leve deslocamento extra quando o goleiro está na frente */
 .side-stack.left-side.mode-gk-protagonist .main-card {
   transform: translateY(14px) translateX(8px) scale(1.02);
 }
@@ -128,6 +185,8 @@
 .side-stack.right-side.mode-gk-protagonist .back-card {
   transform: translateY(2px) translateX(16px) scale(0.83);
 }
+
+/* ─── IDLE / TRANSITIONING STATES ─── */
 
 .versus-display.is-idle .main-card,
 .versus-display.is-idle .back-card,
@@ -172,6 +231,8 @@
   filter: blur(10px) grayscale(0.5);
 }
 
+/* ─── VS LOGO ─── */
+
 .vs-logo {
   position: relative;
   z-index: 5;
@@ -183,26 +244,61 @@
   letter-spacing: -0.08em;
   line-height: 1;
 
-  background: linear-gradient(180deg, #ff4d8d 0%, #ff0055 50%, #8b0034 100%);
+  background: linear-gradient(
+    180deg,
+    #ffffff 0%,
+    #ff6aaa 18%,
+    #ff0055 45%,
+    #cc0044 70%,
+    #6b001f 100%
+  );
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
   color: #ff0055;
 
-  -webkit-text-stroke: 1.5px rgba(255, 255, 255, 0.15);
+  -webkit-text-stroke: 2px rgba(255, 255, 255, 0.08);
 
-  text-shadow:
-    0 0 6px rgba(255, 0, 85, 0.7),
-    0 0 16px rgba(255, 0, 85, 0.5),
-    0 6px 16px rgba(0, 0, 0, 0.6);
+  filter:
+    drop-shadow(0 0 8px rgba(255, 0, 85, 0.9))
+    drop-shadow(0 0 24px rgba(255, 0, 85, 0.5))
+    drop-shadow(0 8px 20px rgba(0, 0, 0, 0.8));
 
-  filter: drop-shadow(0 0 10px rgba(255, 0, 85, 0.5));
-  transform: skewX(-10deg);
+  transform: skewX(-15deg);
+  transform-origin: center;
+
+  animation: vs-pulse 2.4s ease-in-out infinite;
 
   opacity: 1;
   visibility: visible;
-  animation: none;
+  line-height: 1.3;
+  padding: 0 0.15em 0.15em;
 }
+
+.vs-logo-wrapper {
+  position: relative;
+  z-index: 5;
+  flex-shrink: 0;
+  padding: 0 18px;
+  overflow: visible;
+}
+
+@keyframes vs-pulse {
+  0%, 100% {
+    filter:
+      drop-shadow(0 0 8px rgba(255, 0, 85, 0.9))
+      drop-shadow(0 0 24px rgba(255, 0, 85, 0.5))
+      drop-shadow(0 8px 20px rgba(0, 0, 0, 0.8));
+  }
+  50% {
+    filter:
+      drop-shadow(0 0 12px rgba(255, 0, 85, 1))
+      drop-shadow(0 0 32px rgba(255, 0, 85, 0.65))
+      drop-shadow(0 8px 20px rgba(0, 0, 0, 0.8));
+  }
+}
+
+/* ─── ACTION OPTIONS ─── */
 
 .action-options {
   display: flex;
@@ -217,6 +313,45 @@
   opacity: 0.5;
   pointer-events: none;
 }
+
+/* ─── BALL ─── */
+
+.main-card {
+  position: relative;
+}
+
+.match-ball-icon {
+  position: absolute;
+  width: 50px;
+  height: 50px;
+  z-index: 999;
+  pointer-events: none;
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.35));
+  animation: ball-bounce 1s ease-in-out infinite;
+}
+
+@keyframes ball-bounce {
+  0%, 100% {
+    transform: translateY(0px);
+    filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.35));
+  }
+  50% {
+    transform: translateY(-7px);
+    filter: drop-shadow(0 10px 14px rgba(0, 0, 0, 0.2));
+  }
+}
+
+.ball-left {
+  right: -14px;
+  bottom: 18px;
+}
+
+.ball-right {
+  left: -14px;
+  bottom: 18px;
+}
+
+/* ─── RESPONSIVE ─── */
 
 @media (max-width: 1100px) {
   .versus-display {
@@ -294,25 +429,26 @@
   }
 }
 
-.main-card {
-  position: relative;
-}
-
-.match-ball-icon {
+.possession-triangle {
   position: absolute;
-  width: 50px;
-  height: 50px;
+  top: -38px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 16px solid transparent;
+  border-right: 16px solid transparent;
+  border-top: 24px solid transparent;
   z-index: 999;
   pointer-events: none;
-  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.35));
 }
 
-.ball-left {
-  right: -14px;
-  bottom: 18px;
+.possession-triangle--user {
+  border-top-color: #60a5fa;
+  filter: drop-shadow(0 0 6px rgba(96, 165, 250, 0.8));
 }
 
-.ball-right {
-  left: -14px;
-  bottom: 18px;
+.possession-triangle--opponent {
+  border-top-color: #f87171;
+  filter: drop-shadow(0 0 6px rgba(248, 113, 113, 0.8));
 }

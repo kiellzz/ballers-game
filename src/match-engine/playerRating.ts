@@ -4,7 +4,7 @@ import type { PlayerMatchStatLine } from "./matchTypes";
 // Constants
 // ─────────────────────────────────────────────────────────────────────────────
 
-const BASE_RATING = 5.8;
+const BASE_RATING = 6.0;
 const MIN_RATING = 0;
 const MAX_RATING = 10.0;
 
@@ -34,48 +34,11 @@ function getPositionGroup(position: string): PositionGroup {
 //   Standout       → ~7.8–8.5
 //   Exceptional    → rarely > 9.0
 //
-// KEY CHANGES vs previous version
-//   • BASE_RATING          6.0  → 5.8   (anchors distribution lower)
-//   • successfulAction     cut ~25 %    (was the main inflation driver: fires on every open-play success)
-//   • duelWin / duelLoss   cut ~25 %    (double-counts with successfulAction / failedAction)
-//   • defensiveAction      cut ~15–25 % (high-volume stat for def/mid)
-//   • save (GK)            0.6  → 0.45  (multiple saves per game were too generous)
-//   • cleanSheetGk         1.0  → 0.7   (reward trimmed; saves already give value)
-//   • cleanSheetDef        0.6  → 0.4
-//   • goal ATT             2.0  → 1.8   (still the biggest single boost, just slightly tighter)
-//   • bigChanceCreated ATT 0.68 → 0.5   (was stacking too easily with keyPass)
-//   • keyPass ATT          0.5  → 0.4
-//   • shotOnTarget ATT     0.4  → 0.3   (on-target shots are common for forwards)
-//   • pass weights         slight trim  (volume stat)
-//
-//
-// ATT DEFLATION PASS (latest)
-//   • goal             1.80 → 1.65
-//   • assist           1.40 → 1.20
-//   • keyPass          0.40 → 0.30  (stat de volume, stackava fácil)
-//   • bigChanceCreated 0.50 → 0.38  (stackava com keyPass)
-//   • shotOnTarget     0.30 → 0.22  (comum para atacantes)
-//   • successfulDribble 0.22 → 0.16
-//   • cross            0.20 → 0.14
-//   • pass             0.022 → 0.016
-//   • successfulAction 0.032 → 0.022 (stat de volume inflacionava nota base)
-//   • duelWin          0.15 → 0.12
-//   • shotAttempt      0.04 → 0.03
-//   • defensiveAction      0.35 → 0.45  (core stat for defenders, was under-rewarded)
-//   • successfulAction     0.038 → 0.050 (positive open-play actions valued more)
-//   • duelWin              0.18 → 0.24  (winning duels is central to defending)
-//   • duelLoss             -0.15 → -0.13 (slightly less punitive)
-//   • tackleWon            0.28 → 0.36
-//   • interception         0.24 → 0.32
-//   • block                0.22 → 0.30
-//   • clearance            0.14 → 0.18
-//   • cleanSheetDef        0.55 → 0.65
-//   • pass                 0.022 → 0.028 (routine positive contribution)
-//   • failedDribble        -0.10 → -0.08 (slightly less punitive)
-//   • lostPossession       -0.15 → -0.12
-//   • failedAction         -0.06 → -0.05
-//   • failedHighAction     -0.12 → -0.10
-//   • concededByDefense    -0.25 → -0.22
+// LATEST CHANGES
+//   • BASE_RATING          5.8 → 6.0
+//   • mid pass             0.025 → 0.015  (volume stat, stackava com successfulAction)
+//   • mid successfulAction 0.035 → 0.022  (volume stat, infla nota base)
+//   • mid duelWin          0.15  → 0.08   (meia típico ganha 15-20 duelos, era excessivo)
 // ─────────────────────────────────────────────────────────────────────────────
 
 interface RatingWeights {
@@ -120,125 +83,120 @@ interface RatingWeights {
 const WEIGHTS: Record<PositionGroup, RatingWeights> = {
   // ── Goalkeeper ─────────────────────────────────────────────────────────────
   gk: {
-    // Offensive (rare for GK — tiny weights)
     goal:               0.6,
     assist:             0.3,
-    keyPass:            0.06,   // 0.08 → 0.06
-    bigChanceCreated:   0.12,   // 0.15 → 0.12
-    successfulDribble:  0.04,   // 0.05 → 0.04
-    cross:              0.04,   // 0.05 → 0.04
+    keyPass:            0.06,
+    bigChanceCreated:   0.12,
+    successfulDribble:  0.04,
+    cross:              0.04,
     shotOnTarget:       0.0,
-    pass:               0.015,  // 0.02 → 0.015
+    pass:               0.015,
 
-    // Defensive (core GK stats)
     save:               0.45,
-    defensiveAction:    0.08,   // 0.15 → 0.08  (gk_clearance dispara muito)
+    defensiveAction:    0.08,
 
-    // Negative
     goalConceded:      -0.5,
     failedDribble:     -0.05,
     lostPossession:    -0.10,
 
-    // Volume actions — GK distribui muito, peso mínimo
-    successfulAction:   0.01,   // 0.03 → 0.01
-    failedAction:      -0.04,   // -0.06 → -0.04
-    failedHighAction:  -0.08,   // -0.10 → -0.08
-    duelWin:            0.06,   // 0.15 → 0.06  (cada distribuição gera duelWin)
-    duelLoss:          -0.10,   // -0.15 → -0.10
+    successfulAction:   0.01,
+    failedAction:      -0.04,
+    failedHighAction:  -0.08,
+    duelWin:            0.06,
+    duelLoss:          -0.10,
 
-    // Shot-related (N/A for GK as attacker)
     shotAttempt:        0,
     shotMiss:           0,
     shotBlocked:        0,
     bigChanceMiss:      0,
     penaltyMiss:       -0.80,
-    // Defensive specifics
-    tackleWon:          0.20,   // 0.25 → 0.20
-    interception:       0.15,   // 0.20 → 0.15
-    block:              0.15,   // 0.20 → 0.15
-    clearance:          0.06,   // 0.12 → 0.06  (gk_clearance é rotineiro)
 
-    // Team/GK exclusives
+    tackleWon:          0.20,
+    interception:       0.15,
+    block:              0.15,
+    clearance:          0.06,
+
     concededByDefense:  0,
     weakGoalConceded:  -0.30,
-    highSave:           0.25,   // 0.30 → 0.25
+    highSave:           0.25,
     penaltySave:        0.50,
-    cleanSheetGk:       0.70,   // 1.00 → 0.70  ★ main change
+    cleanSheetGk:       0.70,
     cleanSheetDef:      0,
   },
 
   // ── Defender ───────────────────────────────────────────────────────────────
   def: {
-    goal:               1.0,    // 1.2 → 1.0
-    assist:             0.8,    // 0.9 → 0.8
-    keyPass:            0.20,   // 0.25 → 0.20
-    bigChanceCreated:   0.28,   // 0.35 → 0.28
-    successfulDribble:  0.08,   // 0.10 → 0.08
-    cross:              0.12,   // 0.15 → 0.12
-    shotOnTarget:       0.15,   // 0.20 → 0.15
-    pass:               0.028,  // 0.022 → 0.028  ★ passe é contribuição positiva rotineira
+    goal:               1.0,
+    assist:             0.8,
+    keyPass:            0.20,
+    bigChanceCreated:   0.28,
+    successfulDribble:  0.08,
+    cross:              0.12,
+    shotOnTarget:       0.15,
+    pass:               0.028,
 
     save:               0.0,
-    defensiveAction:    0.45,   // 0.35 → 0.45  ★ stat central do defensor
+    defensiveAction:    0.45,
+
     goalConceded:       0.0,
-    failedDribble:     -0.08,   // -0.10 → -0.08
-    lostPossession:    -0.12,   // -0.15 → -0.12
-    successfulAction:   0.050,  // 0.038 → 0.050  ★ ações positivas mais valorizadas
-    failedAction:      -0.05,   // -0.06 → -0.05
-    failedHighAction:  -0.10,   // -0.12 → -0.10
-    duelWin:            0.24,   // 0.18 → 0.24  ★ duelo ganho é core do defensor
-    duelLoss:          -0.13,   // -0.15 → -0.13
+    failedDribble:     -0.08,
+    lostPossession:    -0.12,
+    successfulAction:   0.050,
+    failedAction:      -0.05,
+    failedHighAction:  -0.10,
+    duelWin:            0.24,
+    duelLoss:          -0.13,
     shotAttempt:        0.04,
     shotMiss:          -0.10,
     shotBlocked:       -0.05,
     bigChanceMiss:     -0.20,
     penaltyMiss:       -0.80,
-    tackleWon:          0.36,   // 0.28 → 0.36  ★
-    interception:       0.32,   // 0.24 → 0.32  ★
-    block:              0.30,   // 0.22 → 0.30  ★
-    clearance:          0.18,   // 0.14 → 0.18  ★
-    concededByDefense: -0.22,   // -0.25 → -0.22
+    tackleWon:          0.36,
+    interception:       0.32,
+    block:              0.30,
+    clearance:          0.18,
+    concededByDefense: -0.22,
     weakGoalConceded:   0,
     highSave:           0,
     penaltySave:        0,
     cleanSheetGk:       0,
-    cleanSheetDef:      0.65,   // 0.55 → 0.65  ★ clean sheet mais recompensado
+    cleanSheetDef:      0.65,
   },
 
   // ── Midfielder ─────────────────────────────────────────────────────────────
   mid: {
-    goal:               1.0,    // 1.5 → 1.0
-    assist:             0.8,    // 1.2 → 0.8
-    keyPass:            0.35,   // 0.42 → 0.35
-    bigChanceCreated:   0.42,   // 0.50 → 0.42
-    successfulDribble:  0.15,   // 0.20 → 0.15
-    cross:              0.15,   // 0.20 → 0.15
-    shotOnTarget:       0.22,   // 0.30 → 0.22
-    pass:               0.025,  // 0.035 → 0.025
+    goal:               1.0,
+    assist:             0.8,
+    keyPass:            0.35,
+    bigChanceCreated:   0.42,
+    successfulDribble:  0.15,
+    cross:              0.15,
+    shotOnTarget:       0.22,
+    pass:               0.015,  // 0.025 → 0.015  ★
 
     save:               0.0,
-    defensiveAction:    0.22,   // 0.30 → 0.22  ★ main change
+    defensiveAction:    0.22,
 
     goalConceded:       0.0,
     failedDribble:     -0.10,
     lostPossession:    -0.12,
 
-    successfulAction:   0.035,  // 0.05 → 0.035
+    successfulAction:   0.022,  // 0.035 → 0.022  ★
     failedAction:      -0.06,
     failedHighAction:  -0.12,
-    duelWin:            0.15,   // 0.20 → 0.15
-    duelLoss:          -0.15,   // -0.20 → -0.15
+    duelWin:            0.08,   // 0.15  → 0.08   ★
+    duelLoss:          -0.15,
 
-    shotAttempt:        0.04,   // 0.05 → 0.04
+    shotAttempt:        0.04,
     shotMiss:          -0.20,
     shotBlocked:       -0.15,
     bigChanceMiss:     -0.30,
     penaltyMiss:       -0.80,
 
-    tackleWon:          0.25,   // 0.30 → 0.25
-    interception:       0.20,   // 0.25 → 0.20
-    block:              0.20,   // 0.25 → 0.20
-    clearance:          0.12,   // 0.15 → 0.12
+    tackleWon:          0.25,
+    interception:       0.20,
+    block:              0.20,
+    clearance:          0.12,
 
     concededByDefense:  0,
     weakGoalConceded:   0,
@@ -250,38 +208,38 @@ const WEIGHTS: Record<PositionGroup, RatingWeights> = {
 
   // ── Attacker ───────────────────────────────────────────────────────────────
   att: {
-    goal:               1.0,    // 1.65 → 1.0
-    assist:             0.8,    // 1.20 → 0.8
-    keyPass:            0.30,   // 0.40 → 0.30  ★ stat de volume, stackava fácil
-    bigChanceCreated:   0.38,   // 0.50 → 0.38  ★ stackava com keyPass
-    successfulDribble:  0.16,   // 0.22 → 0.16
-    cross:              0.14,   // 0.20 → 0.14
-    shotOnTarget:       0.22,   // 0.30 → 0.22  ★ stat comum para atacantes
-    pass:               0.016,  // 0.022 → 0.016
+    goal:               1.0,
+    assist:             0.8,
+    keyPass:            0.30,
+    bigChanceCreated:   0.38,
+    successfulDribble:  0.16,
+    cross:              0.14,
+    shotOnTarget:       0.22,
+    pass:               0.016,
 
     save:               0.0,
-    defensiveAction:    0.08,   // 0.10 → 0.08
+    defensiveAction:    0.08,
 
     goalConceded:       0.0,
     failedDribble:     -0.20,
     lostPossession:    -0.20,
 
-    successfulAction:   0.022,  // 0.032 → 0.022  ★ stat de volume inflacionava nota base
+    successfulAction:   0.022,
     failedAction:      -0.06,
     failedHighAction:  -0.12,
-    duelWin:            0.12,   // 0.15 → 0.12
+    duelWin:            0.12,
     duelLoss:          -0.15,
 
-    shotAttempt:        0.03,   // 0.04 → 0.03
+    shotAttempt:        0.03,
     shotMiss:          -0.30,
     shotBlocked:       -0.20,
     bigChanceMiss:     -0.60,
     penaltyMiss:       -0.80,
 
-    tackleWon:          0.25,   // 0.30 → 0.25
-    interception:       0.20,   // 0.25 → 0.20
-    block:              0.20,   // 0.25 → 0.20
-    clearance:          0.12,   // 0.15 → 0.12
+    tackleWon:          0.25,
+    interception:       0.20,
+    block:              0.20,
+    clearance:          0.12,
 
     concededByDefense:  0,
     weakGoalConceded:   0,
@@ -319,10 +277,6 @@ export function calculatePlayerRating(
           : 0
       : 0;
 
-  // Team goals scored bonus — scales with how many goals the team scored,
-  // with sqrt for diminishing returns (a 5-0 win doesn't over-inflate).
-  // Weight by sector: GK/DEF benefit most from team context; ATT already
-  // earns heavily via goal and assist weights.
   const TEAM_GOAL_BONUS_PER_GROUP: Record<PositionGroup, number> = {
     gk:  0.10,
     def: 0.12,

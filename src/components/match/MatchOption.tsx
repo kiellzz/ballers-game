@@ -5,8 +5,8 @@ import './MatchOption.css';
 interface MatchOptionProps {
   label: string;
   onClick?: () => void;
-  onMouseEnter?: () => void; // Adicionado
-  onMouseLeave?: () => void; // Adicionado
+  onMouseEnter?: () => void;
+  onMouseLeave?: () => void;
   disabled?: boolean;
   type?: 'primary' | 'secondary';
 }
@@ -23,12 +23,12 @@ export const MatchOption: React.FC<MatchOptionProps> = ({
     <button
       className={`opt-btn opt-btn--${type}`}
       onClick={onClick}
-      onMouseEnter={onMouseEnter} // Repassando o evento
-      onMouseLeave={onMouseLeave} // Repassando o evento
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
       disabled={disabled}
     >
       {label}
-      <span className="opt-check">✓</span>
+      <span className="opt-check" aria-hidden="true">✓</span>
     </button>
   );
 };

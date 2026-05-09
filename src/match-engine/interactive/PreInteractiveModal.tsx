@@ -1,7 +1,9 @@
+import { useEffect } from "react";
 import MatchModal from "../../components/match/MatchModal";
 import type { Player } from "../../types/PlayerTypes";
 import { getPlayerImage } from "../../utils/getPlayerImage";
 import { getFlagUrl } from "../../utils/getFlagUrl";
+import { matchSound } from "../sounds/matchSound";
 import "./PreInteractiveModal.css";
 
 export type PreInteractiveType =
@@ -11,6 +13,7 @@ export type PreInteractiveType =
   | "corner";
 
 export type PreInteractiveSide = "user" | "opponent";
+
 type PreInteractiveTone =
   | "positive"
   | "neutral"
@@ -34,6 +37,17 @@ export default function PreInteractiveModal({
   side = "user",
 }: PreInteractiveModalProps) {
   const isOpponentSetPiece = side === "opponent";
+
+  // 🔊 Som de bola parada
+  useEffect(() => {
+    if (!isOpen) return;
+
+    // Mapeia quick_freekick para freekick para o áudio
+    const audioType = type === "quick_freekick" ? "freekick" : type;
+    
+    // Toca som de set piece através do matchSound
+    matchSound.playSetPiece(audioType);
+  }, [isOpen, type]);
 
   function getContent(): {
     title: string;
@@ -143,6 +157,7 @@ export default function PreInteractiveModal({
         <span className={`pre-int-player__label pre-int-player__label--${tone}`}>
           {isOpponentSetPiece ? "OPPONENT THREAT" : "SET PIECE TAKER"}
         </span>
+
         <span className="pre-int-player__name">{player.name}</span>
 
         <div className="pre-int-player__meta">

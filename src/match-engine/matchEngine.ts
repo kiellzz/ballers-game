@@ -1081,22 +1081,34 @@ function applyEventToPlayerMatchStats(
     // ── 3b. Duel result: attacker vs defender ──────────────────────────────
     // success → attacker wins the duel, defender loses
     // fail    → attacker loses the duel, defender wins
-    if (isSuccess) {
-      const atk = get(atkKey);
-      const def = get(defKey);
-      atk.duelWins   += 1;
-      def.duelLosses += 1;
-      next[atkKey] = atk;
-      next[defKey] = def;
-    }
+    const isDefensiveAction =
+      action === "intercept" ||
+      action === "tackle" ||
+      action === "slide_tackle" ||
+      action === "block" ||
+      action === "shoulder_charge" ||
+      action === "emergency_clearance" ||
+      action === "clearance" ||
+      action === "gk_clearance";
 
-    if (isFail) {
-      const atk = get(atkKey);
-      const def = get(defKey);
-      atk.duelLosses += 1;
-      def.duelWins   += 1;
-      next[atkKey] = atk;
-      next[defKey] = def;
+    if (!isDefensiveAction) {
+      if (isSuccess) {
+        const atk = get(atkKey);
+        const def = get(defKey);
+        atk.duelWins   += 1;
+        def.duelLosses += 1;
+        next[atkKey] = atk;
+        next[defKey] = def;
+      }
+
+      if (isFail) {
+        const atk = get(atkKey);
+        const def = get(defKey);
+        atk.duelLosses += 1;
+        def.duelWins   += 1;
+        next[atkKey] = atk;
+        next[defKey] = def;
+      }
     }
 
     // ── 3c. Offensive skill actions (always attacker) ─────────────────────

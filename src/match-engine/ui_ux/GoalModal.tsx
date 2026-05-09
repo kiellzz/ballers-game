@@ -4,6 +4,7 @@ import type { Player } from "../../types/PlayerTypes";
 import { getPlayerImage } from "../../utils/getPlayerImage";
 import { getFlagUrl } from "../../utils/getFlagUrl";
 import { triggerGoalConfetti } from "../../utils/confettiEffects";
+import { matchSound } from "../sounds/matchSound";
 import type { PossessionSide } from "../matchTypes";
 import "./GoalModal.css";
 
@@ -24,12 +25,20 @@ export default function GoalModal({
 }: GoalModalProps) {
   const isUser = scorerSide === "user";
 
-  // 🔥 Confetti só para gol do usuário
+  // 🔥 Confetti + som do gol
   useEffect(() => {
-    if (isOpen && isUser) {
+    if (!isOpen) return;
+
+    // Confetti só para gol do usuário
+    if (isUser) {
       triggerGoalConfetti();
     }
-  }, [isOpen, isUser]);
+
+    // Toca som do gol através do matchSound
+    if (scorerSide) {
+      matchSound.playGoal(scorerSide);
+    }
+  }, [isOpen, scorerSide]);
 
   if (!isOpen || !scorerSide) return null;
 
