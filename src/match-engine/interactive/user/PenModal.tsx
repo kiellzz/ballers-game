@@ -44,7 +44,6 @@ export default function PenModal({
   onPick,
   onContinue,
   resolution,
-  goalkeeperName,
   goalkeeper,
   shooter,
 }: PenModalProps) {
@@ -248,7 +247,6 @@ export default function PenModal({
                       resolution?.result === "save_touch" ? "is-touch" : ""
                     }`}
                   >
-                    🧤 {goalkeeperName ?? "GK"}
                   </span>
                 )}
               </button>

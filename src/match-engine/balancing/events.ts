@@ -98,7 +98,7 @@ export const ACTION_DEFINITIONS: Record<ActionType, ActionDefinition> = {
     failRecoilRange: { min: 1, max: 3 },
   },
 
-  dribble: {
+dribble: {
   type: "dribble",
   label: "Dribble",
   category: "duel",
@@ -112,20 +112,19 @@ export const ACTION_DEFINITIONS: Record<ActionType, ActionDefinition> = {
     "atk_third",
     "atk_nearbox",
     "atk_box",
-    "atk_bigchance",
   ],
   allowedLanes: ALL_LANES,
-  volatility: 0.55,
+  volatility: 0.42,
   risk: 0.48,
   canCreateBigChance: true,
   canLeadToShot: true,
   offensiveWeights: [
-    { stat: "overall", weight: 0.47 },
-    { stat: "dribbling", weight: 1.23 },
+    { stat: "overall", weight: 0.4 },
+    { stat: "dribbling", weight: 1.1 },
   ],
   defensiveWeights: [
     { stat: "overall", weight: 0.5 },
-    { stat: "defending", weight: 1.3 },
+    { stat: "defending", weight: 1.4 },
   ],
   successAdvanceRange: { min: 1, max: 2 },
   failRecoilRange: { min: 1, max: 2 },
@@ -229,13 +228,13 @@ export const ACTION_DEFINITIONS: Record<ActionType, ActionDefinition> = {
     requiresPossession: true,
     allowedZones: ["atk_box", "atk_bigchance"],
     allowedLanes: ["center"],
-    volatility: 0.4,
+    volatility: 0.442,
     risk: 0.38,
     canLeadToShot: true,
     isShot: true,
     offensiveWeights: [
       { stat: "overall", weight: 0.4 },
-      { stat: "shooting", weight: 1.2 },
+      { stat: "shooting", weight: 1.23 },
       { stat: "dribbling", weight: 0.25 },
     ],
     defensiveWeights: [

@@ -4,6 +4,7 @@ import PlayerGrid from "../components/home/PlayerGrid";
 import FeatureButton from "../components/feature-button/FeatureButton";
 import FilterModal from "../components/filter-modal/FilterModal";
 import PlayerCardModal from "../components/player-card/PlayerCardModal";
+import ComingSoon from "../components/home/ComingSoon";
 import { playersData } from "../data/PlayersData";
 import { getCardTier } from "../utils/getCardTier";
 import { defaultFilters } from "../types/FilterTypes";
@@ -20,6 +21,8 @@ export default function Home() {
   const [filters, setFilters] = useState<FilterState>(defaultFilters);
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
+
+  const [isComingSoonOpen, setIsComingSoonOpen] = useState(false);
 
   const { favorites, toggleFavorite } = useFavorites();
 
@@ -55,10 +58,8 @@ export default function Home() {
     });
 
     return result.sort((a, b) => {
-      const order = filters.sortBy ?? 'desc';
-      return order === 'desc'
-        ? b.overall - a.overall
-        : a.overall - b.overall;
+      const order = filters.sortBy ?? "desc";
+      return order === "desc" ? b.overall - a.overall : a.overall - b.overall;
     });
   }, [search, filters, favorites]);
 
@@ -88,7 +89,7 @@ export default function Home() {
 
   function handleShowLess() {
     setVisibleCount(PAGE_SIZE);
-    window.scrollTo({ top: 0, behavior: 'smooth' }); 
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   return (
@@ -127,9 +128,16 @@ export default function Home() {
               <FeatureButton label="SHOW MORE PLAYERS" onClick={handleShowMore} />
             )}
             {hasLess && (
-              <FeatureButton label="SHOW LESS PLAYERS" onClick={handleShowLess} variant="less" />
+              <FeatureButton
+                label="SHOW LESS PLAYERS"
+                onClick={handleShowLess}
+                variant="less"
+              />
             )}
-            <FeatureButton label="DRAFT MODE" />
+            <FeatureButton
+              label="DRAFT MODE"
+              onClick={() => setIsComingSoonOpen(true)}
+            />
           </div>
         </div>
       </div>
@@ -149,6 +157,10 @@ export default function Home() {
           onRemove={() => setSelectedPlayer(null)}
           onToggleFavorite={() => toggleFavorite(selectedPlayer.id)}
         />
+      )}
+
+      {isComingSoonOpen && (
+        <ComingSoon onClose={() => setIsComingSoonOpen(false)} />
       )}
     </div>
   );

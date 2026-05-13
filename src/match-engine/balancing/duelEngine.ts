@@ -7,6 +7,7 @@ import type {
   MatchPlayer,
   SideScoreBreakdown,
   StatBreakdownEntry,
+  ActionDefinition,
 } from "../matchTypes";
 
 export function resolveDuel(context: DuelContext): DuelScores {
@@ -15,21 +16,48 @@ export function resolveDuel(context: DuelContext): DuelScores {
   const offensivePlayer = getOffensivePlayer(context);
   const defensivePlayer = getDefensivePlayer(context);
 
-  const offensive = buildScoreBreakdown(
-    offensivePlayer,
-    actionDefinition.offensiveWeights
-  );
+  const offensiveWeights = actionDefinition.offensiveWeights;
+  const defensiveWeights = getContextualDefensiveWeights(context, actionDefinition);
 
-  const defensive = buildScoreBreakdown(
-    defensivePlayer,
-    actionDefinition.defensiveWeights
-  );
+  const offensive = buildScoreBreakdown(offensivePlayer, offensiveWeights);
+  const defensive = buildScoreBreakdown(defensivePlayer, defensiveWeights);
+
+  const offensiveWeightSum = offensiveWeights.reduce((sum, w) => sum + w.weight, 0);
+  const defensiveWeightSum = defensiveWeights.reduce((sum, w) => sum + w.weight, 0);
+
+  const normalizedOffensive = offensiveWeightSum > 0
+    ? offensive.total / offensiveWeightSum
+    : 0;
+  const normalizedDefensive = defensiveWeightSum > 0
+    ? defensive.total / defensiveWeightSum
+    : 0;
+
+  const rawDelta = (normalizedOffensive - normalizedDefensive) / 10;
 
   return {
     offensive,
     defensive,
-    rawDelta: (offensive.total - defensive.total) / 10,
+    rawDelta,
   };
+}
+
+function getContextualDefensiveWeights(
+  context: DuelContext,
+  actionDefinition: ActionDefinition
+): Array<{ stat: AnyStat; weight: number }> {
+  if (
+    context.zone === "def_bigchance" &&
+    context.action === "dribble"
+  ) {
+    return [
+      { stat: "overall",     weight: 0.4 },
+      { stat: "positioning", weight: 1.0 },
+      { stat: "reflexes",    weight: 0.8 },
+      { stat: "diving",      weight: 0.6 },
+    ];
+  }
+
+  return actionDefinition.defensiveWeights;
 }
 
 function getOffensivePlayer(context: DuelContext): MatchPlayer {

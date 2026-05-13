@@ -283,7 +283,6 @@ function getActionWeight(params: {
         if (zone === "atk_mid" || zone === "atk_third") weight += 0.45;
         if (zone === "atk_nearbox") weight += 0.35;
         if (lane !== "center") weight += 0.2;
-        if (zone === "atk_bigchance") weight += 0.8;
         break;
 
       case "sprint":
@@ -380,8 +379,8 @@ function getActionWeight(params: {
       case "emergency_clearance":
         weight = 0.8;
         if (zone === "def_bigchance") weight += 2.5;
-        if (zone === "def_box") weight += 2.0;
-        if (zone === "def_nearbox") weight += 1.4;
+        if (zone === "def_box") weight += 0.4;       
+        if (zone === "def_nearbox") weight += 0.6;  
         break;
 
       case "counterattack":

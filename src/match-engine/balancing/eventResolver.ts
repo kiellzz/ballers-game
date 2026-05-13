@@ -473,20 +473,26 @@ function resolveClearanceTransition(params: {
   const { zone, lane, possession } = context;
   const isEmergency = context.action === "emergency_clearance";
 
-  // Emergency clearance has a much lower chance of retaining possession —
-  // it's a desperate action under pressure, not a controlled play.
-  // Normal clearance: 20% | Emergency: 5%
-  const keepPossessionChance = isEmergency ? 0.05 : 0.2;
+  // quem está limpando: no emergency_clearance, é o lado oposto à posse
+  // no clearance normal, é o lado que tem a posse (requiresPossession: true)
+  const clearingTeam: PossessionSide = isEmergency
+    ? (possession === "user" ? "opponent" : "user")
+    : possession;
 
+  const attackingTeam: PossessionSide =
+    clearingTeam === "user" ? "opponent" : "user";
+
+  const keepPossessionChance = isEmergency ? 0.05 : 0.2;
   const nextLane: Lane = random() < 0.5 ? "left" : "right";
 
   if (outcome === "success" || outcome === "success_high") {
     const keepsPossession = random() < keepPossessionChance;
+
+    // sucesso: clearingTeam afastou a bola
+    // keepsPossession = raramente controla, normalmente fica em disputa
     const nextPossession: PossessionSide = keepsPossession
-      ? possession
-      : possession === "user"
-        ? "opponent"
-        : "user";
+      ? clearingTeam   // defensor controla
+      : attackingTeam; // bola fica com o atacante (disputa ganha pelo ataque)
 
     const nextZone = resolveClearanceSuccessZone({
       fromZone: zone,
@@ -508,7 +514,7 @@ function resolveClearanceTransition(params: {
     };
   }
 
-  // fail / fail_high: opponent keeps possession in a dangerous zone
+  // fail: não conseguiu limpar, atacante mantém
   const nextZone = resolveClearanceFailZone({ fromZone: zone, isEmergency });
 
   return {
@@ -517,7 +523,7 @@ function resolveClearanceTransition(params: {
     fromLane: lane,
     toLane: normalizeLaneForZone(nextZone, "center", random),
     fromPossession: possession,
-    toPossession: possession === "user" ? "opponent" : "user",
+    toPossession: attackingTeam, // atacante segura a bola
     createdBigChance: false,
     nextSituationType: "open_play",
     nextSetPieceType: null,

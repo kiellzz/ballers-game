@@ -1,5 +1,6 @@
 import { useState } from "react";
 import "./WelcomePage.css";
+import Demo from "../components/demo/Demo";
 
 interface WelcomePageProps {
   onStart: () => void;
@@ -29,6 +30,9 @@ export default function WelcomePage({ onStart }: WelcomePageProps) {
       </div>
 
       <div className="welcome-content">
+
+            <Demo />
+
         <div className="logo-wrapper">
           <img
             src="/images/logo.webp"
@@ -38,7 +42,6 @@ export default function WelcomePage({ onStart }: WelcomePageProps) {
           <div className="glow-effect" />
           <div className="logo-ring" />
         </div>
-
         <button className="start-btn" onClick={handleStart}>
           <div className="btn-border" />
           <div className="btn-bg">

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import type { FilterState } from "../../types/FilterTypes";
 import { playButton, playConfirm } from "../../utils/sound";
 import "./Header.css";
+import Demo from "../demo/Demo";
 
 type HeaderProps = {
   filters: FilterState;
@@ -25,6 +26,8 @@ export default function Header({ filters, search, onSearchChange, onOpenFilters,
   return (
     <header className="header">
       <img src="/images/logo.webp" alt="Ballers logo" className="header__logo" />
+
+       <Demo />
 
       <div className="header__top">
         <h2 className="header__title">Filters</h2>
