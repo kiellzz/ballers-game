@@ -845,6 +845,16 @@ function normalizeOpponentProgression(params: {
     return "def_third";
   }
 
+  if (fromZone === "def_nearbox" && toZone === "def_nearbox") {
+  if (
+    actionType === "dribble" ||
+    actionType === "sprint" ||
+    actionType === "cross"
+  ) {
+    return "def_box";
+  }
+}
+
   return toZone;
 }
 

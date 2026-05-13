@@ -250,6 +250,10 @@ export const MatchField = ({
         </div>
       </div>
 
+      <p className="duel-hint">
+        Tip: Study the duel, stats decide the outcome.
+      </p>
+
       <div className="action-options">
         {phase === "finished" ? (
           <MatchOption

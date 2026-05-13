@@ -34,11 +34,16 @@ function getPositionGroup(position: string): PositionGroup {
 //   Standout       → ~7.8–8.5
 //   Exceptional    → rarely > 9.0
 //
-// LATEST CHANGES
-//   • BASE_RATING          5.8 → 6.0
-//   • mid pass             0.025 → 0.015  (volume stat, stackava com successfulAction)
-//   • mid successfulAction 0.035 → 0.022  (volume stat, infla nota base)
-//   • mid duelWin          0.15  → 0.08   (meia típico ganha 15-20 duelos, era excessivo)
+// LATEST CHANGES (defender rebalance)
+//   • def defensiveAction  0.45  → 0.22  (volume stat, era excessivo)
+//   • def duelWin          0.24  → 0.10  (zagueiro ganha 15-25 duelos, inflava muito)
+//   • def duelLoss        -0.13  → -0.14 (leve aumento para equilibrar nerf do duelWin)
+//   • def tackleWon        0.36  → 0.22  (ainda acima de mid, mas sem distorcer)
+//   • def interception     0.32  → 0.22  (idem)
+//   • def clearance        0.18  → 0.10  (ação básica do zagueiro, não deve valer tanto)
+//   • def successfulAction 0.050 → 0.022 (alinhado com mid/att)
+//   • def failedAction    -0.05  → -0.06 (alinhado com mid/att)
+//   • def pass             0.028 → 0.018 (volume stat; levemente acima de mid por posse)
 // ─────────────────────────────────────────────────────────────────────────────
 
 interface RatingWeights {
@@ -126,35 +131,35 @@ const WEIGHTS: Record<PositionGroup, RatingWeights> = {
 
   // ── Defender ───────────────────────────────────────────────────────────────
   def: {
-    goal:               1.0,
+    goal:               1.2,
     assist:             0.8,
     keyPass:            0.20,
     bigChanceCreated:   0.28,
     successfulDribble:  0.08,
     cross:              0.12,
     shotOnTarget:       0.15,
-    pass:               0.028,
+    pass:               0.018,  // 0.028 → 0.018  ★
 
     save:               0.0,
-    defensiveAction:    0.45,
+    defensiveAction:    0.22,   // 0.45  → 0.22   ★
 
     goalConceded:       0.0,
     failedDribble:     -0.08,
     lostPossession:    -0.12,
-    successfulAction:   0.050,
-    failedAction:      -0.05,
+    successfulAction:   0.022,  // 0.050 → 0.022  ★
+    failedAction:      -0.06,   // -0.05 → -0.06  ★
     failedHighAction:  -0.10,
-    duelWin:            0.24,
-    duelLoss:          -0.13,
+    duelWin:            0.10,   // 0.24  → 0.10   ★
+    duelLoss:          -0.14,   // -0.13 → -0.14  ★
     shotAttempt:        0.04,
     shotMiss:          -0.10,
     shotBlocked:       -0.05,
     bigChanceMiss:     -0.20,
     penaltyMiss:       -0.80,
-    tackleWon:          0.36,
-    interception:       0.32,
+    tackleWon:          0.22,   // 0.36  → 0.22   ★
+    interception:       0.22,   // 0.32  → 0.22   ★
     block:              0.30,
-    clearance:          0.18,
+    clearance:          0.10,   // 0.18  → 0.10   ★
     concededByDefense: -0.22,
     weakGoalConceded:   0,
     highSave:           0,
@@ -165,14 +170,14 @@ const WEIGHTS: Record<PositionGroup, RatingWeights> = {
 
   // ── Midfielder ─────────────────────────────────────────────────────────────
   mid: {
-    goal:               1.0,
+    goal:               1.2,
     assist:             0.8,
     keyPass:            0.35,
     bigChanceCreated:   0.42,
     successfulDribble:  0.15,
     cross:              0.15,
     shotOnTarget:       0.22,
-    pass:               0.015,  // 0.025 → 0.015  ★
+    pass:               0.015,
 
     save:               0.0,
     defensiveAction:    0.22,
@@ -181,10 +186,10 @@ const WEIGHTS: Record<PositionGroup, RatingWeights> = {
     failedDribble:     -0.10,
     lostPossession:    -0.12,
 
-    successfulAction:   0.022,  // 0.035 → 0.022  ★
+    successfulAction:   0.022,
     failedAction:      -0.06,
     failedHighAction:  -0.12,
-    duelWin:            0.08,   // 0.15  → 0.08   ★
+    duelWin:            0.08,
     duelLoss:          -0.15,
 
     shotAttempt:        0.04,
@@ -208,7 +213,7 @@ const WEIGHTS: Record<PositionGroup, RatingWeights> = {
 
   // ── Attacker ───────────────────────────────────────────────────────────────
   att: {
-    goal:               1.0,
+    goal:               1.2,
     assist:             0.8,
     keyPass:            0.30,
     bigChanceCreated:   0.38,

@@ -45,17 +45,8 @@ function getRandomSwing(volatility: number, random: () => number): number {
 }
 
 function getOutcomeFromDelta(delta: number): EventOutcome {
-  if (delta <= -16) {
-    return "fail_high";
-  }
-
-  if (delta < -1) {
-    return "fail";
-  }
-
-  if (delta < 16) {
-    return "success";
-  }
-
+  if (delta <= - 8)  return "fail_high";
+  if (delta <  -0.5) return "fail";
+  if (delta <   8)  return "success";
   return "success_high";
 }

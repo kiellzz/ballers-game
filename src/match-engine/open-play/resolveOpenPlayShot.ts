@@ -221,25 +221,25 @@ export function resolveOpenPlayShot(params: {
   if (outcome === "success_high") {
     const roll = random();
 
-    if (inBox) {
+  if (inBox) {
       if (roll < 0.58) {
         return goalResult();
       }
 
       if (roll < 0.72) {
-        return saveResult(0.65);
+        return saveResult(0.80);
       }
 
-      // Rebound: ~5% (0.72 -> 0.77, was 0.72 -> 0.80 = 8%)
+      // Rebound: ~4% (0.72 -> 0.76)
       if (roll < 0.76) {
         return reboundResult();
       }
 
       if (roll < 0.88) {
-        return blockedResult(0.92);
+        return blockedResult(0.55);
       }
 
-      // Post: ~3% (0.88 -> 0.91, was 0.88 -> 0.93 = 5%)
+      // Post: ~3% (0.88 -> 0.91)
       if (roll < 0.91) {
         return postResult();
       }

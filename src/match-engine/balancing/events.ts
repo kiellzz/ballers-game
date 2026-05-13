@@ -114,7 +114,7 @@ dribble: {
     "atk_box",
   ],
   allowedLanes: ALL_LANES,
-  volatility: 0.42,
+  volatility: 0.52,
   risk: 0.48,
   canCreateBigChance: true,
   canLeadToShot: true,
@@ -228,19 +228,19 @@ dribble: {
     requiresPossession: true,
     allowedZones: ["atk_box", "atk_bigchance"],
     allowedLanes: ["center"],
-    volatility: 0.442,
+    volatility: 0.35,
     risk: 0.38,
     canLeadToShot: true,
     isShot: true,
     offensiveWeights: [
-      { stat: "overall", weight: 0.4 },
-      { stat: "shooting", weight: 1.23 },
-      { stat: "dribbling", weight: 0.25 },
+    { stat: "overall",   weight: 0.30 },  
+    { stat: "shooting",  weight: 1.27 },  
+    { stat: "dribbling", weight: 0.20 },  
     ],
     defensiveWeights: [
-      { stat: "overall", weight: 0.28 },
-      { stat: "reflexes", weight: 0.7 },
-      { stat: "positioning", weight: 0.55 },
+      { stat: "overall",    weight: 0.43 },  
+      { stat: "reflexes",   weight: 0.90 },  // 0.70 → 0.90
+      { stat: "positioning", weight: 0.70 }, // 0.55 → 0.70
     ],
     successAdvanceRange: { min: 0, max: 0 },
     failRecoilRange: { min: 1, max: 2 },
@@ -553,10 +553,10 @@ dribble: {
   ],
 
   defensiveWeights: [
-    { stat: "overall", weight: 0.4 },
-    { stat: "shooting", weight: 1.1 }, // attacker is more favored
-    { stat: "dribbling", weight: 0.9 },
-    { stat: "pace", weight: 0.55 },
+    { stat: "overall",   weight: 0.40 },
+    { stat: "shooting",  weight: 1.25 },  // 1.10 → 1.25
+    { stat: "dribbling", weight: 1.10 },  // 0.90 → 1.10
+    { stat: "pace",      weight: 0.70 },  // 0.55 → 0.70
   ],
 
   defensiveRecoverRange: { min: 0, max: 1 },
@@ -574,11 +574,11 @@ dribble: {
   risk: 0.2,
 
   offensiveWeights: [
-    { stat: "overall", weight: 0.4 },
-    { stat: "positioning", weight: 1.2 }, // key stat
-    { stat: "reflexes", weight: 1.05 },   // slight buff
-    { stat: "diving", weight: 0.8 },
-    { stat: "handling", weight: 0.5 },
+    { stat: "overall",     weight: 0.40 },
+    { stat: "positioning", weight: 0.90 },  // 1.20 → 0.90
+    { stat: "reflexes",    weight: 0.80 },  // 1.05 → 0.80
+    { stat: "diving",      weight: 0.70 },  // 0.80 → 0.70
+    { stat: "handling",    weight: 0.45 },  // 0.50 → 0.4
   ],
 
   defensiveWeights: [
