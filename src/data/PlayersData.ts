@@ -176,15 +176,15 @@ export const playersData: Player[] = [
   {
     id: 11,
     name: "Mohamed Salah",
-    overall: 89,
+    overall: 88,
     position: "RW",
     secondaryPositions: ["RM"],
     nationality: "Egypt",
     stats: {
       pace: 90,
-      shooting: 89,
+      shooting: 88,
       passing: 82,
-      dribbling: 88,
+      dribbling: 87,
       defending: 44,
       physical: 76
     },
@@ -2249,10 +2249,10 @@ export const playersData: Player[] = [
     position: "ST",
     nationality: "Argentina",
     stats: {
-      pace: 80,
+      pace: 85,
       shooting: 84,
-      passing: 76,
-      dribbling: 82,
+      passing: 78,
+      dribbling: 86,
       defending: 46,
       physical: 76
     },
@@ -3892,6 +3892,7 @@ export const playersData: Player[] = [
   {
     id: 258,
     name: "Igor Thiago",
+    displayFullName: true,
     overall: 82,
     position: "ST",
     nationality: "Brazil",
@@ -4080,7 +4081,7 @@ export const playersData: Player[] = [
   {
     id: 269,
     name: "Ronaldinho",
-    overall: 93,
+    overall: 92,
     position: "CAM",
     secondaryPositions: ["LW"],
     nationality: "Brazil",
@@ -4327,7 +4328,7 @@ export const playersData: Player[] = [
   {
     id: 283,
     name: "Xavi",
-    overall: 91,
+    overall: 90,
     position: "CM",
     nationality: "Spain",
     isLegend: true,
@@ -4344,7 +4345,7 @@ export const playersData: Player[] = [
   {
     id: 284,
     name: "Andrés Iniesta",
-    overall: 91,
+    overall: 90,
     position: "CM",
     secondaryPositions: ["CAM"],
     nationality: "Spain",
@@ -4433,7 +4434,7 @@ export const playersData: Player[] = [
   {
     id: 289,
     name: "Paolo Maldini",
-    overall: 92,
+    overall: 93,
     position: "CB",
     secondaryPositions: ["LB"],
     nationality: "Italy",
@@ -4634,7 +4635,7 @@ export const playersData: Player[] = [
       pace: 78,
       shooting: 89,
       passing: 91,
-      dribbling: 94,
+      dribbling: 92,
       defending: 40,
       physical: 70
     },

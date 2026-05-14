@@ -5,9 +5,8 @@ const WEIGHTS = {
   legend: 0.5,      // Legends
   goldSpecial: 3.5, // 86+
   goldElite: 16,    // 83-86 
-  gold: 70,         // 75-82 
+  gold: 73,         // 75-82 
   silver: 7,       // 65-74
-  bronze: 3,       // < 65
 };
 
 type WeightKey = keyof typeof WEIGHTS;
@@ -20,7 +19,6 @@ export function drawPack(players: Player[], packSize = 5): Player[] {
     goldElite: [],
     gold: [],
     silver: [],
-    bronze: []
   };
 
   players.forEach(p => {
@@ -29,7 +27,6 @@ export function drawPack(players: Player[], packSize = 5): Player[] {
     else if (p.overall >= 83) buckets.goldElite.push(p);
     else if (p.overall >= 75) buckets.gold.push(p);
     else if (p.overall >= 65) buckets.silver.push(p);
-    else buckets.bronze.push(p);
   });
 
   const drawn: Player[] = [];
@@ -49,7 +46,7 @@ export function drawPack(players: Player[], packSize = 5): Player[] {
   for (let i = 0; i < packSize; i++) {
     let tier = getWeightedTier();
 
-    const tiers: WeightKey[] = ["legend", "goldSpecial", "goldElite", "gold", "silver", "bronze"];
+    const tiers: WeightKey[] = ["legend", "goldSpecial", "goldElite", "gold", "silver"];
     let currentTierIndex = tiers.indexOf(tier);
     let player: Player | null = null;
 

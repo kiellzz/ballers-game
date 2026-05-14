@@ -6,6 +6,20 @@
 
 # ⚽ Ballers Game • Interactive Football Experience
 
+---
+
+## 📝 Recent Updates
+
+* ✨ **New Play Match Modal** - Direct match initiation interface
+* 🗺️ **Match Map Tooltips** - Enhanced map interaction with contextual tips
+* 📊 **Improved Player Rating System** - Fine-tuned rating calculations for better balance
+* 🎲 **Pack Probability Refinements** - Enhanced weighted probability algorithms
+* 🎨 **UI Refinements** - CSS and component optimizations across home, lineup, and match screens
+* 🔧 **Build Utilities** - Added resize.cjs for image processing
+* 🎵 **Music Library Updates** - Streamlined audio collection
+
+---
+
 </div>
 
 <p align="center">
@@ -320,11 +334,9 @@ Live: https://ballers-game.vercel.app/
 - [x] 🏆 Match Summary & MVP System
 - [x] 📊 Player Rating System
 - [x] 🚀 Deploy on Vercel
-- [ ] 🏗 Improve frontend architecture
-- [ ] 📊 Advanced match stats (xG, possession)
-- [ ] 🎙 Commentary system
-- [ ] 💾 Backend integration
+- [ ] 📊 Advanced match stats 
 - [ ] 🎮 Draft Mode
+- [ ] 💾 API/Backend integration 
 
 ---
 

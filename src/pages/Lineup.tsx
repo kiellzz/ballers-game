@@ -237,6 +237,11 @@ export default function Lineup() {
 
   return (
     <div className="lineup">
+      <div className="lineup-bg-backdrop" />
+      <div className="lineup-bg-effects" />
+      <div className="lineup-bg-vignette" />
+      <div className="lineup-bg-noise" />
+      <div className="lineup__particles" />
       <LineupHeader
         currentFormation={currentFormation}
         onFormationChange={handleFormationChange}

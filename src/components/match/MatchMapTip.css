@@ -1,0 +1,138 @@
+.matchmap-tip-container {
+  position: absolute;
+  top: 178px;
+  right: 118px;
+
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  max-width: 260px;
+  padding: 12px 14px 12px 12px;
+
+  background: #48c774;
+  border-radius: 14px;
+
+  z-index: 9999;
+  pointer-events: auto;
+
+  box-shadow:
+    0 0 20px rgba(125, 243, 92, 0.45),
+    0 4px 14px rgba(0, 0, 0, 0.4);
+
+  animation:
+    tipEnter 0.35s ease,
+    tipFloat 1.8s ease-in-out infinite alternate;
+
+  transition:
+    opacity 2s ease,
+    transform 2s ease,
+    filter 2s ease;
+}
+
+.matchmap-tip-container.is-leaving {
+  opacity: 0;
+  transform: translateY(-8px) scale(0.96);
+  filter: blur(1px);
+}
+
+.tip-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+
+  background: rgba(255, 255, 255, 0.2);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 28px;
+  font-weight: 900;
+  color: white;
+
+  flex-shrink: 0;
+}
+
+.tip-content {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.05;
+}
+
+.tip-label {
+  font-size: 12px;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.tip-text {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1.1;
+  color: white;
+}
+
+.tip-close-btn {
+  position: absolute;
+  top: 4px;
+  right: 7px;
+
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.92);
+
+  font-size: 18px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+@keyframes tipEnter {
+  from {
+    opacity: 0;
+    transform: translateX(18px) scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes tipFloat {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-3px);
+  }
+}
+
+.tip-arrow {
+  position: absolute;
+  right: -48px; /* Ajuste fino da distância do balão */
+  top: 50%;
+  width: 60px;  /* Tamanho da sua seta */
+  height: auto;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.tip-arrow-img {
+  width: 100%;
+  height: auto;
+  /* O filtro drop-shadow ajuda a dar destaque se o fundo for escuro */
+  filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.3));
+  animation: arrowPulse 0.8s infinite alternate;
+}
+
+@keyframes arrowPulse {
+  from {
+    opacity: 0.85;
+    transform: translateX(0) scale(1);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(4px) scale(1.05);
+  }
+}

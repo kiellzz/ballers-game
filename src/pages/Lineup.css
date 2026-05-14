@@ -20,21 +20,33 @@
   width: 100%;
   height: 100vh;
   position: relative;
+  isolation: isolate;
   overflow-x: clip;
   overflow-y: hidden;
   display: flex;
   flex-direction: column;
+  background-color: #000;
+
+  /* TOP -> BOTTOM */
   background-image:
+    /* 1) vignette/contraste por cima de tudo */
     radial-gradient(circle at center,
-      transparent 10%,
-      rgba(0, 0, 0, 0.4) 40%,
-      rgba(0, 0, 0, 0.8) 60%,
-      #000000 80%),
+      rgba(0, 0, 0, 0.20) 0%,
+      rgba(0, 0, 0, 0.45) 38%,
+      rgba(0, 0, 0, 0.82) 70%,
+      rgba(0, 0, 0, 1) 100%),
+
+    /* 2) imagem principal em contain (seu framing atual) */
+    url('/images/lineupbackground.jpg'),
+
+    /* 3) “tampa” por baixo em cover (preenche tudo e remove sensação de transparência) */
     url('/images/lineupbackground.jpg');
-  background-size: contain;
-  background-position: center;
-  background-repeat: no-repeat;
-  background-color: #000000;
+
+  background-repeat: no-repeat, no-repeat, no-repeat;
+  background-position: center, center, center;
+
+  /* tamanhos por camada (1º pro gradient, 2º pro contain, 3º pro cover) */
+  background-size: cover, contain, cover;
 }
 
 .lineup__watermark {
@@ -162,4 +174,127 @@
 .lineup__actions-sidebar .feature-button__icon-circle {
   width: 62px;
   height: 62px;
+}
+
+/* ================= CINEMATIC BACKGROUND LAYERS ================= */
+
+.lineup-bg-effects {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+/* Glow + atmosfera */
+.lineup-bg-effects::before {
+  content: "";
+  position: absolute;
+  inset: -20%;
+
+  background:
+    radial-gradient(circle at top center, rgba(168, 85, 247, 0.22), transparent 45%),
+    radial-gradient(circle at center, rgba(34, 197, 94, 0.08), transparent 40%),
+    radial-gradient(circle at bottom center, rgba(255, 255, 255, 0.04), transparent 45%);
+
+  filter: blur(80px);
+  transform: scale(1.05);
+}
+
+/* Imagem desfocada por cima do preto (preenche laterais) */
+.lineup-bg-effects::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+
+  background-image: url('/images/lineupbackground.jpg');
+  background-size: cover;
+  background-position: center;
+
+  opacity: 0.12;
+
+  filter: blur(18px) saturate(1.2) contrast(1.05);
+  transform: scale(1.12);
+}
+
+/* Vinheta escura nas bordas (matadora) */
+.lineup-bg-vignette {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+
+  background:
+    radial-gradient(circle at center, rgba(0,0,0,0) 40%, rgba(0,0,0,0.55) 75%, rgba(0,0,0,0.9) 100%);
+}
+
+/* ================= NOISE / GRAIN ================= */
+
+.lineup-bg-noise {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+
+  background-image: url("https://grainy-gradients.vercel.app/noise.svg");
+  opacity: 0.03;
+  mix-blend-mode: soft-light;
+}
+
+.lineup__watermark {
+  z-index: 10;
+}
+
+.lineup__pitch {
+  z-index: 20;
+}
+
+.lineup-bg-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+
+  background-image: url('/images/pattern-tech.jpg');
+  background-size: 600px;
+  background-repeat: repeat;
+
+  opacity: 0.03;
+  mix-blend-mode: screen;
+}
+
+/* ================= PARTICULAS (LINEUP) ================= */
+
+.lineup__particles {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.82;
+  filter: blur(0.2px);
+
+background-image:
+  radial-gradient(rgba(236, 72, 153, 0.20) 1px, transparent 1px),
+  radial-gradient(rgba(168, 85, 247, 0.18) 1px, transparent 1px),
+  radial-gradient(rgba(244, 114, 182, 0.14) 2px, transparent 2px);
+
+  background-size:
+    140px 140px,
+    220px 220px,
+    320px 320px;
+
+  animation: lineupParticlesFloat 8s linear infinite;
+  animation-delay: -2s;
+
+  /* deixa mais forte nas laterais, mais suave no centro */
+  -webkit-mask-image: radial-gradient(circle at center, rgba(0,0,0,0.15) 0 45%, rgba(0,0,0,1) 85%);
+  mask-image: radial-gradient(circle at center, rgba(0,0,0,0.15) 0 45%, rgba(0,0,0,1) 85%);
+}
+
+@keyframes lineupParticlesFloat {
+  0%   { transform: translate(0, 0) scale(1); }
+  25%  { transform: translate(-24px, -60px) scale(1.02); }
+  50%  { transform: translate(16px, -120px) scale(0.98); }
+  75%  { transform: translate(-12px, -180px) scale(1.01); }
+  100% { transform: translate(8px, -240px) scale(1); }
 }

@@ -53,6 +53,7 @@ import type { Player } from "../types/PlayerTypes";
 import { FORMATIONS } from "../utils/formations";
 import { matchSound } from "../match-engine/sounds/matchSound";
 import "./Match.css";
+import { MatchMapTip } from "../components/match/MatchMapTip";
 
 interface SavedSquad {
   pitch: (Player | null)[];
@@ -1185,6 +1186,8 @@ export default function Match({ isMuted, onMatchFinished }: MatchProps) {
           isGoalAnimation={goalVisualLock.active}
           scoredBy={goalVisualLock.scoredBy}
         />
+
+        <MatchMapTip />
 
         <Scoreboard
           homeScore={score.user}

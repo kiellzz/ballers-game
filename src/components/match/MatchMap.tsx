@@ -92,6 +92,8 @@ export const MatchMap = ({
           movementType={resolvedMovementType}
         />
       </div>
+
+      <div className="map-caption">MATCH MAP</div>
     </div>
   );
 };

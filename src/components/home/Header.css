@@ -156,6 +156,15 @@
     height: 46px;
     padding: 0 14px;
   }
+
+  .header__action-row {
+    flex-direction: column;
+  }
+
+  .header__pack-btn,
+  .header__match-btn {
+    width: 100%;
+  }
 }
 
 .header__field-icon {
@@ -175,8 +184,17 @@
   padding: 10px;
 }
 
-.header__pack-btn {
+/* ── Action row: wraps both big buttons ── */
+.header__action-row {
   width: 100%;
+  display: flex;
+  gap: 14px;
+  align-items: stretch;
+}
+
+/* ── OPEN PACK button ── */
+.header__pack-btn {
+  flex: 1;
   height: 80px;
   border: none;
   border-radius: 999px;
@@ -264,28 +282,84 @@
   }
 }
 
-.header__icon-btn--active {
+/* ── PLAY MATCH button (same style as OPEN PACK) ── */
+.header__match-btn {
+  flex: 1;
+  height: 80px;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0;
+  overflow: hidden;
+  padding: 0;
+
+  background: linear-gradient(90deg, #3d1060 0%, #6b21a8 50%, #3d1060 100%);
+  border: 1.5px solid rgba(217, 150, 255, 0.5);
+
   box-shadow:
-    0 4px 15px rgba(179, 107, 221, 0.5),
-    0 0 0 2px rgba(217, 150, 255, 0.5),
-    0 1px 0 rgba(255, 255, 255, 0.2) inset;
-}
+    0 8px 24px rgba(0, 0, 0, 0.4),
+    0 0 30px rgba(179, 107, 221, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
 
-.header__filter-dot {
-  position: absolute;
-  top: 6px;
-  right: 6px;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #ff6b6b;
-  border: 1.5px solid #0f0a1a;
-}
-
-.header__icon-btn {
+  transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
   position: relative;
 }
 
+.header__match-btn:hover {
+  transform: translateY(-2px) scale(1.01);
+  border-color: rgba(217, 150, 255, 0.9);
+  box-shadow:
+    0 12px 32px rgba(0, 0, 0, 0.5),
+    0 0 40px rgba(179, 107, 221, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.header__match-btn:active {
+  transform: scale(0.98);
+}
+
+.header__match-icon {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+  border-radius: 999px 0 0 999px;
+  flex-shrink: 0;
+  filter: brightness(0) invert(1) sepia(1) saturate(2) hue-rotate(240deg);
+  padding: 10px;
+}
+
+.header__match-btn span {
+  flex: 1;
+  text-align: center;
+  font-size: 1.7rem;
+  font-weight: 900;
+  letter-spacing: 2px;
+  color: #f0d0ff;
+  text-shadow:
+    0 0 12px rgba(217, 150, 255, 0.8),
+    0 0 30px rgba(179, 107, 221, 0.5);
+  padding-right: 16px;
+}
+
+.header__match-btn::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -75%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(120deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.15) 50%,
+      transparent 100%);
+  transform: skewX(-15deg);
+  pointer-events: none;
+  animation: pack-btn-shine 9s ease-in-out infinite 4.5s;
+}
+
+/* ── Filter dot & active state ── */
 .header__icon-btn--active {
   box-shadow:
     0 4px 15px rgba(179, 107, 221, 0.5),

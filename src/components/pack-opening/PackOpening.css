@@ -330,18 +330,77 @@
   cursor: not-allowed;
 }
 
+/* ================= BOTÃO OPEN NEW PACK ================= */
+
 .pack-opening__btn--reset {
-  margin-top: 8px;
-  background: linear-gradient(135deg, #2a2a3e, #4a4a6e, #2a2a3e);
-  color: #c8b8ff;
-  box-shadow: 0 4px 20px rgba(100, 80, 200, 0.3);
+  margin-top: 40px;
+  padding: 16px 64px; /* Um pouco mais de padding horizontal para valorizar o formato */
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.8rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  
+  /* Cores (Roxo profundo) */
+  background: linear-gradient(180deg, #4b2382 0%, #2b1154 100%);
+  color: #ffffff;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+  
+  /* Removemos a borda e arredondamento */
+  border: none;
+  border-radius: 0;
+  
+  /* O segredo do formato: Diamante Alongado / Hexágono */
+  clip-path: polygon(24px 0, calc(100% - 24px) 0, 100% 50%, calc(100% - 24px) 100%, 24px 100%, 0% 50%);
+
+  /* Substituímos o box-shadow pelo drop-shadow para funcionar com o clip-path */
+  filter: drop-shadow(0 8px 12px rgba(0, 0, 0, 0.6));
+
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  z-index: 10;
 }
 
+/* Efeito de brilho (Shine) que passa pelo botão */
+.pack-opening__btn--reset::after {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -60%;
+  width: 50px;
+  height: 200%;
+  background: rgba(255, 255, 255, 0.15);
+  transform: rotate(35deg);
+  filter: blur(5px);
+  transition: all 0.7s ease-in-out;
+}
+
+/* Interações do Mouse (Hover) */
 .pack-opening__btn--reset:hover {
-  box-shadow: 0 6px 28px rgba(100, 80, 200, 0.5);
+  transform: translateY(-4px) scale(1.02);
+  background: linear-gradient(180deg, #6c32ba 0%, #351568 100%);
+  
+  /* Sombra mais forte + Brilho Roxo ao passar o mouse */
+  filter: drop-shadow(0 12px 20px rgba(0, 0, 0, 0.8)) drop-shadow(0 0 12px rgba(108, 50, 186, 0.6));
+}
+
+/* Animação do Shine no Hover */
+.pack-opening__btn--reset:hover::after {
+  left: 120%;
+}
+
+/* Interação de Clique (Active) */
+.pack-opening__btn--reset:active {
+  transform: translateY(2px) scale(0.98);
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.8));
 }
 
 .pack-card-flip--flipped {
   cursor: default;
   pointer-events: none;
+}
+
+.pack-opening__pack-img--clickable {
+  cursor: pointer;
 }

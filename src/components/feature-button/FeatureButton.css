@@ -110,7 +110,7 @@
 
 .feature-button--playMatch {
   background: linear-gradient(90deg, #b0d4ff 0%, #3b82f6 100%);
-  color: #06200a;
+  color: #f3f0f0ea;
 }
 
 .feature-button--playMatch .feature-button__icon-circle {

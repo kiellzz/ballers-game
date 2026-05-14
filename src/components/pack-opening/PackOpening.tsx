@@ -43,7 +43,6 @@ export function PackOpening({ players }: PackOpeningProps) {
   const handleFlip = useCallback((index: number, player: Player) => {
     const tier = getCardTier(player.overall, player.isLegend);
 
-    // Sons e efeitos especiais por tier
     if (tier === "legend") {
       playLegendPack();
       triggerLegendConfetti();
@@ -82,16 +81,10 @@ export function PackOpening({ players }: PackOpeningProps) {
           <img
             src="/images/packs/packgold.png"
             alt="Pack Gold"
-            className={`pack-opening__pack-img ${phase === "shaking" ? "pack-opening__pack-img--shaking" : ""}`}
-          />
-          <button
-            className="pack-opening__btn"
+            className={`pack-opening__pack-img ${phase === "shaking" ? "pack-opening__pack-img--shaking" : ""} ${phase === "idle" ? "pack-opening__pack-img--clickable" : ""}`}
             onClick={handleOpen}
-            onMouseEnter={() => playButton(0.3)}
-            disabled={phase === "shaking"}
-          >
-            {phase === "shaking" ? "Opening..." : "Open Pack"}
-          </button>
+            onMouseEnter={() => phase === "idle" && playButton(0.3)}
+          />
         </div>
       )}
 

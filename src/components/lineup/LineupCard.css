@@ -157,3 +157,32 @@
   box-shadow: 0 0 15px rgba(239, 68, 68, 1);
   filter: brightness(1.2) !important;
 }
+
+/* ================= SHADOW GLOW ================= */
+
+.lineup-card::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -6px;
+  transform: translateX(-50%);
+  width: 78%;
+  height: 18%;
+  border-radius: 999px;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(0, 0, 0, 0.55) 0%,
+    rgba(0, 0, 0, 0.22) 45%,
+    transparent 75%
+  );
+  filter: blur(4px);
+  opacity: 0.75;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.lineup-card {
+  filter:
+    drop-shadow(0 8px 14px rgba(0, 0, 0, 0.35))
+    drop-shadow(0 2px 5px rgba(0, 0, 0, 0.22));
+}

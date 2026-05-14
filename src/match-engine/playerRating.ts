@@ -97,10 +97,10 @@ const WEIGHTS: Record<PositionGroup, RatingWeights> = {
     shotOnTarget:       0.0,
     pass:               0.015,
 
-    save:               0.45,
+    save:               0.3,
     defensiveAction:    0.08,
 
-    goalConceded:      -0.5,
+    goalConceded:      -0.64,
     failedDribble:     -0.05,
     lostPossession:    -0.10,
 
@@ -122,9 +122,9 @@ const WEIGHTS: Record<PositionGroup, RatingWeights> = {
     clearance:          0.06,
 
     concededByDefense:  0,
-    weakGoalConceded:  -0.30,
+    weakGoalConceded:  -0.8,
     highSave:           0.25,
-    penaltySave:        0.50,
+    penaltySave:        0.6,
     cleanSheetGk:       0.70,
     cleanSheetDef:      0,
   },
