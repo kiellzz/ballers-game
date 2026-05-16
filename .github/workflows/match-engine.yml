@@ -5,7 +5,7 @@ on:
     branches: [main, dev]
     paths:
       - 'src/match-engine/**'
-      - '.github/workflows/matchengine.yml'
+      - '.github/workflows/match-engine.yml'
   pull_request:
     branches: [main, dev]
     paths:
