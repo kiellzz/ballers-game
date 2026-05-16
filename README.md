@@ -1,9 +1,5 @@
 <div>
 
-> 🚧 **Project Status:** In active development  
-> ✅ Core match engine implemented  
-> 🔄 Currently refining gameplay balance, UI synchronization, and interactions
-
 # ⚽ Ballers Game • Interactive Football Experience
 
 ---
