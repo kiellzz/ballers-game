@@ -233,14 +233,14 @@ dribble: {
     canLeadToShot: true,
     isShot: true,
     offensiveWeights: [
-    { stat: "overall",   weight: 0.30 },  
+    { stat: "overall",   weight: 0.80 },  
     { stat: "shooting",  weight: 1.27 },  
     { stat: "dribbling", weight: 0.20 },  
     ],
     defensiveWeights: [
-      { stat: "overall",    weight: 0.43 },  
-      { stat: "reflexes",   weight: 0.90 },  // 0.70 → 0.90
-      { stat: "positioning", weight: 0.70 }, // 0.55 → 0.70
+      { stat: "overall",    weight: 0.80 },  
+      { stat: "reflexes",   weight: 0.55 },  
+      { stat: "positioning", weight: 0.45 }, 
     ],
     successAdvanceRange: { min: 0, max: 0 },
     failRecoilRange: { min: 1, max: 2 },
@@ -544,20 +544,20 @@ dribble: {
   canCauseFoul: true,
   canCauseCard: true,
 
-  offensiveWeights: [
-    { stat: "overall", weight: 0.25 },
-    { stat: "speed", weight: 0.9 },
-    { stat: "reflexes", weight: 0.85 },
-    { stat: "positioning", weight: 0.6 },
-    { stat: "diving", weight: 0.3 },
-  ],
+ offensiveWeights: [
+  { stat: "overall",     weight: 0.30 },  // era 0.55
+  { stat: "speed",       weight: 0.75 },  // era 0.90
+  { stat: "reflexes",    weight: 0.70 },  // era 0.85
+  { stat: "positioning", weight: 0.45 },  // era 0.60
+  { stat: "diving",      weight: 0.25 },  // era 0.30
+],
 
   defensiveWeights: [
-    { stat: "overall",   weight: 0.40 },
-    { stat: "shooting",  weight: 1.25 },  // 1.10 → 1.25
-    { stat: "dribbling", weight: 1.10 },  // 0.90 → 1.10
-    { stat: "pace",      weight: 0.70 },  // 0.55 → 0.70
-  ],
+  { stat: "overall",   weight: 0.80 },  // era 0.40
+  { stat: "shooting",  weight: 0.85 },  // era 1.25
+  { stat: "dribbling", weight: 0.70 },  // era 1.10
+  { stat: "pace",      weight: 0.50 },  // era 0.70
+],
 
   defensiveRecoverRange: { min: 0, max: 1 },
   failRecoilRange: { min: 1, max: 2 }, 
@@ -570,21 +570,22 @@ dribble: {
   requiresPossession: false,
   allowedZones: ["def_bigchance"],
   allowedLanes: ["center"],
-  volatility: 0.3,
+  volatility: 0.55,
   risk: 0.2,
 
   offensiveWeights: [
-    { stat: "overall",     weight: 0.40 },
-    { stat: "positioning", weight: 0.90 },  // 1.20 → 0.90
-    { stat: "reflexes",    weight: 0.80 },  // 1.05 → 0.80
-    { stat: "diving",      weight: 0.70 },  // 0.80 → 0.70
-    { stat: "handling",    weight: 0.45 },  // 0.50 → 0.4
-  ],
+  { stat: "overall",     weight: 0.55 },  // era 0.80
+  { stat: "positioning", weight: 0.70 },  // era 0.55
+  { stat: "reflexes",    weight: 0.65 },  // era 0.50
+  { stat: "diving",      weight: 0.50 },  // era 0.45
+  { stat: "handling",    weight: 0.35 },  // era 0.30
+],
 
+  // wait — defensiveWeights (atacante)
   defensiveWeights: [
-    { stat: "overall", weight: 0.35 },
-    { stat: "shooting", weight: 1.0 },
-    { stat: "dribbling", weight: 0.45 },
+    { stat: "overall",  weight: 0.80 },  // era 0.35 — âncora mais forte
+    { stat: "shooting", weight: 0.65 },  // era 1.00 — menos dominante
+    { stat: "dribbling", weight: 0.30 }, // era 0.45 — mantém baixo
   ],
 
   defensiveRecoverRange: { min: 0, max: 1 },

@@ -312,7 +312,7 @@ function getPoolsForContext(
         inPossession:
           lane === "center" ? ["cm", "am", "st"] : ["wing", "cm", "fb"],
         outOfPossession:
-          lane === "center" ? ["dm", "cm", "cb"] : ["fb", "wing", "cm"],
+          lane === "center" ? ["dm", "cm", "cb"] : ["fb", "dm", "cm"],
       };
 
     case "atk_third":
@@ -320,14 +320,14 @@ function getPoolsForContext(
         inPossession:
           lane === "center" ? ["am", "st", "cm"] : ["wing", "am", "st"],
         outOfPossession:
-          lane === "center" ? ["cb", "dm", "cm"] : ["fb", "cb", "wing"],
+          lane === "center" ? ["cb", "dm", "cm"] : ["fb", "cb", "dm"],
       };
 
     case "atk_nearbox":
       return {
         inPossession: lane === "center" ? ["st", "am"] : ["wing", "st", "am"],
         outOfPossession:
-          lane === "center" ? ["cb", "dm"] : ["fb", "cb", "wing"],
+          lane === "center" ? ["cb", "dm"] : ["fb", "cb", "dm"],
       };
 
     case "atk_box":

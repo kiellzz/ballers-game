@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:engine": "vitest run src/match-engine/tests/duelEngine.calibration.test.ts"
   },
   "dependencies": {
     "canvas-confetti": "^1.9.4",
@@ -33,6 +34,7 @@
     "tsx": "^4.21.0",
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.58.0",
-    "vite": "^8.0.4"
+    "vite": "^8.0.4",
+    "vitest": "^4.1.6"
   }
 }

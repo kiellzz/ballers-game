@@ -17,6 +17,9 @@
 * 🎨 **UI Refinements** - CSS and component optimizations across home, lineup, and match screens
 * 🔧 **Build Utilities** - Added resize.cjs for image processing
 * 🎵 **Music Library Updates** - Streamlined audio collection
+* ⚙️ **Match Clock Randomization** - Clock now advances 0–3 minutes per action with triangular distribution; late game (85+) slows to 0–1 min with guaranteed progression guard
+* 🧪 **Calibration Test Suite** - Statistical duel engine tests via Vitest with GitHub Actions CI on every push to `src/match-engine/**`
+* 🐛 **Duel Engine Fixes** - Corrected attacker/defender assignment for defensive actions, goalkeeper roles in big chance zones, and finishing weight contexts
 
 ---
 
@@ -241,6 +244,11 @@ Features:
   - Goalkeeper logic adjustments
   - Fair rating distribution across all positions
 
+  - Randomized match clock (triangular distribution, 0–3 min/action)
+  - Late-game clock compression (85+ min → 0–1 min, no infinite matches)
+  - Calibrated big chance conversion rates (striker stats vs GK stats)
+  - Goalkeeper action tuning: rush save vs wait tradeoffs
+
 ---
 
 ## 📸 Preview
@@ -295,7 +303,7 @@ Interactive, decision-based match flow powered by a custom engine.
 * **Utility-driven systems**
 * **Game Engine Layer:**
   - matchEngine
-  - duelEngine
+  - duelEngine (+ calibration tests)
   - eventResolver
   - setPieceEngine
   - playerRating
@@ -334,6 +342,7 @@ Live: https://ballers-game.vercel.app/
 - [x] 🏆 Match Summary & MVP System
 - [x] 📊 Player Rating System
 - [x] 🚀 Deploy on Vercel
+- [x] 🧪 Duel engine calibration test suite (Vitest + GitHub Actions)
 - [ ] 📊 Advanced match stats 
 - [ ] 🎮 Draft Mode
 - [ ] 💾 API/Backend integration 

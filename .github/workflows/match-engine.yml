@@ -1,0 +1,32 @@
+name: Match Engine Tests
+
+on:
+  push:
+    branches: [main, dev]
+    paths:
+      - 'src/match-engine/**'
+  pull_request:
+    branches: [main, dev]
+    paths:
+      - 'src/match-engine/**'
+
+jobs:
+  test:
+    name: Duel Engine Calibration
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run match engine tests
+        run: npm run test:engine

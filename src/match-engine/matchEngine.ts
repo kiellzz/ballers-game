@@ -111,6 +111,7 @@ export function createInitialMatchState(
       clock: {
         minute: 1,
       },
+      consecutiveZeroMinutes: 0,
     },
     userTeam,
     opponentTeam,
@@ -137,6 +138,50 @@ function commitEvent(state: MatchState, event: MatchEvent): MatchState {
     lastEvent: event,
   };
 }
+
+// ─── Clock ────────────────────────────────────────────────────────────────────
+
+/**
+ * Calculates the next match minute with randomized progression.
+ *
+ * - Normal play (< 85 min): advances 0–3 minutes, triangular distribution
+ *   centered around 1–2 (most common). Never allows more than 2 consecutive
+ *   zero-minute turns to prevent the match from stalling.
+ *
+ * - Late game (≥ 85 min): advances 0 or 1 minute per action. Same
+ *   consecutive-zero guard applies, guaranteeing the match ends within
+ *   a reasonable number of actions after the 85th minute.
+ */
+function calculateNextMinute(
+  currentMinute: number,
+  consecutiveZeros: number,
+  random: () => number
+): { nextMinute: number; nextConsecutiveZeros: number } {
+  const isLateGame = currentMinute >= 85;
+
+  // After 2 consecutive zero-minute turns, force at least 1 minute of progress
+  const forceAdvance = consecutiveZeros >= 2;
+
+  let delta: number;
+
+  if (isLateGame) {
+    delta = forceAdvance ? 1 : Math.round(random()); // 0 or 1
+  } else {
+    if (forceAdvance) {
+      delta = Math.floor(random() * 3) + 1; // guaranteed 1, 2, or 3
+    } else {
+      // Triangular distribution: sum of two [0, 1.5] randoms → range 0–3, mean ~1.5
+      delta = Math.round(random() * 1.5 + random() * 1.5);
+    }
+  }
+
+  const nextMinute = Math.min(90, currentMinute + delta);
+  const nextConsecutiveZeros = delta === 0 ? consecutiveZeros + 1 : 0;
+
+  return { nextMinute, nextConsecutiveZeros };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 export function runMatchStep(params: RunMatchStepParams): MatchState {
   const { state, action, random = Math.random } = params;
@@ -280,7 +325,12 @@ export function runMatchStep(params: RunMatchStepParams): MatchState {
     });
 
   const nextTurn = state.context.turn + 1;
-  const nextMinute = calculateNextMinute(nextTurn);
+
+  const { nextMinute, nextConsecutiveZeros } = calculateNextMinute(
+    state.context.clock.minute,
+    state.context.consecutiveZeroMinutes,
+    random,
+  );
 
   const lastEvent: MatchEvent = {
     turn: nextTurn,
@@ -293,6 +343,7 @@ export function runMatchStep(params: RunMatchStepParams): MatchState {
     goalDetails,
     narration: looseBallClearance?.event.message,
   };
+
   const nextLastTouch = resolveLastTouchAfterOpenPlay({
     previousPlayerId: state.lastTouchPlayerId,
     previousSide: state.lastTouchSide,
@@ -395,9 +446,8 @@ export function runMatchStep(params: RunMatchStepParams): MatchState {
         context: {
           ...state.context,
           turn: nextTurn,
-          clock: {
-            minute: nextMinute,
-          },
+          clock: { minute: nextMinute },
+          consecutiveZeroMinutes: nextConsecutiveZeros,
         },
         currentSituation: setPieceSituation,
         interactiveSetPiece,
@@ -411,7 +461,6 @@ export function runMatchStep(params: RunMatchStepParams): MatchState {
   }
 
   const nextScore = applyScoreFromShot(state.context.score, shotResult);
-
   const nextPhase = nextMinute >= 90 ? "finished" : "playing";
 
   let forcedUserPlayerId: number | null = null;
@@ -494,9 +543,8 @@ export function runMatchStep(params: RunMatchStepParams): MatchState {
         phase: nextPhase,
         turn: nextTurn,
         score: nextScore,
-        clock: {
-          minute: nextMinute,
-        },
+        clock: { minute: nextMinute },
+        consecutiveZeroMinutes: nextConsecutiveZeros,
       },
       currentSituation: nextSituation,
       interactiveSetPiece: null,
@@ -577,7 +625,13 @@ function applyFinalResolution(params: {
   const nextScore = applyScoreFromShot(state.context.score, resolution.shotResult);
 
   const nextTurn = state.context.turn + 1;
-  const nextMinute = calculateNextMinute(nextTurn);
+
+  const { nextMinute, nextConsecutiveZeros } = calculateNextMinute(
+    state.context.clock.minute,
+    state.context.consecutiveZeroMinutes,
+    random,
+  );
+
   const nextPhase = nextMinute >= 90 ? "finished" : "playing";
 
   const scorerId =
@@ -627,7 +681,6 @@ function applyFinalResolution(params: {
     });
   }
 
-  // ── Create a MatchEvent for set-piece resolution so UI history can capture goals ──
   const fromZone = setPieceContext?.zone ?? state.currentSituation.zone;
   const fromLane = setPieceContext?.lane ?? state.currentSituation.lane;
   const fromPossession =
@@ -639,59 +692,58 @@ function applyFinalResolution(params: {
       : null;
 
   const scorerSide = goalDetails?.scorerSide ?? null;
-const scorerIdResolved = goalDetails?.scorerId ?? null;
+  const scorerIdResolved = goalDetails?.scorerId ?? null;
 
-let resolvedActors = setPieceContext?.actors ?? state.currentSituation.actors;
+  let resolvedActors = setPieceContext?.actors ?? state.currentSituation.actors;
 
-// 🔥 FIX: garantir que o cobrador (scorer) seja o attacker correto
-if (scorerIdResolved && scorerSide && setPieceContext) {
-  const team =
-    scorerSide === "user" ? state.userTeam : state.opponentTeam;
+  if (scorerIdResolved && scorerSide && setPieceContext) {
+    const team =
+      scorerSide === "user" ? state.userTeam : state.opponentTeam;
 
-  const scorerPlayer = team.starters.find(
-    (p) => p.id === scorerIdResolved
-  );
+    const scorerPlayer = team.starters.find(
+      (p) => p.id === scorerIdResolved
+    );
 
-  if (scorerPlayer) {
-    resolvedActors = {
-      ...resolvedActors,
-      ...(scorerSide === "user"
-        ? { userPlayer: scorerPlayer }
-        : { opponentPlayer: scorerPlayer }),
-    };
+    if (scorerPlayer) {
+      resolvedActors = {
+        ...resolvedActors,
+        ...(scorerSide === "user"
+          ? { userPlayer: scorerPlayer }
+          : { opponentPlayer: scorerPlayer }),
+      };
+    }
   }
-}
 
-const setPieceEvent: MatchEvent = {
-  turn: nextTurn,
-  action: setPieceContext?.action ?? "wait",
-  outcome: "success",
-  isPenaltyGoal:
-    resolution.setPieceType === "penalty" &&
-    resolution.shotResult.outcome === "goal",
-  shotResult: resolution.shotResult,
-  foulResult: {
-    committed: false,
-    by: null,
-    card: "none",
-    setPieceAwarded: null,
-    awardedTo: null,
-  },
-  transition: {
-    fromZone,
-    toZone: resolution.nextZone,
-    fromLane,
-    toLane: resolution.nextLane,
-    fromPossession,
-    toPossession: resolution.nextPossession,
-    createdBigChance: false,
-    nextSituationType: resolution.nextSituationType,
-    nextSetPieceType: nextSetPieceTypeForTransition,
-  },
-  actors: resolvedActors,
-  goalDetails,
-  narration: undefined,
-};
+  const setPieceEvent: MatchEvent = {
+    turn: nextTurn,
+    action: setPieceContext?.action ?? "wait",
+    outcome: "success",
+    isPenaltyGoal:
+      resolution.setPieceType === "penalty" &&
+      resolution.shotResult.outcome === "goal",
+    shotResult: resolution.shotResult,
+    foulResult: {
+      committed: false,
+      by: null,
+      card: "none",
+      setPieceAwarded: null,
+      awardedTo: null,
+    },
+    transition: {
+      fromZone,
+      toZone: resolution.nextZone,
+      fromLane,
+      toLane: resolution.nextLane,
+      fromPossession,
+      toPossession: resolution.nextPossession,
+      createdBigChance: false,
+      nextSituationType: resolution.nextSituationType,
+      nextSetPieceType: nextSetPieceTypeForTransition,
+    },
+    actors: resolvedActors,
+    goalDetails,
+    narration: undefined,
+  };
 
   const nextPlayerMatchStats = applyEventToPlayerMatchStats(
     state.playerMatchStats,
@@ -738,9 +790,8 @@ const setPieceEvent: MatchEvent = {
           phase: nextPhase,
           turn: nextTurn,
           score: nextScore,
-          clock: {
-            minute: nextMinute,
-          },
+          clock: { minute: nextMinute },
+          consecutiveZeroMinutes: nextConsecutiveZeros,
         },
         currentSituation: state.currentSituation,
         interactiveSetPiece: null,
@@ -790,9 +841,8 @@ const setPieceEvent: MatchEvent = {
           phase: nextPhase,
           turn: nextTurn,
           score: nextScore,
-          clock: {
-            minute: nextMinute,
-          },
+          clock: { minute: nextMinute },
+          consecutiveZeroMinutes: nextConsecutiveZeros,
         },
         currentSituation: setPieceSituation,
         interactiveSetPiece,
@@ -830,9 +880,8 @@ const setPieceEvent: MatchEvent = {
         phase: nextPhase,
         turn: nextTurn,
         score: nextScore,
-        clock: {
-          minute: nextMinute,
-        },
+        clock: { minute: nextMinute },
+        consecutiveZeroMinutes: nextConsecutiveZeros,
       },
       currentSituation: nextSituation,
       interactiveSetPiece: null,
@@ -860,18 +909,6 @@ interface EventStatContext {
   setPieceType?: SetPieceType | null;
 }
 
-// ─── Key helpers ──────────────────────────────────────────────────────────────
-//
-// All attribution is derived from `possession` (who has the ball), never from
-// the literal "user" or "opponent" label. This ensures full symmetry: the same
-// action by the opponent awards stats to the opponent in exactly the same way
-// the same action by the user awards stats to the user.
-//
-// attackerKey  → the player currently carrying the ball (in possession)
-// defenderKey  → the player on the opposing side (not in possession)
-// attackerSide → the PossessionSide that is attacking
-// defenderSide → the PossessionSide that is defending
-
 function defenderSide(possession: PossessionSide): PossessionSide {
   return possession === "user" ? "opponent" : "user";
 }
@@ -898,14 +935,6 @@ function statGkKey(side: PossessionSide, actors: MatchActors): string {
   return `${side}:${gk.id}`;
 }
 
-/**
- * Applies all per-event stat changes to playerMatchStats.
- *
- * INVARIANT: every reward/penalty is derived from `possession` (who has the
- * ball), never from whether a side is literally "user" or "opponent".
- * This guarantees full symmetry — opponent actions are scored identically to
- * equivalent user actions.
- */
 function applyEventToPlayerMatchStats(
   playerMatchStats: PlayerMatchStats,
   goalDetails: GoalDetails | null,
@@ -928,7 +957,6 @@ function applyEventToPlayerMatchStats(
     setPieceType = null,
   } = ctx;
 
-  // Convenience: who is acting with the ball vs who is defending
   const atkKey  = attackerKey(possession, actors);
   const defKey  = defenderKey(possession, actors);
   const defSide = defenderSide(possession);
@@ -936,8 +964,7 @@ function applyEventToPlayerMatchStats(
   const isSuccess = outcome === "success" || outcome === "success_high";
   const isFail    = outcome === "fail"    || outcome === "fail_high";
 
-  // ── 0. Mark clean-sheet eligible roles (GK + back line) ────────────────────
-  // Done unconditionally every step so late-joined players are captured.
+  // ── 0. Mark clean-sheet eligible roles ────────────────────────────────────
   {
     const userGKKey = statGkKey("user", actors);
     const oppGKKey  = statGkKey("opponent", actors);
@@ -962,15 +989,13 @@ function applyEventToPlayerMatchStats(
     }
   }
 
-  // ── 1. Goals, assists & GK/defense conceded tracking ───────────────────────
+  // ── 1. Goals, assists & GK/defense conceded tracking ──────────────────────
   if (goalDetails) {
-    // Scorer
     const scorerKey = `${goalDetails.scorerSide}:${goalDetails.scorerId}`;
     const sc = get(scorerKey);
     sc.goals += 1;
     next[scorerKey] = sc;
 
-    // Assist
     if (goalDetails.assistPlayerId !== null) {
       const assistKey = `${goalDetails.scorerSide}:${goalDetails.assistPlayerId}`;
       const as = get(assistKey);
@@ -978,7 +1003,6 @@ function applyEventToPlayerMatchStats(
       next[assistKey] = as;
     }
 
-    // GK on the conceding side
     const concedingSide: PossessionSide =
       goalDetails.scorerSide === "user" ? "opponent" : "user";
     const gkk   = statGkKey(concedingSide, actors);
@@ -989,9 +1013,6 @@ function applyEventToPlayerMatchStats(
     }
     next[gkk] = gkSt;
 
-    // Team-wide conceded tracking for every player on the conceding side.
-    // concededByDefense is applied only to back-line players (cleanSheetBonusEligible)
-    // and NOT to the GK (already tracked separately above).
     for (const key of Object.keys(next)) {
       if (!key.startsWith(`${concedingSide}:`)) continue;
       const st = get(key);
@@ -1002,7 +1023,6 @@ function applyEventToPlayerMatchStats(
       next[key] = st;
     }
 
-    // Team-wide scored tracking for every player on the scoring side.
     for (const key of Object.keys(next)) {
       if (!key.startsWith(`${goalDetails.scorerSide}:`)) continue;
       const st = get(key);
@@ -1011,14 +1031,12 @@ function applyEventToPlayerMatchStats(
     }
   }
 
-  // ── 2. Shots on target & GK saves ──────────────────────────────────────────
+  // ── 2. Shots on target & GK saves ─────────────────────────────────────────
   if (shotResult.happened && shotResult.outcome === "save") {
-    // Attacker got a shot on target
     const atk = get(atkKey);
     atk.shotsOnTarget += 1;
     next[atkKey] = atk;
 
-    // GK on the defending side makes the save
     const gkk  = statGkKey(defSide, actors);
     const gkSt = get(gkk);
     gkSt.saves += 1;
@@ -1031,7 +1049,6 @@ function applyEventToPlayerMatchStats(
     next[gkk] = gkSt;
   }
 
-  // Shot attempts (misses / blocks) — always attributed to the attacker
   if (action === "long_shot" || action === "finish" || action === "header") {
     const atk = get(atkKey);
     const isRealBigChance = transition?.createdBigChance ?? isBigChance;
@@ -1039,33 +1056,27 @@ function applyEventToPlayerMatchStats(
 
     if (shotResult.happened && (shotResult.outcome === "miss" || shotResult.outcome === "post")) {
       atk.shotsMissed += 1;
-      if (isRealBigChance) {
-        atk.bigChanceMisses += 1;
-      }
+      if (isRealBigChance) atk.bigChanceMisses += 1;
     }
 
     if (shotResult.happened && shotResult.outcome === "blocked") {
       atk.shotsBlocked += 1;
-      if (isRealBigChance) {
-        atk.bigChanceMisses += 1;
-      }
+      if (isRealBigChance) atk.bigChanceMisses += 1;
     }
 
     next[atkKey] = atk;
   }
 
-   if (
-    setPieceType === "penalty" && shotResult.happened && shotResult.outcome !== "goal"
-  ) {
+  if (setPieceType === "penalty" && shotResult.happened && shotResult.outcome !== "goal") {
     const atk = get(atkKey);
     atk.penaltyMisses += 1;
     next[atkKey] = atk;
   }
 
-  // ── 3. Open-play outcome tracking (outcome is non-null) ────────────────────
+  // ── 3. Open-play outcome tracking ─────────────────────────────────────────
   if (outcome !== null) {
 
-    // ── 3a. Volume action counters (attacker perspective) ──────────────────
+    // 3a. Volume action counters
     {
       const atk = get(atkKey);
       if (isSuccess) {
@@ -1078,9 +1089,7 @@ function applyEventToPlayerMatchStats(
       next[atkKey] = atk;
     }
 
-    // ── 3b. Duel result: attacker vs defender ──────────────────────────────
-    // success → attacker wins the duel, defender loses
-    // fail    → attacker loses the duel, defender wins
+    // 3b. Duel result
     const isDefensiveAction =
       action === "intercept" ||
       action === "tackle" ||
@@ -1111,9 +1120,7 @@ function applyEventToPlayerMatchStats(
       }
     }
 
-    // ── 3c. Offensive skill actions (always attacker) ─────────────────────
-
-    // Dribble
+    // 3c. Offensive skill actions
     if (action === "dribble") {
       const atk = get(atkKey);
       if (isSuccess) atk.successfulDribbles += 1;
@@ -1121,46 +1128,37 @@ function applyEventToPlayerMatchStats(
       next[atkKey] = atk;
     }
 
-    // Cross
     if (action === "cross" && isSuccess) {
       const atk = get(atkKey);
       atk.crosses += 1;
       next[atkKey] = atk;
     }
 
-    // Successful passes
     if (
       isSuccess &&
-      (action === "side_pass" ||
-        action === "forward_pass" ||
-        action === "long_pass")
+      (action === "side_pass" || action === "forward_pass" || action === "long_pass")
     ) {
       const atk = get(atkKey);
       atk.successfulPasses = (atk.successfulPasses ?? 0) + 1;
       next[atkKey] = atk;
     }
 
-    // Key pass — pass that directly created a big chance
     if (
       isSuccess &&
       transition?.createdBigChance &&
-      (action === "forward_pass" ||
-        action === "long_pass" ||
-        action === "side_pass")
+      (action === "forward_pass" || action === "long_pass" || action === "side_pass")
     ) {
       const atk = get(atkKey);
       atk.keyPasses += 1;
       next[atkKey] = atk;
     }
 
-    // Big chance created — any action that set up a big chance
     if (isSuccess && transition?.createdBigChance) {
       const atk = get(atkKey);
       atk.bigChancesCreated += 1;
       next[atkKey] = atk;
     }
 
-    // Lost possession — attacker failed and ball changed hands
     if (
       isFail &&
       transition !== null &&
@@ -1178,21 +1176,7 @@ function applyEventToPlayerMatchStats(
       next[atkKey] = atk;
     }
 
-    // ── 3d. Defensive skill actions (always defender) ─────────────────────
-    //
-    // Defensive actions are performed by the player who is NOT in possession.
-    // When possession === "user", the defender is the opponent player in actors,
-    // and vice-versa. defKey already resolves this correctly.
-    //
-    // Note: for actions like "intercept", "tackle", etc. the engine assigns
-    // `possession` to the side that *initiated* the action (i.e. the defender
-    // who wins the ball), so at the point this function is called the
-    // possession label matches the acting defender. We therefore use atkKey
-    // for the acting defender and defKey for the attacker they stopped.
-    //
-    // To avoid confusion we use an explicit `actingDefKey` derived solely from
-    // whether the current action is a defensive one.
-
+    // 3d. Defensive skill actions
     if (
       isSuccess &&
       (action === "intercept" ||
@@ -1204,13 +1188,11 @@ function applyEventToPlayerMatchStats(
         action === "clearance" ||
         action === "gk_clearance")
     ) {
-      // For defensive actions the "attacker" in actors is actually the
-      // defending player who won the duel. atkKey is correct here.
       const def = get(atkKey);
       def.defensiveActions += 1;
-      if (action === "tackle" || action === "slide_tackle") def.tacklesWon     += 1;
-      if (action === "intercept")                           def.interceptions  += 1;
-      if (action === "block")                               def.blocks         += 1;
+      if (action === "tackle" || action === "slide_tackle") def.tacklesWon    += 1;
+      if (action === "intercept")                           def.interceptions += 1;
+      if (action === "block")                               def.blocks        += 1;
       if (
         action === "clearance" ||
         action === "emergency_clearance" ||
@@ -1226,7 +1208,7 @@ function applyEventToPlayerMatchStats(
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Remaining private helpers (unchanged)
+// Private helpers
 // ─────────────────────────────────────────────────────────────────────────────
 
 function createEmptyShotResult(): ShotResult {
@@ -1331,20 +1313,10 @@ function applyScoreFromShot(score: MatchScore, shotResult: ShotResult): MatchSco
   }
 
   if (shotResult.scoredBy === "user") {
-    return {
-      user: score.user + 1,
-      opponent: score.opponent,
-    };
+    return { user: score.user + 1, opponent: score.opponent };
   }
 
-  return {
-    user: score.user,
-    opponent: score.opponent + 1,
-  };
-}
-
-function calculateNextMinute(turn: number): number {
-  return Math.min(90, Math.floor((turn - 1) * 1.5) + 1);
+  return { user: score.user, opponent: score.opponent + 1 };
 }
 
 function shouldForceNewBallCarrier(action: ActionType): boolean {

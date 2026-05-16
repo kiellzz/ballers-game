@@ -294,6 +294,7 @@ export interface MatchContext {
   turn: number;
   score: MatchScore;
   clock: MatchClock;
+  consecutiveZeroMinutes: number;
 }
 
 export interface MatchActors {
