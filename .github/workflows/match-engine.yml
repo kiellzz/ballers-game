@@ -5,10 +5,12 @@ on:
     branches: [main, dev]
     paths:
       - 'src/match-engine/**'
+      - '.github/workflows/test.yml'
   pull_request:
     branches: [main, dev]
     paths:
       - 'src/match-engine/**'
+    
 
 jobs:
   test:
