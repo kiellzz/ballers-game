@@ -1,5 +1,9 @@
 // RESIZE DEFAULT - USED FOR RESIZING IMAGES TO 256x256 -> you can test using the default.webp image on input folder, or add your own .webp images to the input folder and run this script -> node resize.cjs
 
+// Instalation:
+// npm install sharp
+// node resize.cjs
+
 const sharp = require('sharp');
 const fs = require('fs');
 const path = require('path');
