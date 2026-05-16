@@ -10,6 +10,9 @@
 
 ## 📝 Recent Updates
 
+* ⚙️ **Match Clock Randomization** - Clock now advances 0–3 minutes per action with triangular distribution; late game (85+) slows to 0–1 min with guaranteed progression guard
+* 🧪 **Calibration Test Suite** - Statistical duel engine tests via Vitest with GitHub Actions CI on every push to `src/match-engine/**`
+* 🐛 **Duel Engine Fixes** - Corrected attacker/defender assignment for defensive actions, goalkeeper roles in big chance zones, and finishing weight contexts
 * ✨ **New Play Match Modal** - Direct match initiation interface
 * 🗺️ **Match Map Tooltips** - Enhanced map interaction with contextual tips
 * 📊 **Improved Player Rating System** - Fine-tuned rating calculations for better balance
@@ -17,9 +20,6 @@
 * 🎨 **UI Refinements** - CSS and component optimizations across home, lineup, and match screens
 * 🔧 **Build Utilities** - Added resize.cjs for image processing
 * 🎵 **Music Library Updates** - Streamlined audio collection
-* ⚙️ **Match Clock Randomization** - Clock now advances 0–3 minutes per action with triangular distribution; late game (85+) slows to 0–1 min with guaranteed progression guard
-* 🧪 **Calibration Test Suite** - Statistical duel engine tests via Vitest with GitHub Actions CI on every push to `src/match-engine/**`
-* 🐛 **Duel Engine Fixes** - Corrected attacker/defender assignment for defensive actions, goalkeeper roles in big chance zones, and finishing weight contexts
 
 ---
 
@@ -31,12 +31,16 @@
   <img src="https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white" alt="Vite" />
   <img src="https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white" alt="CSS3" />
   <img src="https://img.shields.io/badge/Framer_Motion-EF008F?style=for-the-badge&logo=framer&logoColor=white" alt="Framer Motion" />
+  <img src="https://img.shields.io/badge/Vitest-6E9F18?style=for-the-badge&logo=vitest&logoColor=white" alt="Vitest" />
   <img src="https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="Vercel" />
 </p>
 
 <p align="center">
   <a href="https://ballers-game.vercel.app/" target="_blank">
     <img src="https://img.shields.io/badge/🚀%20Live%20Demo-ballers--game.vercel.app-brightgreen?style=for-the-badge" alt="Live Demo" />
+  </a>
+  <a href="https://github.com/kiellzz/ballers-game/actions/workflows/match-engine.yml" target="_blank">
+    <img src="https://github.com/kiellzz/ballers-game/actions/workflows/match-engine.yml/badge.svg" alt="Match Engine Tests" />
   </a>
 </p>
 
