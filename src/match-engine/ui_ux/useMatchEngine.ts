@@ -7,7 +7,7 @@ import {
   createInitialMatchState,
   runMatchStep,
   runInteractiveSetPieceStep,
-} from "../matchEngine";
+} from "../core/matchEngine";
 import type { InteractiveSetPieceResolutionInput } from "../interactive/interactiveSetPieceFlow";
 import type {
   ActionType,
