@@ -5,6 +5,7 @@ export interface Toast {
   playerName: string;
   playerPosition: string;
   type?: 'error' | 'success';
+  message?: string;
 }
 
 export function useToast(duration = 3500) {

@@ -11,6 +11,8 @@ import { getCardTier } from "../utils/getCardTier";
 import { defaultFilters } from "../types/FilterTypes";
 import { useFavorites } from "../hooks/useFavorite";
 import { useCustomPlayers } from "../hooks/useCustomPlayers";
+import { useToast } from "../hooks/useToast";
+import ToastContainer from "../components/toast/ToastContainer";
 import type { FilterState } from "../types/FilterTypes";
 import type { Player } from "../types/PlayerTypes";
 import "./Home.css";
@@ -28,6 +30,7 @@ export default function Home() {
 
   const { favorites, toggleFavorite } = useFavorites();
   const { customPlayers, addCustomPlayer, removeCustomPlayer } = useCustomPlayers();
+  const { toasts, addToast, removeToast } = useToast();
 
   // Merge: custom players aparecem primeiro
   const allPlayers = useMemo(() => [...customPlayers, ...playersData], [customPlayers]);
@@ -98,10 +101,11 @@ export default function Home() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  // Quando o modal de jogador abre e é um custom player, o botão de remove funciona
   function handleRemovePlayer() {
     if (selectedPlayer && customPlayers.some(p => p.id === selectedPlayer.id)) {
+      const name = selectedPlayer.name;
       removeCustomPlayer(selectedPlayer.id);
+      addToast(name, "__deleted__", "success");
     }
     setSelectedPlayer(null);
   }
@@ -181,10 +185,15 @@ export default function Home() {
       {isCreatePlayerOpen && (
         <CreatePlayerModal
           onClose={() => setIsCreatePlayerOpen(false)}
-          onSave={addCustomPlayer}
+          onSave={(player) => {
+            addCustomPlayer(player);
+            addToast(player.name, "__created__", "success");
+          }}
           reservedNames={playersData.map(p => p.name)}
         />
       )}
+
+      <ToastContainer toasts={toasts} onRemove={removeToast} />
     </div>
   );
 }

@@ -22,7 +22,7 @@ type OutfieldWeights = Record<keyof PlayerStats, number>;
 export const POSITION_WEIGHTS: Record<Position, OutfieldWeights> = {
   ST: {
     pace:       0.20,
-    shooting:   0.49,
+    shooting:   0.45,
     passing:    0.07,
     dribbling:  0.18,
     defending:  0.00,
@@ -71,7 +71,7 @@ export const POSITION_WEIGHTS: Record<Position, OutfieldWeights> = {
   CM: {
     pace:       0.08,
     shooting:   0.12,
-    passing:    0.34,
+    passing:    0.38,
     dribbling:  0.22,
     defending:  0.14,
     physical:   0.10,
@@ -180,13 +180,13 @@ export function suggestPosition(stats: PlayerStats): Exclude<Position, "GK"> {
   const scores: Record<Exclude<Position, "GK">, number> = {
     CB:  defending * 0.50 + physical * 0.28 + pace * 0.12 + passing * 0.10,
     LB:  defending * 0.28 + pace * 0.32 + dribbling * 0.18 + passing * 0.16 + physical * 0.06,
-    RB:  defending * 0.28 + pace * 0.32 + dribbling * 0.18 + passing * 0.16 + physical * 0.06,
+    RB:  defending * 0.28 + pace * 0.32 + dribbling * 0.17 + passing * 0.16 + physical * 0.07,
     CDM: defending * 0.42 + passing * 0.24 + physical * 0.20 + dribbling * 0.14,
     CM:  passing * 0.32 + dribbling * 0.22 + defending * 0.18 + shooting * 0.14 + physical * 0.14,
     CAM: dribbling * 0.30 + passing * 0.26 + shooting * 0.26 + pace * 0.18,
     LM:  pace * 0.28 + dribbling * 0.28 + passing * 0.22 + shooting * 0.22,
-    RM:  pace * 0.28 + dribbling * 0.28 + passing * 0.22 + shooting * 0.22,
-    LW:  pace * 0.30 + dribbling * 0.36 + shooting * 0.20 + passing * 0.14,
+    RM:  pace * 0.28 + dribbling * 0.29 + passing * 0.21 + shooting * 0.22,
+    LW:  pace * 0.30 + dribbling * 0.36 + shooting * 0.19 + passing * 0.15,
     RW:  pace * 0.30 + dribbling * 0.36 + shooting * 0.20 + passing * 0.14,
     ST:  shooting * 0.42 + pace * 0.24 + physical * 0.18 + dribbling * 0.16,
   };

@@ -24,32 +24,42 @@ export default function ToastContainer({ toasts, onRemove }: Props) {
           toast.playerName === 'Squad' &&
           toast.playerPosition?.toLowerCase() === 'squad reset';
 
+        const isDeleteToast = isSuccess && toast.playerPosition === '__deleted__';
+        const isCreateToast = isSuccess && toast.playerPosition === '__created__';
+
         return (
           <div
             key={toast.id}
             className={`toast ${isSuccess ? 'toast--success' : 'toast--error'}`}
             onClick={createRemoveHandler(toast.id)}
           >
-            {/* Icon */}
-            <div className="toast__icon">{isSuccess ? '✅' : '⚠️'}</div>
+            <div className="toast__icon">
+              {isDeleteToast ? '❌' : isSuccess ? '✅' : '⚠️'}
+            </div>
 
             <div className="toast__body">
-              {/* Títle*/}
               <span className="toast__title">
-                {isSuccess ? 'Success!' : 'Unavailable Player'}
+                {isDeleteToast
+                  ? 'Player removed'
+                  : isCreateToast
+                  ? 'Player created!'
+                  : isSuccess
+                  ? 'Success!'
+                  : 'Unavailable Player'}
               </span>
 
-              {/* Message*/}
               <span className="toast__message">
-                {isSuccess ? (
+                {isDeleteToast ? (
+                  <><strong>{toast.playerName}</strong> was removed from your collection.</>
+                ) : isCreateToast ? (
+                  <><strong>{toast.playerName}</strong> was added to your collection!</>
+                ) : toast.message ? (
+                  <span dangerouslySetInnerHTML={{ __html: toast.message }} />
+                ) : isSuccess ? (
                   isResetSquadToast ? (
-                    <>
-                      <strong>Your squad</strong> has been <strong>reset!</strong>
-                    </>
+                    <><strong>Your squad</strong> has been <strong>reset!</strong></>
                   ) : (
-                    <>
-                      <strong>Your squad</strong> has been <strong>successfully saved!</strong>
-                    </>
+                    <><strong>Your squad</strong> has been <strong>successfully saved!</strong></>
                   )
                 ) : (
                   <>

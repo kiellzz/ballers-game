@@ -83,6 +83,7 @@ export default function Lineup() {
   const handlePlayMatch = () => {
     const success = saveAndPlay(pitchPlayers, benchPlayers, currentFormation);
     if (success) {
+      saveProgress(pitchPlayers, benchPlayers, currentFormation);
       addToast("Match", "Ready", "success", true);
       navigate('/PreMatch');
     }

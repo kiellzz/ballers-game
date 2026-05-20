@@ -6,6 +6,8 @@
 
 ## 📝 Recent Updates
 
+* 🔔 **Toast Notifications on Home** - Player creation and deletion now trigger contextual toasts: ✅ green check on creation, ❌ red X on removal, each with the player's name in the message
+* 💾 **Auto-Save on Play Match** - Squad is automatically saved when clicking Play Match in the Lineup, no manual save required
 * ✏️ **Custom Player Creation** - Multi-step modal (Info → Stats → Preview) with photo upload, built-in crop tool, background removal, and position-weighted overall calculation per role
 * ⚙️ **Match Clock Randomization** - Clock now advances 0–3 minutes per action with triangular distribution; late game (85+) slows to 0–1 min with guaranteed progression guard
 * 🧪 **Calibration Test Suite** - Statistical duel engine tests via Vitest with GitHub Actions CI on every push to `src/match-engine/**`
