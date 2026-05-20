@@ -61,7 +61,7 @@ export default function PlayerCard({
 
       <div className="player-card__image-wrap">
         <img
-          src={getPlayerImage(player.name)}
+          src={player.customImage ?? getPlayerImage(player.name)}
           alt={player.name}
           className="player-card__image"
           onError={(event) => {

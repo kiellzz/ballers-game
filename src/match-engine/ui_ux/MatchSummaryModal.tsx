@@ -350,10 +350,11 @@ export default function MatchSummaryModal({
               <div className="summary-mvp__frame">
                 <div className="summary-mvp__inner">
                   <img
-                    src={getPlayerImage(mvpPlayer.name)}
+                    src={mvpPlayer.customImage ?? getPlayerImage(mvpPlayer.name)}
                     alt={mvpPlayer.name}
                     className="summary-mvp__img"
                     draggable={false}
+                    onError={(e) => { e.currentTarget.src = "/images/players/default.webp"; }}
                   />
                 </div>
                 <div className="summary-mvp__name-bar">

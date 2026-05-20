@@ -401,10 +401,11 @@ export default function CornerModal({
 
       <div className="corner-shooter-card-mini">
         <img
-          src={getPlayerImage(shooter.name)}
+          src={shooter.customImage ?? getPlayerImage(shooter.name)}
           alt={shooter.name}
           className="corner-shooter-img"
           draggable={false}
+          onError={(e) => { e.currentTarget.src = "/images/players/default.webp"; }}
         />
 
         <div className="corner-shooter-info">

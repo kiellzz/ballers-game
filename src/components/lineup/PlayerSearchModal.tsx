@@ -18,8 +18,9 @@ interface Props {
   excludePlayerIds: number[];
   filters: FilterState;
   setFilters: (filters: FilterState) => void;
-  /** Se true, ignora validação de posição (usado para slots do banco) */
   freePosition?: boolean;
+  /** Custom players created by the user */
+  customPlayers?: Player[];
 }
 
 export default function PlayerSearchModal({
@@ -30,12 +31,12 @@ export default function PlayerSearchModal({
   filters,
   setFilters,
   freePosition = false,
+  customPlayers = [],
 }: Props) {
   const [searchTerm, setSearchTerm] = useState('');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const { favorites } = useFavorites();
 
-  // Atualizado para incluir a checagem de positions.length
   const hasActiveFilters =
     filters.overallMin > 1 ||
     filters.overallMax < 99 ||
@@ -44,19 +45,20 @@ export default function PlayerSearchModal({
     filters.nationalities.length > 0 ||
     filters.onlyFavorites;
 
+  // Custom players first, then real players
+  const allPlayers = useMemo(
+    () => [...customPlayers, ...playersData],
+    [customPlayers]
+  );
+
   const filteredPlayers = useMemo(() => {
-    const result = playersData.filter(player => {
-      // 1. Validação de Slot (Regra de Negócio do Campo)
-      // Se não for banco, o jogador deve ser capaz de jogar naquela posição específica
+    const result = allPlayers.filter(player => {
       if (!freePosition && !canPlayerPlayInPosition(player, slotPosition)) return false;
 
-      // 2. Filtro de Posições (Vindo do FilterModal)
-      // Se o usuário selecionou posições manualmente, filtramos por elas
       if (filters.positions.length > 0) {
         if (!filters.positions.includes(player.position)) return false;
       }
 
-      // 3. Filtros Gerais
       if (excludePlayerIds.includes(player.id)) return false;
       if (filters.onlyFavorites && !favorites.includes(player.id)) return false;
 
@@ -79,12 +81,11 @@ export default function PlayerSearchModal({
       return true;
     });
 
-    // 4. Ordenação (Higher/Lower Overall)
     return result.sort((a, b) => {
       const order = filters.sortBy ?? 'desc';
       return order === 'desc' ? b.overall - a.overall : a.overall - b.overall;
     });
-  }, [searchTerm, slotPosition, freePosition, excludePlayerIds, filters, favorites]);
+  }, [searchTerm, slotPosition, freePosition, excludePlayerIds, filters, favorites, allPlayers]);
 
   const toggleGlobalFavoriteFilter = () => {
     setFilters({ ...filters, onlyFavorites: !filters.onlyFavorites });

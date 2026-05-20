@@ -147,10 +147,11 @@ export default function PreInteractiveModal({
   const headerContent = player ? (
     <div className={`pre-int-player pre-int-player--${tone}`}>
       <img
-        src={getPlayerImage(player.name)}
+        src={player.customImage ?? getPlayerImage(player.name)}
         alt={player.name}
         className="pre-int-player__img"
         draggable={false}
+        onError={(e) => { e.currentTarget.src = "/images/players/default.webp"; }}
       />
 
       <div className="pre-int-player__info">

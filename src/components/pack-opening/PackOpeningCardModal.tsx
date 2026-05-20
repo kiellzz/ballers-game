@@ -41,6 +41,9 @@ export default function PackOpeningCardModal({
               </span>
             ))}
           </div>
+          <div className="card-modal__header-meta">
+          {player.nationality} · {player.height}cm
+        </div>
         </div>
 
         {/* BODY */}

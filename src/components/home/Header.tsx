@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { List, RotateCcw, Search } from "lucide-react";
+import { List, Search, Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import type { FilterState } from "../../types/FilterTypes";
 import { playButton, playConfirm } from "../../utils/sound";
@@ -12,6 +12,7 @@ type HeaderProps = {
   onSearchChange: (value: string) => void;
   onOpenFilters: () => void;
   onClearFilters: () => void;
+  onCreatePlayer: () => void;
   search: string;
 };
 
@@ -33,7 +34,7 @@ function isLineupReady(): boolean {
   }
 }
 
-export default function Header({ filters, search, onSearchChange, onOpenFilters, onClearFilters }: HeaderProps) {
+export default function Header({ filters, search, onSearchChange, onOpenFilters, onCreatePlayer }: HeaderProps) {
   const navigate = useNavigate();
   const [showPlayMatchModal, setShowPlayMatchModal] = useState(false);
 
@@ -98,11 +99,11 @@ export default function Header({ filters, search, onSearchChange, onOpenFilters,
         <button
           className="header__action-btn"
           type="button"
-          aria-label="Clear filters"
+          aria-label="Create player"
           onMouseEnter={() => playButton(0.3)}
-          onClick={() => { playConfirm(0.4); onClearFilters(); }}
+          onClick={() => { playConfirm(0.4); onCreatePlayer(); }}
         >
-          <RotateCcw size={21} strokeWidth={2.6} />
+          <Plus size={22} strokeWidth={2.8} />
         </button>
       </div>
 

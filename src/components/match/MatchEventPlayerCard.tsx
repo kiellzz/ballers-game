@@ -45,7 +45,7 @@ export default function MatchEventPlayerCard({
 
       <div className="match-event-player-card__image-wrap">
         <img
-          src={getPlayerImage(player.name)}
+          src={player.customImage ?? getPlayerImage(player.name)}
           alt={player.name}
           className="match-event-player-card__image"
           onError={handleImageError}

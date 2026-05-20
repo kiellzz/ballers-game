@@ -58,10 +58,11 @@ export default function GoalModal({
   const headerContent = scorer ? (
     <div className={`goal-player ${toneClass}`}>
       <img
-        src={getPlayerImage(scorer.name)}
+        src={scorer.customImage ?? getPlayerImage(scorer.name)}
         alt={scorer.name}
         className="goal-player__img"
         draggable={false}
+        onError={(e) => { e.currentTarget.src = "/images/players/default.webp"; }}
       />
 
       <div className="goal-player__info">

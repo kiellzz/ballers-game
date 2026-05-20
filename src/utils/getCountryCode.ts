@@ -243,3 +243,13 @@ const countryCodeMap: Record<string, string> = {
 export function getCountryCode(country: string): string {
   return countryCodeMap[country] || "un";
 }
+
+export function getAllCountries(): string[] {
+  return Object.keys(countryCodeMap).sort();
+}
+
+export function getAllCountriesWithCodes(): { name: string; code: string }[] {
+  return Object.entries(countryCodeMap)
+    .map(([name, code]) => ({ name, code }))
+    .sort((a, b) => a.name.localeCompare(b.name));
+}

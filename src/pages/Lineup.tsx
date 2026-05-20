@@ -10,6 +10,7 @@ import FeatureButton from '../components/feature-button/FeatureButton';
 import { useToast } from '../hooks/useToast';
 import { useDragDrop } from '../hooks/useDragDrop';
 import { useSquad } from '../hooks/useSquad';
+import { useCustomPlayers } from '../hooks/useCustomPlayers';
 import { canPlayerPlayInPosition } from '../utils/playerValidation';
 import { FORMATIONS, DEFAULT_FORMATION } from '../utils/formations';
 import type { FormationKey } from '../utils/formations';
@@ -47,6 +48,7 @@ export default function Lineup() {
 
   const { toasts, addToast, removeToast } = useToast();
   const { dragSource, onDragStart, onDragEnd } = useDragDrop();
+  const { customPlayers } = useCustomPlayers();
 
   useEffect(() => {
     const savedData = localStorage.getItem('ballers_saved_progress');
@@ -80,7 +82,6 @@ export default function Lineup() {
 
   const handlePlayMatch = () => {
     const success = saveAndPlay(pitchPlayers, benchPlayers, currentFormation);
-
     if (success) {
       addToast("Match", "Ready", "success", true);
       navigate('/PreMatch');
@@ -108,10 +109,7 @@ export default function Lineup() {
   const handleResetSquad = () => {
     setPitchPlayers(Array(11).fill(null));
     setBenchPlayers(Array(BENCH_SIZE).fill(null));
-
-    // Se você quiser manter a formação atual, apaga a linha de baixo:
     setCurrentFormation(DEFAULT_FORMATION);
-
     addToast("Squad", "Squad reset", "success");
   };
 
@@ -295,19 +293,16 @@ export default function Lineup() {
       />
 
       <div className="lineup__actions-sidebar">
-
-         <FeatureButton
+        <FeatureButton
           label="RESET SQUAD"
           variant="danger"
           onClick={handleResetSquad}
         />
-
         <FeatureButton
           label="SAVE SQUAD"
           variant="save"
           onClick={handleSaveProgress}
         />
-
         <FeatureButton
           label={isTeamComplete ? 'READY!' : 'FILL YOUR SQUAD TO PLAY'}
           variant={isTeamComplete ? 'playMatch' : 'less'}
@@ -336,6 +331,7 @@ export default function Lineup() {
           excludePlayerIds={occupiedPlayerIds}
           filters={filters}
           setFilters={setFilters}
+          customPlayers={customPlayers}
         />
       )}
 

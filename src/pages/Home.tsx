@@ -5,10 +5,12 @@ import FeatureButton from "../components/feature-button/FeatureButton";
 import FilterModal from "../components/filter-modal/FilterModal";
 import PlayerCardModal from "../components/player-card/PlayerCardModal";
 import ComingSoon from "../components/home/ComingSoon";
+import CreatePlayerModal from "../components/home/CreatePlayerModal";
 import { playersData } from "../data/PlayersData";
 import { getCardTier } from "../utils/getCardTier";
 import { defaultFilters } from "../types/FilterTypes";
 import { useFavorites } from "../hooks/useFavorite";
+import { useCustomPlayers } from "../hooks/useCustomPlayers";
 import type { FilterState } from "../types/FilterTypes";
 import type { Player } from "../types/PlayerTypes";
 import "./Home.css";
@@ -21,13 +23,17 @@ export default function Home() {
   const [filters, setFilters] = useState<FilterState>(defaultFilters);
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
-
   const [isComingSoonOpen, setIsComingSoonOpen] = useState(false);
+  const [isCreatePlayerOpen, setIsCreatePlayerOpen] = useState(false);
 
   const { favorites, toggleFavorite } = useFavorites();
+  const { customPlayers, addCustomPlayer, removeCustomPlayer } = useCustomPlayers();
+
+  // Merge: custom players aparecem primeiro
+  const allPlayers = useMemo(() => [...customPlayers, ...playersData], [customPlayers]);
 
   const filteredPlayers = useMemo(() => {
-    const result = playersData.filter(player => {
+    const result = allPlayers.filter(player => {
       if (filters.onlyFavorites && !favorites.includes(player.id)) {
         return false;
       }
@@ -61,7 +67,7 @@ export default function Home() {
       const order = filters.sortBy ?? "desc";
       return order === "desc" ? b.overall - a.overall : a.overall - b.overall;
     });
-  }, [search, filters, favorites]);
+  }, [search, filters, favorites, allPlayers]);
 
   const visiblePlayers = filteredPlayers.slice(0, visibleCount);
   const hasMore = visibleCount < filteredPlayers.length;
@@ -92,6 +98,14 @@ export default function Home() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
+  // Quando o modal de jogador abre e é um custom player, o botão de remove funciona
+  function handleRemovePlayer() {
+    if (selectedPlayer && customPlayers.some(p => p.id === selectedPlayer.id)) {
+      removeCustomPlayer(selectedPlayer.id);
+    }
+    setSelectedPlayer(null);
+  }
+
   return (
     <div className="home">
       <div className="home__overlay" />
@@ -111,6 +125,7 @@ export default function Home() {
             onSearchChange={handleSearchChange}
             onOpenFilters={() => setIsFilterModalOpen(true)}
             onClearFilters={handleClearFilters}
+            onCreatePlayer={() => setIsCreatePlayerOpen(true)}
           />
 
           {filteredPlayers.length === 0 ? (
@@ -154,13 +169,21 @@ export default function Home() {
           player={selectedPlayer}
           isFavorite={favorites.includes(selectedPlayer.id)}
           onClose={() => setSelectedPlayer(null)}
-          onRemove={() => setSelectedPlayer(null)}
+          onRemove={handleRemovePlayer}
           onToggleFavorite={() => toggleFavorite(selectedPlayer.id)}
         />
       )}
 
       {isComingSoonOpen && (
         <ComingSoon onClose={() => setIsComingSoonOpen(false)} />
+      )}
+
+      {isCreatePlayerOpen && (
+        <CreatePlayerModal
+          onClose={() => setIsCreatePlayerOpen(false)}
+          onSave={addCustomPlayer}
+          reservedNames={playersData.map(p => p.name)}
+        />
       )}
     </div>
   );

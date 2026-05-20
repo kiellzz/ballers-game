@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import type { Player } from "../../types/PlayerTypes";
 import { playFavorite } from "../../utils/sound";
@@ -20,6 +20,21 @@ export default function PlayerCardModal({
   onRemove,
   onToggleFavorite,
 }: PlayerCardModalProps) {
+  const [confirmingRemove, setConfirmingRemove] = useState(false);
+
+  const isInSquad = useMemo(() => {
+    try {
+      const raw = localStorage.getItem("ballers_saved_progress");
+      if (!raw) return false;
+      const { pitch, bench } = JSON.parse(raw);
+      return [...(pitch ?? []), ...(bench ?? [])].some(
+        (p: Player | null) => p?.id === player.id
+      );
+    } catch {
+      return false;
+    }
+  }, [player.id]);
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -35,6 +50,14 @@ export default function PlayerCardModal({
     onToggleFavorite();
   };
 
+  function handleRemoveClick() {
+    if (!confirmingRemove) {
+      setConfirmingRemove(true);
+    } else {
+      onRemove();
+    }
+  }
+
   return createPortal(
     <div className="card-modal__overlay" onClick={onClose}>
       <div className="card-modal__dialog" onClick={(e) => e.stopPropagation()}>
@@ -46,10 +69,16 @@ export default function PlayerCardModal({
           <span className="card-modal__header-name">{player.name}</span>
           <div className="card-modal__header-positions">
             {allPositions.map((pos, i) => (
-              <span key={i} className={`card-modal__position-badge ${i === 0 ? "card-modal__position-badge--primary" : ""}`}>
+              <span
+                key={i}
+                className={`card-modal__position-badge ${i === 0 ? "card-modal__position-badge--primary" : ""}`}
+              >
                 {pos}
               </span>
             ))}
+          </div>
+          <div className="card-modal__header-meta">
+            {player.nationality} · {player.height}cm
           </div>
         </div>
 
@@ -63,9 +92,27 @@ export default function PlayerCardModal({
           </div>
 
           <div className="card-modal__actions">
-            <button className="card-modal__btn card-modal__btn--remove" onClick={onRemove}>
-              To be added
-            </button>
+            {player.isCustom ? (
+              <>
+                {isInSquad && (
+                  <span className="card-modal__squad-warning">
+                    ⚠ Player is in your active lineup — unable to remove
+                  </span>
+                )}
+                <button
+                  className={`card-modal__btn card-modal__btn--remove ${confirmingRemove ? "card-modal__btn--remove-confirm" : ""}`}
+                  onClick={handleRemoveClick}
+                  disabled={isInSquad}
+                  title={isInSquad ? "Remove from squad before deleting" : undefined}
+                >
+                  {confirmingRemove ? "CONFIRM?" : "Remove player"}
+                </button>
+              </>
+            ) : (
+              <button className="card-modal__btn card-modal__btn--remove" disabled>
+                To be added
+              </button>
+            )}
             <button
               className={`card-modal__btn card-modal__btn--favorite ${isFavorite ? "card-modal__btn--favorite-active" : ""}`}
               onClick={handleToggleFavorite}

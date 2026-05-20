@@ -41,6 +41,8 @@ export interface Player {
   stats: PlayerStats | GKStats;
   isLegend?: boolean;
   height: number;
+  isCustom?: boolean;        
+  customImage?: string;  
 }
 
 // Helper para checar no componente

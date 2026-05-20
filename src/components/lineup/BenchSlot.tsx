@@ -66,7 +66,7 @@ export default function BenchSlot({
           >
             <div className="bench-slot__img-wrap">
               <img
-                src={getPlayerImage(player.name)}
+                src={player.customImage ?? getPlayerImage(player.name)}
                 alt={player.name}
                 className="bench-slot__img"
                 onError={(e) => {

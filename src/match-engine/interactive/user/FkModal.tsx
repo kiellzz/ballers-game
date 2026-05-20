@@ -130,10 +130,11 @@ export default function FkModal({
 
       <div className="fk-shooter-card-mini">
         <img
-          src={getPlayerImage(shooter.name)}
+          src={shooter.customImage ?? getPlayerImage(shooter.name)}
           alt={shooter.name}
-          className="fk-shooter-img"
+          className="corner-shooter-img"
           draggable={false}
+          onError={(e) => { e.currentTarget.src = "/images/players/default.webp"; }}
         />
 
         <div className="fk-shooter-info">

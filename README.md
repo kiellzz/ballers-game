@@ -6,6 +6,7 @@
 
 ## 📝 Recent Updates
 
+* ✏️ **Custom Player Creation** - Multi-step modal (Info → Stats → Preview) with photo upload, built-in crop tool, background removal, and position-weighted overall calculation per role
 * ⚙️ **Match Clock Randomization** - Clock now advances 0–3 minutes per action with triangular distribution; late game (85+) slows to 0–1 min with guaranteed progression guard
 * 🧪 **Calibration Test Suite** - Statistical duel engine tests via Vitest with GitHub Actions CI on every push to `src/match-engine/**`
 * 🐛 **Duel Engine Fixes** - Corrected attacker/defender assignment for defensive actions, goalkeeper roles in big chance zones, and finishing weight contexts
@@ -80,6 +81,12 @@ Deployed on **Vercel** — no installation required, runs directly in the browse
     * Multiple tactical formations.
     * Drag & drop positioning.
     * Bench and substitutions.
+    
+* ✏️ **Custom Player Creation**
+    * Multi-step creation modal (Info → Stats → Preview).
+    * Photo upload with built-in crop tool and background removal.
+    * Position-weighted overall calculation per role (ST, CB, GK, etc.).
+    * Custom players protected from removal if active in the squad.
 
 * 🎯 **Deep Player Interaction**
     * Detailed stat modals.
@@ -343,9 +350,11 @@ Live: https://ballers-game.vercel.app/
 - [x] 📊 Player Rating System
 - [x] 🚀 Deploy on Vercel
 - [x] 🧪 Duel engine calibration test suite (Vitest + GitHub Actions)
+- [x] ✏️ Custom Player Creation (crop, overall weights, squad protection)
+- [ ] 🔄 Cards & Substitution System
 - [ ] 📊 Advanced match stats 
 - [ ] 🎮 Draft Mode
-- [ ] 💾 API/Backend integration 
+- [ ] 💾 API/Backend integration
 
 ---
 

@@ -69,7 +69,7 @@ export default function LineupCard({
 
       <div className="lineup-card__image-wrap">
         <img
-          src={getPlayerImage(player.name)}
+          src={player.customImage ?? getPlayerImage(player.name)}
           alt={player.name}
           className="lineup-card__image"
           onError={handleImageError}

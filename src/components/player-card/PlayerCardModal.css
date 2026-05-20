@@ -309,3 +309,37 @@
     zoom: 0.75;
   }
 }
+
+/* Delete player button */
+
+.card-modal__btn--remove-confirm {
+  background: #5a1a1a !important;
+  color: #ff8080 !important;
+  box-shadow: 0 4px 20px rgba(255, 60, 60, 0.35) !important;
+}
+
+.card-modal__btn--remove-confirm:hover {
+  background: #6e1f1f !important;
+  box-shadow: 0 6px 28px rgba(255, 60, 60, 0.5) !important;
+  transform: translateY(-1px);
+}
+
+.card-modal__header-meta {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.65);
+  font-weight: 500;
+  letter-spacing: 0.03em;
+}
+
+.card-modal__squad-warning {
+  font-size: 0.76rem;
+  color: #e05252;
+  text-align: center;
+  margin-bottom: 6px;
+  opacity: 0.9;
+}
+
+.card-modal__btn--remove:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}

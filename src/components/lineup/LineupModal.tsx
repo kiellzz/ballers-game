@@ -38,6 +38,9 @@ export default function LineupModal({
               </span>
             ))}
           </div>
+          <div className="card-modal__header-meta">
+          {player.nationality} · {player.height}cm
+        </div>
         </div>
 
         <div className="lineup-card-modal__content">
