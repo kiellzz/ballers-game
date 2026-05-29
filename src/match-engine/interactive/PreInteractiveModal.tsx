@@ -4,6 +4,7 @@ import type { Player } from "../../types/PlayerTypes";
 import { getPlayerImage } from "../../utils/getPlayerImage";
 import { getFlagUrl } from "../../utils/getFlagUrl";
 import { matchSound } from "../sounds/matchSound";
+import type { CardType } from "../matchTypes";
 import "./PreInteractiveModal.css";
 
 export type PreInteractiveType =
@@ -13,6 +14,11 @@ export type PreInteractiveType =
   | "corner";
 
 export type PreInteractiveSide = "user" | "opponent";
+
+export interface PreInteractiveCardNotice {
+  card: Exclude<CardType, "none">;
+  playerName: string;
+}
 
 type PreInteractiveTone =
   | "positive"
@@ -27,6 +33,7 @@ interface PreInteractiveModalProps {
   onClose?: () => void;
   player?: Player;
   side?: PreInteractiveSide;
+  cardNotice?: PreInteractiveCardNotice | null;
 }
 
 export default function PreInteractiveModal({
@@ -35,6 +42,7 @@ export default function PreInteractiveModal({
   onContinue,
   player,
   side = "user",
+  cardNotice = null,
 }: PreInteractiveModalProps) {
   const isOpponentSetPiece = side === "opponent";
 
@@ -143,6 +151,8 @@ export default function PreInteractiveModal({
   }
 
   const { title, subtitle, cta, tone } = getContent();
+  const cardNoticeLabel =
+    cardNotice?.card === "yellow" ? "Yellow card" : "Red card";
 
   const headerContent = player ? (
     <div className={`pre-int-player pre-int-player--${tone}`}>
@@ -171,6 +181,14 @@ export default function PreInteractiveModal({
             className="pre-int-player__flag"
           />
         </div>
+
+        {cardNotice ? (
+          <div
+            className={`pre-int-player__card-note pre-int-player__card-note--${cardNotice.card}`}
+          >
+            {cardNoticeLabel}: <span>{cardNotice.playerName}</span>
+          </div>
+        ) : null}
       </div>
     </div>
   ) : null;

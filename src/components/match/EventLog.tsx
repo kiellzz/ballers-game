@@ -1,19 +1,10 @@
 import { useState } from "react";
-import type { Player } from "../../types/PlayerTypes";
 import { getDisplayName } from "../../utils/getDisplayName";
 import MatchEventPlayerCard from "./MatchEventPlayerCard";
+import type { EventLogEntry } from "./eventLogEntries";
 import "./EventLog.css";
 
-export interface EventLogEntry {
-  id: string;
-  minute: number;
-  attacker: Player;
-  defender: Player;
-  attackerPosition?: string;
-  defenderPosition?: string;
-  action: string;
-  outcome: string;
-}
+export type { EventLogEntry } from "./eventLogEntries";
 
 interface EventLogProps {
   events: EventLogEntry[];
@@ -45,9 +36,49 @@ export const EventLog = ({ events }: EventLogProps) => {
       >
         <div className="event-log">
           {orderedEvents.length === 0 ? (
-            <p className="event-log__empty">No duel events yet.</p>
+            <p className="event-log__empty">No match events yet.</p>
           ) : (
             orderedEvents.map((event) => {
+              if (event.kind === "card") {
+                const playerName = getDisplayName(event.player);
+
+                return (
+                  <div
+                    key={event.id}
+                    className={`event-log-item event-log-item--card event-log-item--card-${event.cardType}`}
+                  >
+                    <span className="event-log-minute">[{event.minute}']</span>
+
+                    <div className="event-log-player">
+                      <MatchEventPlayerCard
+                        player={event.player}
+                        assignedPosition={event.playerPosition}
+                      />
+                      <span className="event-log-name" title={event.player.name}>
+                        {playerName}
+                      </span>
+                    </div>
+
+                    <span
+                      className={`event-log-card-swatch event-log-card-swatch--${event.cardType}`}
+                      aria-hidden="true"
+                    />
+
+                    <span className="event-log-arrow">-&gt;</span>
+                    <span className="event-log-action" title={event.action}>
+                      {event.action}
+                    </span>
+                    <span className="event-log-arrow">-&gt;</span>
+                    <span
+                      className={`event-log-outcome event-log-outcome--${event.cardType}`}
+                      title={event.outcome}
+                    >
+                      {event.outcome}
+                    </span>
+                  </div>
+                );
+              }
+
               const attackerName = getDisplayName(event.attacker);
               const defenderName = getDisplayName(event.defender);
 
@@ -86,7 +117,7 @@ export const EventLog = ({ events }: EventLogProps) => {
                     {event.outcome}
                   </span>
                 </div>
-              );
+              )
             })
           )}
         </div>

@@ -27,7 +27,6 @@ export function resolveFoul(params: ResolveFoulParams): FoulResult {
     action: context.action,
     zone: context.zone,
     outcome,
-    possession: context.possession,
     canCauseFoul: actionDefinition.canCauseFoul,
     canDrawFoul: actionDefinition.canDrawFoul,
   });
@@ -44,6 +43,10 @@ export function resolveFoul(params: ResolveFoulParams): FoulResult {
     committed: true,
     by: foulingSide,
     card: "none",
+    playerId: null,
+    playerSide: null,
+    sentOff: false,
+    dismissalType: "none",
     setPieceAwarded,
     awardedTo,
     description: getFoulDescription(setPieceAwarded, context.zone),
@@ -55,6 +58,10 @@ function createNoFoulResult(): FoulResult {
     committed: false,
     by: null,
     card: "none",
+    playerId: null,
+    playerSide: null,
+    sentOff: false,
+    dismissalType: "none",
     setPieceAwarded: null,
     awardedTo: null,
     description: undefined,
@@ -69,20 +76,10 @@ function getFoulChance(params: {
   action: DuelContext["action"];
   zone: Zone;
   outcome: EventOutcome;
-  possession: DuelContext["possession"];
   canCauseFoul?: boolean;
   canDrawFoul?: boolean;
 }): number {
-  const { action, zone, outcome, possession, canCauseFoul, canDrawFoul } = params;
-
-  // Whether this foul would be awarded TO the user (user drawing the foul)
-  const awardsUser =
-    (possession === "user" && canDrawFoul) ||
-    (possession === "opponent" && canCauseFoul);
-
-  // Multiplier applied to every source of chance that benefits the user.
-  // Values below 1.0 reduce how often fouls are called in the user's favour.
-  const userFoulBias = awardsUser ? 0.78 : 1.0;
+  const { action, zone, outcome, canCauseFoul, canDrawFoul } = params;
 
   let chance = 0;
 
@@ -153,9 +150,6 @@ function getFoulChance(params: {
   }
 
   chance += getZoneFoulBonus(zone);
-
-  // Apply bias after all bonuses are summed so every component is scaled equally
-  chance *= userFoulBias;
 
   return clamp(chance, 0, 0.65);
 }

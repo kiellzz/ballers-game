@@ -73,6 +73,8 @@ interface RatingWeights {
   shotBlocked: number;
   bigChanceMiss: number;
   penaltyMiss: number;
+  yellowCard: number;
+  dismissal: number;
   tackleWon: number;
   interception: number;
   block: number;
@@ -115,6 +117,8 @@ const WEIGHTS: Record<PositionGroup, RatingWeights> = {
     shotBlocked:        0,
     bigChanceMiss:      0,
     penaltyMiss:       -0.80,
+    yellowCard:        -0.30,
+    dismissal:         -1.20,
 
     tackleWon:          0.20,
     interception:       0.15,
@@ -156,6 +160,8 @@ const WEIGHTS: Record<PositionGroup, RatingWeights> = {
     shotBlocked:       -0.05,
     bigChanceMiss:     -0.20,
     penaltyMiss:       -0.80,
+    yellowCard:        -0.35,
+    dismissal:         -1.20,
     tackleWon:          0.22,   // 0.36  → 0.22   ★
     interception:       0.22,   // 0.32  → 0.22   ★
     block:              0.30,
@@ -197,6 +203,8 @@ const WEIGHTS: Record<PositionGroup, RatingWeights> = {
     shotBlocked:       -0.15,
     bigChanceMiss:     -0.30,
     penaltyMiss:       -0.80,
+    yellowCard:        -0.35,
+    dismissal:         -1.20,
 
     tackleWon:          0.25,
     interception:       0.20,
@@ -240,6 +248,8 @@ const WEIGHTS: Record<PositionGroup, RatingWeights> = {
     shotBlocked:       -0.20,
     bigChanceMiss:     -0.60,
     penaltyMiss:       -0.80,
+    yellowCard:        -0.35,
+    dismissal:         -1.20,
 
     tackleWon:          0.25,
     interception:       0.20,
@@ -320,6 +330,8 @@ export function calculatePlayerRating(
     stats.shotsBlocked       * w.shotBlocked +
     stats.bigChanceMisses    * w.bigChanceMiss +
     (stats.penaltyMisses ?? 0) * w.penaltyMiss +
+    stats.yellowCards        * w.yellowCard +
+    stats.dismissals         * w.dismissal +
     stats.tacklesWon         * w.tackleWon +
     stats.interceptions      * w.interception +
     stats.blocks             * w.block +

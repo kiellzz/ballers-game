@@ -212,10 +212,11 @@ dribble: {
       { stat: "physical", weight: 0.1 },
     ],
     defensiveWeights: [
-      { stat: "overall", weight: 0.35 },
-      { stat: "diving", weight: 1.0 },
-      { stat: "reflexes", weight: 1.1 },
-      { stat: "positioning", weight: 0.95 },
+      { stat: "overall", weight: 0.18 },
+      { stat: "diving", weight: 1.05 },
+      { stat: "reflexes", weight: 1.2 },
+      { stat: "positioning", weight: 1.0 },
+      { stat: "handling", weight: 0.45 },
     ],
     successAdvanceRange: { min: 0, max: 0 },
     failRecoilRange: { min: 2, max: 2 },
@@ -233,14 +234,16 @@ dribble: {
     canLeadToShot: true,
     isShot: true,
     offensiveWeights: [
-    { stat: "overall",   weight: 0.80 },  
-    { stat: "shooting",  weight: 1.27 },  
-    { stat: "dribbling", weight: 0.20 },  
+    { stat: "overall",   weight: 0.80 },
+    { stat: "shooting",  weight: 1.27 },
+    { stat: "dribbling", weight: 0.20 },
     ],
     defensiveWeights: [
-      { stat: "overall",    weight: 0.80 },  
-      { stat: "reflexes",   weight: 0.55 },  
-      { stat: "positioning", weight: 0.45 }, 
+      { stat: "overall",     weight: 0.45 },
+      { stat: "reflexes",    weight: 0.9 },
+      { stat: "positioning", weight: 0.78 },
+      { stat: "diving",      weight: 0.32 },
+      { stat: "handling",    weight: 0.22 },
     ],
     successAdvanceRange: { min: 0, max: 0 },
     failRecoilRange: { min: 1, max: 2 },
@@ -264,10 +267,11 @@ dribble: {
       { stat: "shooting", weight: 0.45 },
     ],
     defensiveWeights: [
-      { stat: "overall", weight: 0.25 },
-      { stat: "height", weight: 0.45 },
-      { stat: "reflexes", weight: 0.6 },
-      { stat: "positioning", weight: 0.45 },
+      { stat: "overall", weight: 0.16 },
+      { stat: "height", weight: 0.38 },
+      { stat: "reflexes", weight: 0.82 },
+      { stat: "positioning", weight: 0.62 },
+      { stat: "handling", weight: 0.2 },
     ],
     successAdvanceRange: { min: 0, max: 0 },
     failRecoilRange: { min: 1, max: 1 },
@@ -545,11 +549,12 @@ dribble: {
   canCauseCard: true,
 
  offensiveWeights: [
-  { stat: "overall",     weight: 0.30 },  // era 0.55
-  { stat: "speed",       weight: 0.75 },  // era 0.90
-  { stat: "reflexes",    weight: 0.70 },  // era 0.85
-  { stat: "positioning", weight: 0.45 },  // era 0.60
-  { stat: "diving",      weight: 0.25 },  // era 0.30
+  { stat: "overall",     weight: 0.18 },
+  { stat: "speed",       weight: 0.82 },
+  { stat: "reflexes",    weight: 0.82 },
+  { stat: "positioning", weight: 0.58 },
+  { stat: "diving",      weight: 0.34 },
+  { stat: "handling",    weight: 0.18 },
 ],
 
   defensiveWeights: [
@@ -574,11 +579,11 @@ dribble: {
   risk: 0.2,
 
   offensiveWeights: [
-  { stat: "overall",     weight: 0.55 },  // era 0.80
-  { stat: "positioning", weight: 0.70 },  // era 0.55
-  { stat: "reflexes",    weight: 0.65 },  // era 0.50
-  { stat: "diving",      weight: 0.50 },  // era 0.45
-  { stat: "handling",    weight: 0.35 },  // era 0.30
+  { stat: "overall",     weight: 0.28 },
+  { stat: "positioning", weight: 0.9 },
+  { stat: "reflexes",    weight: 0.78 },
+  { stat: "diving",      weight: 0.46 },
+  { stat: "handling",    weight: 0.46 },
 ],
 
   // wait — defensiveWeights (atacante)

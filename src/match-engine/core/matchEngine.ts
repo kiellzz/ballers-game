@@ -3,6 +3,11 @@ import { resolveDuel } from "../balancing/duelEngine";
 import { randomizeEventOutcome } from "../balancing/eventRandomizer";
 import { resolveFoul } from "../fouls/foulEngine";
 import { resolveCard } from "../fouls/cardEngine";
+import {
+  createInitialDisciplinaryState,
+  getNumericalAdvantageState,
+  getSentOffPlayerIds,
+} from "../fouls/disciplineState";
 import { resolveEventTransition } from "../balancing/eventResolver";
 import { resolveOpenPlayShot } from "../open-play/resolveOpenPlayShot";
 import {
@@ -67,6 +72,10 @@ export function createInitialMatchState(
 ): MatchState {
   const { userTeam, opponentTeam, random = Math.random } = params;
   const initialPlayerMatchStats: PlayerMatchStats = {};
+  const disciplinaryState = createInitialDisciplinaryState({
+    userTeam,
+    opponentTeam,
+  });
 
   for (const player of userTeam.starters) {
     const key = `user:${player.id}`;
@@ -121,6 +130,7 @@ export function createInitialMatchState(
     lastTouchPlayerId: null,
     lastTouchSide: null,
     playerMatchStats: initialPlayerMatchStats,
+    disciplinaryState,
     lastGoal: null,
   };
 }
@@ -152,6 +162,7 @@ export function runMatchStep(params: RunMatchStepParams): MatchState {
     situationType: situation.type,
     setPieceType: situation.setPieceType ?? null,
     actors: situation.actors,
+    numericalAdvantage: getNumericalAdvantageState(state.disciplinaryState),
   };
 
   const duelScores = resolveDuel(duelContext);
@@ -172,13 +183,28 @@ export function runMatchStep(params: RunMatchStepParams): MatchState {
     context: duelContext,
     outcome: randomized.outcome,
     foulResult,
+    disciplinaryState: state.disciplinaryState,
     random,
   });
 
   foulResult = {
     ...foulResult,
     card: cardResult.card,
+    playerId: cardResult.playerId,
+    playerSide: cardResult.playerSide,
+    sentOff: cardResult.sentOff,
+    dismissalType: cardResult.dismissalType,
   };
+
+  const nextDisciplinaryState = cardResult.disciplinaryState;
+  const unavailableUserPlayerIds = getSentOffPlayerIds(
+    nextDisciplinaryState,
+    "user"
+  );
+  const unavailableOpponentPlayerIds = getSentOffPlayerIds(
+    nextDisciplinaryState,
+    "opponent"
+  );
 
   const isDribbleBigChanceGoal =
     !foulResult.committed &&
@@ -207,6 +233,10 @@ export function runMatchStep(params: RunMatchStepParams): MatchState {
             action,
             zone: duelContext.zone,
           }),
+          goalkeeper:
+            duelContext.possession === "user"
+              ? duelContext.actors.opponentGoalkeeper
+              : duelContext.actors.userGoalkeeper,
         })
       : createEmptyShotResult();
 
@@ -304,6 +334,7 @@ export function runMatchStep(params: RunMatchStepParams): MatchState {
       outcome: randomized.outcome,
       transition,
       shotResult,
+      foulResult,
       actors: duelContext.actors,
       possession: duelContext.possession,
       isBigChance: state.currentSituation.isBigChance,
@@ -328,6 +359,8 @@ export function runMatchStep(params: RunMatchStepParams): MatchState {
       possession: transition.toPossession,
       userTeam: state.userTeam,
       opponentTeam: state.opponentTeam,
+      unavailableUserPlayerIds,
+      unavailableOpponentPlayerIds,
       situationType: "set_piece",
       setPieceType: transition.nextSetPieceType,
       random,
@@ -360,6 +393,8 @@ export function runMatchStep(params: RunMatchStepParams): MatchState {
         possession: transition.toPossession,
         userTeam: state.userTeam,
         opponentTeam: state.opponentTeam,
+        unavailableUserPlayerIds,
+        unavailableOpponentPlayerIds,
         situationType: "set_piece",
         setPieceType: transition.nextSetPieceType,
         preferredTakerId,
@@ -399,6 +434,7 @@ export function runMatchStep(params: RunMatchStepParams): MatchState {
         lastTouchPlayerId: nextLastTouch.playerId,
         lastTouchSide: nextLastTouch.side,
         playerMatchStats: nextPlayerMatchStats,
+        disciplinaryState: nextDisciplinaryState,
         lastGoal: nextLastGoal,
       },
       lastEvent
@@ -417,6 +453,8 @@ export function runMatchStep(params: RunMatchStepParams): MatchState {
           duelContext,
           userTeam: state.userTeam,
           opponentTeam: state.opponentTeam,
+          unavailableUserPlayerIds,
+          unavailableOpponentPlayerIds,
           random,
         })
       : { forcedUserPlayerId: null, forcedOpponentPlayerId: null };
@@ -430,6 +468,8 @@ export function runMatchStep(params: RunMatchStepParams): MatchState {
           possession: transition.toPossession,
           userTeam: state.userTeam,
           opponentTeam: state.opponentTeam,
+          unavailableUserPlayerIds,
+          unavailableOpponentPlayerIds,
           situationType: transition.nextSituationType,
           setPieceType: transition.nextSetPieceType ?? null,
           forcedUserPlayerId,
@@ -455,6 +495,7 @@ export function runMatchStep(params: RunMatchStepParams): MatchState {
       lastTouchPlayerId: nextLastTouch.playerId,
       lastTouchSide: nextLastTouch.side,
       playerMatchStats: nextPlayerMatchStats,
+      disciplinaryState: nextDisciplinaryState,
       lastGoal: nextLastGoal,
     },
     lastEvent

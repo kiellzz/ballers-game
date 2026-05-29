@@ -20,6 +20,8 @@ interface CreateSituationParams {
   possession: PossessionSide;
   userTeam: MatchTeam;
   opponentTeam: MatchTeam;
+  unavailableUserPlayerIds?: Set<number>;
+  unavailableOpponentPlayerIds?: Set<number>;
   situationType?: SituationType;
   setPieceType?: SetPieceType | null;
   preferredTakerId?: number | null;
@@ -47,6 +49,8 @@ export function createSituation(
     possession,
     userTeam,
     opponentTeam,
+    unavailableUserPlayerIds = new Set<number>(),
+    unavailableOpponentPlayerIds = new Set<number>(),
     situationType = "open_play",
     setPieceType = null,
     preferredTakerId = null,
@@ -64,6 +68,8 @@ export function createSituation(
           possession,
           userTeam,
           opponentTeam,
+          unavailableUserPlayerIds,
+          unavailableOpponentPlayerIds,
           preferredTakerId,
           random,
         })
@@ -73,6 +79,8 @@ export function createSituation(
           possession,
           userTeam,
           opponentTeam,
+          unavailableUserPlayerIds,
+          unavailableOpponentPlayerIds,
           forcedUserPlayerId,
           forcedOpponentPlayerId,
           excludedUserPlayerId,

@@ -16,6 +16,8 @@ interface SelectPlayersForSituationParams {
   possession: PossessionSide;
   userTeam: MatchTeam;
   opponentTeam: MatchTeam;
+  unavailableUserPlayerIds?: Set<number>;
+  unavailableOpponentPlayerIds?: Set<number>;
   forcedUserPlayerId?: number | null;
   forcedOpponentPlayerId?: number | null;
   excludedUserPlayerId?: number | null;
@@ -53,6 +55,8 @@ export function selectPlayersForSituation(
     possession,
     userTeam,
     opponentTeam,
+    unavailableUserPlayerIds = new Set<number>(),
+    unavailableOpponentPlayerIds = new Set<number>(),
     forcedUserPlayerId = null,
     forcedOpponentPlayerId = null,
     excludedUserPlayerId = null,
@@ -63,16 +67,16 @@ export function selectPlayersForSituation(
   const userGoalkeeper = getGoalkeeper(userTeam);
   const opponentGoalkeeper = getGoalkeeper(opponentTeam);
 
-  // Goalkeeper zones: the goalkeeper becomes the main actor
   if (zone === "atk_goalkeeper") {
     const attacker = pickOutfieldByGroups(
       userTeam,
       ["st", "am", "wing"],
       "center",
       zone,
-      "user",   // ← perspective added
+      "user",
       random,
-      excludedUserPlayerId
+      excludedUserPlayerId,
+      unavailableUserPlayerIds
     );
 
     return {
@@ -91,9 +95,10 @@ export function selectPlayersForSituation(
       ["st", "am", "wing"],
       "center",
       zone,
-      "opponent", // ← perspective added
+      "opponent",
       random,
-      excludedOpponentPlayerId
+      excludedOpponentPlayerId,
+      unavailableOpponentPlayerIds
     );
 
     return {
@@ -106,16 +111,16 @@ export function selectPlayersForSituation(
     };
   }
 
-  // Big chances: the defending side is centered around the goalkeeper
   if (zone === "atk_bigchance") {
     const attacker = pickOutfieldByGroups(
       userTeam,
       ["st", "am", "wing"],
       "center",
       zone,
-      "user",   // ← perspective added
+      "user",
       random,
-      excludedUserPlayerId
+      excludedUserPlayerId,
+      unavailableUserPlayerIds
     );
 
     return {
@@ -134,9 +139,10 @@ export function selectPlayersForSituation(
       ["st", "am", "wing"],
       "center",
       zone,
-      "opponent", // ← perspective added
+      "opponent",
       random,
-      excludedOpponentPlayerId
+      excludedOpponentPlayerId,
+      unavailableOpponentPlayerIds
     );
 
     return {
@@ -150,11 +156,12 @@ export function selectPlayersForSituation(
   }
 
   const forcedUserPlayer =
-    forcedUserPlayerId !== null
+    forcedUserPlayerId !== null && !unavailableUserPlayerIds.has(forcedUserPlayerId)
       ? getPlayerById(userTeam, forcedUserPlayerId)
       : null;
   const forcedOpponentPlayer =
-    forcedOpponentPlayerId !== null
+    forcedOpponentPlayerId !== null &&
+    !unavailableOpponentPlayerIds.has(forcedOpponentPlayerId)
       ? getPlayerById(opponentTeam, forcedOpponentPlayerId)
       : null;
   const userLane = getTeamLane(lane, "user");
@@ -170,9 +177,10 @@ export function selectPlayersForSituation(
           userPools.inPossession,
           userLane,
           zone,
-          "user",   // ← perspective added
+          "user",
           random,
-          excludedUserPlayerId
+          excludedUserPlayerId,
+          unavailableUserPlayerIds
         )
       : userPools.preferGoalkeeperDefender
         ? userGoalkeeper
@@ -181,9 +189,10 @@ export function selectPlayersForSituation(
             userPools.outOfPossession,
             userLane,
             zone,
-            "user",   // ← perspective added
+            "user",
             random,
-            excludedUserPlayerId
+            excludedUserPlayerId,
+            unavailableUserPlayerIds
           ));
 
   const opponentPlayer =
@@ -194,9 +203,10 @@ export function selectPlayersForSituation(
           opponentPools.inPossession,
           opponentLane,
           zone,
-          "opponent", // ← perspective added
+          "opponent",
           random,
-          excludedOpponentPlayerId
+          excludedOpponentPlayerId,
+          unavailableOpponentPlayerIds
         )
       : opponentPools.preferGoalkeeperDefender
         ? opponentGoalkeeper
@@ -205,9 +215,10 @@ export function selectPlayersForSituation(
             opponentPools.outOfPossession,
             opponentLane,
             zone,
-            "opponent", // ← perspective added
+            "opponent",
             random,
-            excludedOpponentPlayerId
+            excludedOpponentPlayerId,
+            unavailableOpponentPlayerIds
           ));
 
   const hasSupportPlayers = shouldUseSupportPlayers(zone);
@@ -223,7 +234,8 @@ export function selectPlayersForSituation(
           mainPlayerId: userPlayer.id,
           lane: userLane,
           zone,
-          teamPerspective: "user",    // ← perspective added
+          teamPerspective: "user",
+          unavailablePlayerIds: unavailableUserPlayerIds,
           random,
         })
       : null,
@@ -233,34 +245,25 @@ export function selectPlayersForSituation(
           mainPlayerId: opponentPlayer.id,
           lane: opponentLane,
           zone,
-          teamPerspective: "opponent", // ← perspective added
+          teamPerspective: "opponent",
+          unavailablePlayerIds: unavailableOpponentPlayerIds,
           random,
         })
       : null,
   };
 }
 
-/**
- * Normalizes the zone to the team's own perspective.
- *
- * All zones are named from the user's point of view (def_* = user defending,
- * atk_* = user attacking). When computing weights for the opponent's players
- * we flip the prefix so the same weight logic applies symmetrically.
- *
- * Examples:
- *   normalizeZoneForTeam("def_box",  "user")     → "def_box"   (no change)
- *   normalizeZoneForTeam("def_box",  "opponent") → "atk_box"   (opponent is attacking there)
- *   normalizeZoneForTeam("atk_third","opponent") → "def_third" (opponent is defending there)
- */
 function normalizeZoneForTeam(zone: Zone, teamPerspective: PossessionSide): Zone {
   if (teamPerspective === "user") return zone;
 
   if (zone.startsWith("def_")) {
     return zone.replace("def_", "atk_") as Zone;
   }
+
   if (zone.startsWith("atk_")) {
     return zone.replace("atk_", "def_") as Zone;
   }
+
   return zone;
 }
 
@@ -269,10 +272,7 @@ function getTeamLane(fieldLane: Lane, team: PossessionSide): Lane {
   return team === "user" ? fieldLane : mirrorLane(fieldLane);
 }
 
-function getPoolsForContext(
-  zone: Zone,
-  lane: Lane
-): TeamPools {
+function getPoolsForContext(zone: Zone, lane: Lane): TeamPools {
   switch (zone) {
     case "def_box":
       return {
@@ -372,13 +372,23 @@ function pickSupportPlayer(params: {
   mainPlayerId: number;
   lane: Lane;
   zone: Zone;
-  teamPerspective: PossessionSide; // ← new param
+  teamPerspective: PossessionSide;
+  unavailablePlayerIds: Set<number>;
   random: () => number;
 }): MatchPlayer | null {
-  const { team, mainPlayerId, lane, zone, teamPerspective, random } = params;
+  const {
+    team,
+    mainPlayerId,
+    lane,
+    zone,
+    teamPerspective,
+    unavailablePlayerIds,
+    random,
+  } = params;
 
   const candidates = getOutfieldPlayers(team).filter(
-    (player) => player.id !== mainPlayerId
+    (player) =>
+      player.id !== mainPlayerId && !unavailablePlayerIds.has(player.id)
   );
 
   if (candidates.length === 0) return null;
@@ -389,7 +399,7 @@ function pickSupportPlayer(params: {
     supportGroups,
     lane,
     zone,
-    teamPerspective, // ← passed through
+    teamPerspective,
     random
   );
 
@@ -418,78 +428,96 @@ export function pickOutfieldByGroups(
   groups: PositionGroup[],
   lane: Lane,
   zone: Zone,
-  teamPerspective: PossessionSide, // ← new param
+  teamPerspective: PossessionSide,
   random: () => number,
-  excludedPlayerId: number | null = null
+  excludedPlayerId: number | null = null,
+  unavailablePlayerIds: Set<number> = new Set<number>()
 ): OutfieldPlayer {
   const players = getOutfieldPlayers(team).filter(
-    (player) => player.id !== excludedPlayerId
+    (player) =>
+      player.id !== excludedPlayerId && !unavailablePlayerIds.has(player.id)
   );
 
   if (players.length === 0) {
-    // safety fallback: ignore the exclusion
-    const all = getOutfieldPlayers(team);
-    const weighted = buildWeightedCandidates(all, groups, lane, zone, teamPerspective, random);
+    const allAvailable = getOutfieldPlayers(team).filter(
+      (player) => !unavailablePlayerIds.has(player.id)
+    );
+    const weighted = buildWeightedCandidates(
+      allAvailable,
+      groups,
+      lane,
+      zone,
+      teamPerspective,
+      random
+    );
     return pickWeightedOutfield(weighted, random);
   }
 
-  const weighted = buildWeightedCandidates(players, groups, lane, zone, teamPerspective, random);
+  const weighted = buildWeightedCandidates(
+    players,
+    groups,
+    lane,
+    zone,
+    teamPerspective,
+    random
+  );
   return pickWeightedOutfield(weighted, random);
 }
 
-/**
- * Merges candidates from every group without duplicates, giving each player
- * the weight of their best matching group plus overall, lane, and zone bonuses.
- */
 function buildWeightedCandidates(
   players: OutfieldPlayer[],
   groups: PositionGroup[],
   lane: Lane,
   zone: Zone,
-  teamPerspective: PossessionSide, // ← new param
+  teamPerspective: PossessionSide,
   random: () => number
 ): WeightedPlayer[] {
-  // Track the best group priority for each player
   const bestGroupPriority = new Map<number, number>();
 
-  for (let i = 0; i < groups.length; i++) {
+  for (let i = 0; i < groups.length; i += 1) {
     const group = groups[i];
+
     for (const player of players) {
-      if (belongsToGroup(player, group)) {
-        const existing = bestGroupPriority.get(player.id);
-        if (existing === undefined || i < existing) {
-          bestGroupPriority.set(player.id, i);
-        }
+      if (!belongsToGroup(player, group)) {
+        continue;
+      }
+
+      const existing = bestGroupPriority.get(player.id);
+
+      if (existing === undefined || i < existing) {
+        bestGroupPriority.set(player.id, i);
       }
     }
   }
 
-  // Players that belong to at least one group
   const result: WeightedPlayer[] = [];
   const seen = new Set<number>();
 
   for (const player of players) {
     const priority = bestGroupPriority.get(player.id);
-    if (priority !== undefined) {
-      seen.add(player.id);
-      result.push({
-        player,
-        weight: getPlayerSelectionWeight(
-          player,
-          priority,
-          lane,
-          zone,
-          teamPerspective, // ← passed through
-          random
-        ),
-      });
+
+    if (priority === undefined) {
+      continue;
     }
+
+    seen.add(player.id);
+    result.push({
+      player,
+      weight: getPlayerSelectionWeight(
+        player,
+        priority,
+        lane,
+        zone,
+        teamPerspective,
+        random
+      ),
+    });
   }
 
-  // Fallback: no group found candidates - use everyone with low priority
   if (result.length === 0) {
     for (const player of players) {
       if (seen.has(player.id)) continue;
+
       result.push({
         player,
         weight: getPlayerSelectionWeight(
@@ -497,7 +525,7 @@ function buildWeightedCandidates(
           groups.length,
           lane,
           zone,
-          teamPerspective, // ← passed through
+          teamPerspective,
           random
         ),
       });
@@ -512,33 +540,24 @@ function getPlayerSelectionWeight(
   groupPriority: number,
   lane: Lane,
   zone: Zone,
-  teamPerspective: PossessionSide, // ← new param
+  teamPerspective: PossessionSide,
   random: () => number
 ): number {
-  // Normalize the zone so all weight rules are applied from this team's perspective.
-  // e.g. the opponent's attackers in "def_box" see it as "atk_box" — their offensive zone.
   const normalizedZone = normalizeZoneForTeam(zone, teamPerspective);
-
   let weight = 1;
 
-  // Bonus by group priority (the lower the index, the larger the bonus)
   if (groupPriority === 0) weight += 3;
   else if (groupPriority === 1) weight += 2;
   else if (groupPriority === 2) weight += 1;
-  // priority >= 3 (fallback outside the groups): no extra bonus
 
-  // Overall bonus
   const overall = player.overall ?? 75;
   if (overall >= 90) weight += 1.4;
   else if (overall >= 85) weight += 1.0;
   else if (overall >= 80) weight += 0.6;
   else weight += 0.2;
 
-  // Lane bonus
-  // Opposite-side players are not removed from selection.
-  // They only receive a strong penalty to preserve a safe fallback
-  // in case of a broken squad, red cards, or no natural player on that side.
   const positions = getNormalizedPositions(player);
+
   if (lane === "left") {
     if (hasAnyPosition(positions, ["LW", "LM", "LB", "LWB"])) {
       weight += 1.2;
@@ -555,12 +574,10 @@ function getPlayerSelectionWeight(
     if (hasAnyPosition(positions, ["LW", "LM", "LB", "LWB"])) {
       weight *= 0.15;
     }
-  } else {
-    if (hasAnyPosition(positions, ["CM", "CDM", "CAM", "ST", "CB"])) weight += 0.8;
+  } else if (hasAnyPosition(positions, ["CM", "CDM", "CAM", "ST", "CB"])) {
+    weight += 0.8;
   }
 
-  // Zone bonuses and penalties — all evaluated against the normalizedZone
-  // so the same rules work correctly for both teams.
   if (normalizedZone === "def_box" || normalizedZone === "def_nearbox") {
     if (hasAnyPosition(positions, ["CB", "LB", "RB", "CDM"])) weight += 1.0;
   } else if (normalizedZone === "def_third") {
@@ -575,16 +592,11 @@ function getPlayerSelectionWeight(
     if (hasAnyPosition(positions, ["ST", "CAM", "LW", "RW"])) weight += 1.0;
   }
 
-  // Small random factor (0.85-1.15) to avoid full determinism
   weight *= 0.85 + random() * 0.3;
 
   return Math.max(weight, 0.01);
 }
 
-/**
- * True weighted random over the precomputed candidate list.
- * Receives random as a parameter so it stays testable and deterministic when needed.
- */
 function pickWeightedOutfield(
   weighted: WeightedPlayer[],
   random: () => number
@@ -593,7 +605,7 @@ function pickWeightedOutfield(
     throw new Error("pickWeightedOutfield: empty candidate list.");
   }
 
-  const total = weighted.reduce((sum, w) => sum + w.weight, 0);
+  const total = weighted.reduce((sum, entry) => sum + entry.weight, 0);
 
   if (total <= 0) {
     return weighted[0].player;
@@ -614,31 +626,21 @@ function belongsToGroup(player: OutfieldPlayer, group: PositionGroup): boolean {
 
   switch (group) {
     case "cb":
-      // Only pure center-backs
       return hasAnyPosition(positions, ["CB"]);
-
     case "fb":
-      // Full-backs and wide midfield full-back equivalents
       return hasAnyPosition(positions, ["LB", "RB", "LM", "RM"]);
-
     case "dm":
       return hasAnyPosition(positions, ["CDM", "CM"]);
-
     case "cm":
       return hasAnyPosition(positions, ["CM", "LM", "RM", "CAM"]);
-
     case "am":
       return hasAnyPosition(positions, ["CAM", "RM", "LM", "LW", "RW"]);
-
     case "wing":
       return hasAnyPosition(positions, ["LW", "RW", "LM", "RM"]);
-
     case "st":
       return hasAnyPosition(positions, ["ST"]);
-
     case "any":
       return true;
-
     default:
       return false;
   }

@@ -1,4 +1,5 @@
 import type {
+  GoalkeeperMatchPlayer,
   Zone,
   PossessionSide,
   ShotResult,
@@ -13,8 +14,9 @@ export function resolveOpenPlayShot(params: {
   outcome: EventOutcome;
   random: () => number;
   gkAction?: GoalkeeperBigChanceAction;
+  goalkeeper?: GoalkeeperMatchPlayer | null;
 }): ShotResult {
-  const { zone, possession, outcome, random, gkAction } = params;
+  const { zone, possession, outcome, random, gkAction, goalkeeper = null } = params;
 
   const inBigChanceZone = zone === "atk_bigchance" || zone === "def_bigchance";
   const inAtkBox = zone === "atk_box";
@@ -22,7 +24,7 @@ export function resolveOpenPlayShot(params: {
   const inBox = inAtkBox || inDefBox;
 
   function saveResult(controlledChance: number): ShotResult {
-    const controlled = random() < controlledChance;
+    const controlled = random() < clampChance(controlledChance);
 
     return {
       happened: true,
@@ -101,6 +103,41 @@ export function resolveOpenPlayShot(params: {
 
   function clampChance(value: number): number {
     return Math.max(0, Math.min(0.95, value));
+  }
+
+  function clampSigned(value: number): number {
+    return Math.max(-1, Math.min(1, value));
+  }
+
+  function getGoalkeeperShotModifiers(isBoxShot: boolean) {
+    if (goalkeeper === null) {
+      return {
+        goalDelta: 0,
+        saveBandDelta: 0,
+        controlDelta: 0,
+      };
+    }
+
+    const shotStoppingScore =
+      goalkeeper.overall * 0.26 +
+      goalkeeper.stats.reflexes * 0.28 +
+      goalkeeper.stats.positioning * 0.22 +
+      goalkeeper.stats.diving * 0.14 +
+      goalkeeper.stats.handling * 0.1;
+
+    const normalized = clampSigned((shotStoppingScore - 82) / 14);
+
+    return isBoxShot
+      ? {
+          goalDelta: -normalized * 0.045,
+          saveBandDelta: normalized * 0.05,
+          controlDelta: normalized * 0.11,
+        }
+      : {
+          goalDelta: -normalized * 0.065,
+          saveBandDelta: normalized * 0.075,
+          controlDelta: normalized * 0.16,
+        };
   }
 
   if (inBigChanceZone) {
@@ -220,27 +257,33 @@ export function resolveOpenPlayShot(params: {
 
   if (outcome === "success_high") {
     const roll = random();
+    const gkModifiers = getGoalkeeperShotModifiers(inBox);
 
   if (inBox) {
-      if (roll < 0.58) {
+      const goalThreshold = clampChance(0.58 + gkModifiers.goalDelta);
+      const saveThreshold = clampChance(
+        goalThreshold + Math.max(0, 0.14 + gkModifiers.saveBandDelta)
+      );
+
+      if (roll < goalThreshold) {
         return goalResult();
       }
 
-      if (roll < 0.72) {
-        return saveResult(0.80);
+      if (roll < saveThreshold) {
+        return saveResult(0.80 + gkModifiers.controlDelta);
       }
 
       // Rebound: ~4% (0.72 -> 0.76)
-      if (roll < 0.76) {
+      if (roll < clampChance(saveThreshold + 0.04)) {
         return reboundResult();
       }
 
-      if (roll < 0.88) {
+      if (roll < clampChance(saveThreshold + 0.16)) {
         return blockedResult(0.55);
       }
 
       // Post: ~3% (0.88 -> 0.91)
-      if (roll < 0.91) {
+      if (roll < clampChance(saveThreshold + 0.19)) {
         return postResult();
       }
 
@@ -248,37 +291,48 @@ export function resolveOpenPlayShot(params: {
     }
 
     // Outside box - success_high.
-    if (roll < 0.18) return goalResult();
-    if (roll < 0.42) return saveResult(0.5);
-    if (roll < 0.62) return reboundResult();
-    if (roll < 0.72) return cornerResult();
-    if (roll < 0.97) return missResult();
+    const goalThreshold = clampChance(0.18 + gkModifiers.goalDelta);
+    const saveThreshold = clampChance(
+      goalThreshold + Math.max(0, 0.24 + gkModifiers.saveBandDelta)
+    );
+
+    if (roll < goalThreshold) return goalResult();
+    if (roll < saveThreshold) return saveResult(0.5 + gkModifiers.controlDelta);
+    if (roll < clampChance(saveThreshold + 0.20)) return reboundResult();
+    if (roll < clampChance(saveThreshold + 0.30)) return cornerResult();
+    if (roll < clampChance(saveThreshold + 0.55)) return missResult();
     return postResult();
   }
 
   if (outcome === "success") {
     const roll = random();
+    const gkModifiers = getGoalkeeperShotModifiers(inBox);
 
     if (inBox) {
-      if (roll < 0.38) {
+      const goalThreshold = clampChance(0.38 + gkModifiers.goalDelta);
+      const saveThreshold = clampChance(
+        goalThreshold + Math.max(0, 0.16 + gkModifiers.saveBandDelta)
+      );
+
+      if (roll < goalThreshold) {
         return goalResult();
       }
 
-      if (roll < 0.54) {
-        return saveResult(0.70);
+      if (roll < saveThreshold) {
+        return saveResult(0.70 + gkModifiers.controlDelta);
       }
 
       // Rebound: ~5% (0.54 -> 0.59, was 0.54 -> 0.62 = 8%)
-      if (roll < 0.58) {
+      if (roll < clampChance(saveThreshold + 0.04)) {
         return reboundResult();
       }
 
-      if (roll < 0.74) {
+      if (roll < clampChance(saveThreshold + 0.20)) {
         return blockedResult(0.55);
       }
 
       // Post: ~3% (0.74 -> 0.77, was 0.74 -> 0.84 = 10%)
-      if (roll < 0.77) {
+      if (roll < clampChance(saveThreshold + 0.23)) {
         return postResult();
       }
 
@@ -286,28 +340,36 @@ export function resolveOpenPlayShot(params: {
     }
 
     // Outside box - success.
-    if (roll < 0.10) return goalResult();
-    if (roll < 0.32) return saveResult(0.5);
-    if (roll < 0.52) return reboundResult();
-    if (roll < 0.62) return cornerResult();
-    if (roll < 0.97) return missResult();
+    const goalThreshold = clampChance(0.10 + gkModifiers.goalDelta);
+    const saveThreshold = clampChance(
+      goalThreshold + Math.max(0, 0.22 + gkModifiers.saveBandDelta)
+    );
+
+    if (roll < goalThreshold) return goalResult();
+    if (roll < saveThreshold) return saveResult(0.5 + gkModifiers.controlDelta);
+    if (roll < clampChance(saveThreshold + 0.20)) return reboundResult();
+    if (roll < clampChance(saveThreshold + 0.30)) return cornerResult();
+    if (roll < clampChance(saveThreshold + 0.65)) return missResult();
     return postResult();
   }
 
   if (outcome === "fail") {
     const roll = random();
+    const gkModifiers = getGoalkeeperShotModifiers(inBox);
 
     if (inBox) {
       if (roll < 0.38) {
         return blockedResult(0.92);
       }
 
-      if (roll < 0.56) {
-        return saveResult(0.42);
+      const saveThreshold = clampChance(0.56 + gkModifiers.saveBandDelta);
+
+      if (roll < saveThreshold) {
+        return saveResult(0.42 + gkModifiers.controlDelta);
       }
 
       // Post: ~2% (0.56 -> 0.58, was 0.56 -> 0.61 = 5%)
-      if (roll < 0.58) {
+      if (roll < clampChance(saveThreshold + 0.02)) {
         return postResult();
       }
 
@@ -315,9 +377,10 @@ export function resolveOpenPlayShot(params: {
     }
 
     // Outside box - fail.
-    if (roll < 0.22) return saveResult(1);
-    if (roll < 0.34) return cornerResult();
-    if (roll < 0.995) return missResult();
+    const saveThreshold = clampChance(0.22 + gkModifiers.saveBandDelta);
+    if (roll < saveThreshold) return saveResult(1);
+    if (roll < clampChance(saveThreshold + 0.12)) return cornerResult();
+    if (roll < clampChance(saveThreshold + 0.775)) return missResult();
     return postResult();
   }
 

@@ -42,6 +42,7 @@ export type ShotOutcome =
   | "blocked";
 
 export type CardType = "none" | "yellow" | "red";
+export type DismissalType = "none" | "straight_red" | "second_yellow";
 
 export type ActionCategory =
   | "build_up"
@@ -216,6 +217,8 @@ export interface PlayerMatchStatLine {
   failedDribbles: number;      // action=dribble && outcome=fail|fail_high
   lostPossessions: number;     // offensive action failed and possession changed
   penaltyMisses: number;       // penalty attempt that did not result in a goal
+  yellowCards: number;         // disciplinary caution events received
+  dismissals: number;          // send-offs, including second yellow
 
   // ── Granular action tracking for rating model ──────────────────────────────
   successfulActions: number;   // any open-play action with success|success_high
@@ -263,6 +266,8 @@ export function emptyStatLine(): PlayerMatchStatLine {
     failedDribbles: 0,
     lostPossessions: 0,
     penaltyMisses: 0,
+    yellowCards: 0,
+    dismissals: 0,
     successfulActions: 0,
     failedActions: 0,
     failedHighActions: 0,
@@ -297,6 +302,23 @@ export interface MatchContext {
   consecutiveZeroMinutes: number;
 }
 
+export interface PlayerDisciplinaryState {
+  yellowCards: number;
+  redCard: boolean;
+  sentOff: boolean;
+  dismissalType: DismissalType;
+}
+
+/**
+ * Key format: `"${side}:${playerId}"` – e.g. "user:12" or "opponent:12".
+ */
+export type MatchDisciplinaryState = Record<string, PlayerDisciplinaryState>;
+
+export interface NumericalAdvantageState {
+  userSentOffCount: number;
+  opponentSentOffCount: number;
+}
+
 export interface MatchActors {
   userPlayer: MatchPlayer;
   opponentPlayer: MatchPlayer;
@@ -325,6 +347,7 @@ export interface DuelContext {
   situationType: SituationType;
   setPieceType?: SetPieceType | null;
   actors: MatchActors;
+  numericalAdvantage?: NumericalAdvantageState;
 }
 
 export interface StatBreakdownEntry {
@@ -356,6 +379,10 @@ export interface FoulResult {
   committed: boolean;
   by: PossessionSide | null;
   card: CardType;
+  playerId: number | null;
+  playerSide: PossessionSide | null;
+  sentOff: boolean;
+  dismissalType: DismissalType;
   setPieceAwarded: SetPieceType | null;
   awardedTo: PossessionSide | null;
   description?: string;
@@ -422,6 +449,7 @@ export interface MatchState {
   lastTouchPlayerId: number | null;
   lastTouchSide: PossessionSide | null;
   playerMatchStats: PlayerMatchStats;
+  disciplinaryState: MatchDisciplinaryState;
   lastGoal: MatchGoalRecord | null;
 }
 

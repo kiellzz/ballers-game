@@ -148,22 +148,36 @@ export function pickNewBallCarrier(params: {
   team: MatchTeam;
   excludeId: number;
   preferredPlayer: MatchPlayer | null;
+  unavailablePlayerIds?: Set<number>;
   random: () => number;
 }): MatchPlayer | null {
-  const { team, excludeId, preferredPlayer, random } = params;
+  const {
+    team,
+    excludeId,
+    preferredPlayer,
+    unavailablePlayerIds = new Set<number>(),
+    random,
+  } = params;
 
-  if (preferredPlayer && preferredPlayer.id !== excludeId) {
+  if (
+    preferredPlayer &&
+    preferredPlayer.id !== excludeId &&
+    !unavailablePlayerIds.has(preferredPlayer.id)
+  ) {
     return preferredPlayer;
   }
 
   const candidates = team.starters.filter(
     (p): p is Extract<MatchPlayer, { role: "outfield" }> =>
-      p.role === "outfield" && p.id !== excludeId
+      p.role === "outfield" &&
+      p.id !== excludeId &&
+      !unavailablePlayerIds.has(p.id)
   );
 
   if (candidates.length === 0) {
     const anyone = team.starters.filter(
-      (p): p is Extract<MatchPlayer, { role: "outfield" }> => p.role === "outfield"
+      (p): p is Extract<MatchPlayer, { role: "outfield" }> =>
+        p.role === "outfield" && !unavailablePlayerIds.has(p.id)
     );
     return anyone[Math.floor(random() * anyone.length)] ?? null;
   }
@@ -177,9 +191,20 @@ export function resolveForcedBallCarrier(params: {
   duelContext: DuelContext;
   userTeam: MatchTeam;
   opponentTeam: MatchTeam;
+  unavailableUserPlayerIds?: Set<number>;
+  unavailableOpponentPlayerIds?: Set<number>;
   random: () => number;
 }): { forcedUserPlayerId: number | null; forcedOpponentPlayerId: number | null } {
-  const { resolvedAction, transition, duelContext, userTeam, opponentTeam, random } = params;
+  const {
+    resolvedAction,
+    transition,
+    duelContext,
+    userTeam,
+    opponentTeam,
+    unavailableUserPlayerIds = new Set<number>(),
+    unavailableOpponentPlayerIds = new Set<number>(),
+    random,
+  } = params;
 
   let forcedUserPlayerId: number | null = null;
   let forcedOpponentPlayerId: number | null = null;
@@ -194,6 +219,7 @@ export function resolveForcedBallCarrier(params: {
       team: userTeam,
       excludeId: currentCarrierId,
       preferredPlayer: duelContext.actors.supportUserPlayer ?? null,
+      unavailablePlayerIds: unavailableUserPlayerIds,
       random,
     });
     forcedUserPlayerId = receiver?.id ?? null;
@@ -207,6 +233,7 @@ export function resolveForcedBallCarrier(params: {
         "user",
         random,
         currentCarrierId,
+        unavailableUserPlayerIds,
       );
       forcedUserPlayerId = fallback?.id ?? null;
     }
@@ -215,6 +242,7 @@ export function resolveForcedBallCarrier(params: {
       team: opponentTeam,
       excludeId: currentCarrierId,
       preferredPlayer: duelContext.actors.supportOpponentPlayer ?? null,
+      unavailablePlayerIds: unavailableOpponentPlayerIds,
       random,
     });
     forcedOpponentPlayerId = receiver?.id ?? null;
@@ -228,6 +256,7 @@ export function resolveForcedBallCarrier(params: {
         "opponent",
         random,
         currentCarrierId,
+        unavailableOpponentPlayerIds,
       );
       forcedOpponentPlayerId = fallback?.id ?? null;
     }

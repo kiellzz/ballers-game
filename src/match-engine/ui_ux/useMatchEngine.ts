@@ -11,8 +11,11 @@ import {
 import type { InteractiveSetPieceResolutionInput } from "../interactive/interactiveSetPieceFlow";
 import type {
   ActionType,
+  CardType,
+  DismissalType,
   EventOutcome,
   Lane,
+  MatchEvent,
   MatchPlayer,
   MatchState,
   MatchTeam,
@@ -47,6 +50,11 @@ export interface MatchHistoryEntry {
   assisterName: string | null;
   /** Mirrors `MatchEvent.isPenaltyGoal` when present. */
   isPenaltyGoal?: boolean;
+  cardType: Exclude<CardType, "none"> | null;
+  cardedPlayerId: number | null;
+  cardedPlayerName: string | null;
+  cardedPlayerSide: PossessionSide | null;
+  dismissalType: DismissalType | null;
   setPieceType: string | null;
   // The zone and lane WHERE the shot originated — always the pre-transition
   // position. Goal animation in Match.tsx reads these instead of matchState
@@ -159,6 +167,31 @@ function buildEventNarration(state: MatchState): string {
   return state.lastEvent?.narration ?? "Play without description.";
 }
 
+function findTeamPlayerName(
+  state: MatchState,
+  side: PossessionSide,
+  playerId: number
+): string | null {
+  const team = side === "user" ? state.userTeam : state.opponentTeam;
+  return team.starters.find((player) => player.id === playerId)?.name ?? null;
+}
+
+function findActorPlayerName(
+  event: MatchEvent,
+  playerId: number
+): string | null {
+  const candidates = [
+    event.actors.userPlayer,
+    event.actors.opponentPlayer,
+    event.actors.userGoalkeeper,
+    event.actors.opponentGoalkeeper,
+    event.actors.supportUserPlayer ?? null,
+    event.actors.supportOpponentPlayer ?? null,
+  ].filter((candidate): candidate is MatchPlayer => candidate !== null);
+
+  return candidates.find((player) => player.id === playerId)?.name ?? null;
+}
+
 function buildHistoryEntry(
   state: MatchState,
   index: number
@@ -229,6 +262,19 @@ function buildHistoryEntry(
 
   const fromZone = event.transition.fromZone;
   const fromLane = event.transition.fromLane;
+  const cardType = event.foulResult.card === "none" ? null : event.foulResult.card;
+  const dismissalType =
+    event.foulResult.dismissalType === "none"
+      ? null
+      : event.foulResult.dismissalType;
+  const cardedPlayerName =
+    event.foulResult.playerId !== null && event.foulResult.playerSide
+      ? findTeamPlayerName(
+          state,
+          event.foulResult.playerSide,
+          event.foulResult.playerId
+        ) ?? findActorPlayerName(event, event.foulResult.playerId)
+      : null;
 
   return {
     turn: event.turn,
@@ -248,6 +294,11 @@ function buildHistoryEntry(
     scorerSide,
     assisterName,
     isPenaltyGoal: event.isPenaltyGoal,
+    cardType,
+    cardedPlayerId: event.foulResult.playerId,
+    cardedPlayerName,
+    cardedPlayerSide: event.foulResult.playerSide,
+    dismissalType,
     setPieceType:
       event.transition.nextSetPieceType ??
       event.shotResult.setPieceAwarded ??

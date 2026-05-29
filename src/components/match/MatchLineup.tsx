@@ -1,6 +1,11 @@
 import React, { useMemo, useRef } from 'react';
-import { emptyStatLine, type PlayerMatchStats } from '../../match-engine/matchTypes';
+import {
+  emptyStatLine,
+  type MatchDisciplinaryState,
+  type PlayerMatchStats,
+} from '../../match-engine/matchTypes';
 import { calculatePlayerRating, getRatingClass } from '../../match-engine/playerRating';
+import { getPlayerDisciplinaryState } from '../../match-engine/fouls/disciplineState';
 import type { Player } from '../../types/PlayerTypes';
 import { getFlagUrl } from '../../utils/getFlagUrl';
 import './MatchLineup.css';
@@ -11,6 +16,7 @@ interface MatchLineupProps {
   positions: string[];
   isOpponent?: boolean;
   playerMatchStats?: PlayerMatchStats;
+  disciplinaryState?: MatchDisciplinaryState;
 }
 
 export const MatchLineup: React.FC<MatchLineupProps> = ({
@@ -19,6 +25,7 @@ export const MatchLineup: React.FC<MatchLineupProps> = ({
   positions,
   isOpponent = false,
   playerMatchStats,
+  disciplinaryState,
 }) => {
   const side = isOpponent ? "opponent" : "user";
 
@@ -56,6 +63,15 @@ export const MatchLineup: React.FC<MatchLineupProps> = ({
             player != null
               ? playerMatchStats?.[`${side}:${Number(player.id)}`]
               : undefined;
+          const discipline =
+            player != null && disciplinaryState
+              ? getPlayerDisciplinaryState(
+                  disciplinaryState,
+                  side,
+                  Number(player.id)
+                )
+              : null;
+          const isSentOff = discipline?.sentOff === true;
 
           const rating =
             player
@@ -68,11 +84,40 @@ export const MatchLineup: React.FC<MatchLineupProps> = ({
           const ratingClass = rating !== null ? getRatingClass(rating) : null;
 
           return (
-            <div key={`${title}-${idx}`} className="lineup-item">
+            <div
+              key={`${title}-${idx}`}
+              className={`lineup-item${isSentOff ? ' lineup-item--sent-off' : ''}`}
+            >
               <span className="lineup-pos">{positions[idx]}</span>
               <span className="lineup-name">{player?.name || '---'}</span>
 
               <div className="lineup-stats">
+                {discipline && discipline.yellowCards > 0 ? (
+                  <span
+                    className="lineup-card-indicator lineup-card-indicator--yellow"
+                    title={`${discipline.yellowCards} yellow card${discipline.yellowCards > 1 ? 's' : ''}`}
+                  >
+                    {discipline.yellowCards}
+                  </span>
+                ) : null}
+
+                {discipline?.redCard ? (
+                  <span
+                    className="lineup-card-indicator lineup-card-indicator--red"
+                    title={
+                      discipline.dismissalType === 'second_yellow'
+                        ? 'Sent off after a second yellow'
+                        : 'Sent off'
+                    }
+                  >
+                    R
+                  </span>
+                ) : null}
+
+                {isSentOff ? (
+                  <span className="lineup-status-badge">OFF</span>
+                ) : null}
+
                 {stats?.goals ? (
                   <span className="lineup-badge lineup-badge--goal">
                     <img
@@ -119,7 +164,7 @@ export const MatchLineup: React.FC<MatchLineupProps> = ({
       <div className="lineup-logo-wrapper">
         <img src="/images/logo.webp" alt="Ballers logo" className="lineup-logo" />
         <p className="lineup-coming-soon__title">Coming soon!</p>
-        <p className="lineup-coming-soon__sub">Substitutions + Cards System</p>
+        <p className="lineup-coming-soon__sub">Substitutions system</p>
       </div>
     </aside>
   );

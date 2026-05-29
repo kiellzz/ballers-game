@@ -6,20 +6,17 @@ import type { Player } from "../../types/PlayerTypes";
 import {
   emptyStatLine,
   type PlayerMatchStats,
-  type PossessionSide,
 } from "../../match-engine/matchTypes";
 import { calculatePlayerRating } from "../playerRating";
 import type { MatchHistoryEntry } from "./useMatchEngine";
+import {
+  buildSummaryEntries,
+  type SummaryEventEntry,
+} from "./summaryEvents";
 import { getDisplayName } from "../../utils/getDisplayName";
 import { getPlayerImage } from "../../utils/getPlayerImage";
 import { matchSound } from "../../match-engine/sounds/matchSound";
 import "./MatchSummaryModal.css";
-
-interface GoalEntry {
-  scorerName: string;
-  assistName: string | null;
-  minute: number;
-}
 
 interface MatchSummaryModalProps {
   isOpen: boolean;
@@ -119,19 +116,6 @@ function getMatchMVP(
   return seededPick(candidates);
 }
 
-function buildGoalEntries(
-  side: PossessionSide,
-  history: MatchHistoryEntry[]
-): GoalEntry[] {
-  return history
-    .filter((entry) => entry.isGoal && entry.scorerSide === side && entry.scorerName)
-    .map((event) => ({
-      scorerName: (event.scorerName ?? "") + (event.isPenaltyGoal ? " (P)" : ""),
-      assistName: event.assisterName,
-      minute: event.minute,
-    }));
-}
-
 function getResultConfig(result: MatchResult) {
   switch (result) {
     case "win":
@@ -192,11 +176,11 @@ const itemRightVariants = {
   },
 };
 
-function GoalList({
+function SummaryEventList({
   entries,
   side,
 }: {
-  entries: GoalEntry[];
+  entries: SummaryEventEntry[];
   side: "user" | "opponent";
 }) {
   if (entries.length === 0) {
@@ -204,7 +188,7 @@ function GoalList({
       <motion.p
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="summary-no-goals"
+        className="summary-no-events"
       >
         —
       </motion.p>
@@ -216,7 +200,7 @@ function GoalList({
 
   return (
     <motion.ul
-      className="summary-goal-list"
+      className="summary-event-list"
       variants={containerVariants}
       initial="hidden"
       animate="visible"
@@ -224,41 +208,77 @@ function GoalList({
       {entries.map((entry, i) => (
         <motion.li
           key={i}
-          className={`summary-goal-item summary-goal-item--${side}`}
+          className={`summary-event-item summary-event-item--${side}`}
           variants={variants}
         >
-          <div className="summary-goal-row">
+          <div className="summary-event-row">
             {!isOpp && (
-              <span className="summary-goal-minute">{entry.minute}'</span>
+              <span className="summary-event-minute">{entry.minute}'</span>
             )}
 
-            <motion.img
-              whileHover={{ rotate: 360 }}
-              transition={{ duration: 0.5 }}
-              src="/images/ball.png"
-              alt="goal"
-              className="summary-goal-ball"
-              draggable={false}
-            />
+            {entry.type === "goal" ? (
+              <motion.img
+                whileHover={{ rotate: 360 }}
+                transition={{ duration: 0.5 }}
+                src="/images/ball.png"
+                alt="goal"
+                className="summary-event-icon summary-event-icon--goal"
+                draggable={false}
+              />
+            ) : (
+              <span
+                className="summary-event-icon summary-event-icon--red-card"
+                aria-label="red card"
+                role="img"
+              />
+            )}
 
             <span
-              className="summary-goal-scorer"
+              className={
+                entry.type === "goal"
+                  ? "summary-goal-scorer"
+                  : "summary-event-primary summary-event-primary--red-card"
+              }
               style={{ animationDelay: `${i * 1.5}s` }}
             >
-              {entry.scorerName}
+              {entry.primaryName}
             </span>
 
             {isOpp && (
-              <span className="summary-goal-minute">{entry.minute}'</span>
+              <span className="summary-event-minute">{entry.minute}'</span>
             )}
           </div>
 
-          {entry.assistName && (
-            <p className="summary-goal-assist">
-              <span className="summary-goal-assist-label">Assist</span>
-              {" · "}
-              <span className="summary-goal-assist-name">{entry.assistName}</span>
-            </p>
+          {entry.secondaryLabel && (
+            entry.type === "goal" ? (
+              <p className="summary-goal-assist">
+                <span className="summary-goal-assist-label">
+                  {entry.secondaryLabel}
+                </span>
+                {entry.secondaryValue ? (
+                  <>
+                    {" · "}
+                    <span className="summary-goal-assist-name">
+                      {entry.secondaryValue}
+                    </span>
+                  </>
+                ) : null}
+              </p>
+            ) : (
+              <p className="summary-event-secondary summary-event-secondary--red-card">
+                <span className="summary-event-secondary-label">
+                  {entry.secondaryLabel}
+                </span>
+                {entry.secondaryValue ? (
+                  <>
+                    {" · "}
+                    <span className="summary-event-secondary-value">
+                      {entry.secondaryValue}
+                    </span>
+                  </>
+                ) : null}
+              </p>
+            )
           )}
         </motion.li>
       ))}
@@ -284,8 +304,11 @@ export default function MatchSummaryModal({
   const result = getResult(userScore, opponentScore);
   const config = getResultConfig(result);
 
-  const userGoals = buildGoalEntries("user", history);
-  const opponentGoals = buildGoalEntries("opponent", history);
+  const userEvents = useMemo(() => buildSummaryEntries("user", history), [history]);
+  const opponentEvents = useMemo(
+    () => buildSummaryEntries("opponent", history),
+    [history]
+  );
 
   useEffect(() => {
     if (!isOpen) return;
@@ -397,7 +420,7 @@ export default function MatchSummaryModal({
             <h3 className="summary-events-heading summary-events-heading--user">
               Your Team
             </h3>
-            <GoalList entries={userGoals} side="user" />
+            <SummaryEventList entries={userEvents} side="user" />
           </div>
 
           <div className={`summary-events-divider ${config.accentClass}`} />
@@ -406,7 +429,7 @@ export default function MatchSummaryModal({
             <h3 className="summary-events-heading summary-events-heading--opp">
               {opponentName}
             </h3>
-            <GoalList entries={opponentGoals} side="opponent" />
+            <SummaryEventList entries={opponentEvents} side="opponent" />
           </div>
         </div>
       </div>

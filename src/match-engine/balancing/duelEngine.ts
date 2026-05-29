@@ -1,6 +1,7 @@
 // src/match-engine/balancing/duelEngine.ts
 
 import { getActionDefinition } from "./events";
+import { getManAdvantageDelta } from "./manAdvantage";
 
 import type {
   AnyStat,
@@ -40,7 +41,9 @@ export function resolveDuel(context: DuelContext): DuelScores {
   context.action === "rush_save" ? 13 :
   10;
 
-  const rawDelta = (normalizedOffensive - normalizedDefensive) / divisor;
+  const baseDelta = (normalizedOffensive - normalizedDefensive) / divisor;
+  const manAdvantageDelta = getManAdvantageDelta(context, actionDefinition);
+  const rawDelta = baseDelta + manAdvantageDelta;
 
   return { offensive, defensive, rawDelta };
 }

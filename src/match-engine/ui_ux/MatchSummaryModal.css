@@ -582,6 +582,131 @@
   color: rgba(226, 232, 240, 0.7);
 }
 
+.summary-no-events {
+  margin: 0;
+  font-size: 15px;
+  color: rgba(226, 232, 240, 0.28);
+}
+.summary-events-col--opp .summary-no-events { text-align: right; }
+
+.summary-event-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.summary-event-item {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.summary-events-col--opp .summary-event-item { align-items: flex-end; }
+
+.summary-event-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.summary-event-minute {
+  font-size: 15px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  color: rgba(226, 232, 240, 0.85);
+  min-width: 32px;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.summary-event-item--opponent .summary-event-minute {
+  text-align: right;
+}
+
+.summary-event-icon--goal {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  flex-shrink: 0;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.6));
+}
+
+.summary-event-icon--red-card {
+  width: 16px;
+  height: 22px;
+  flex-shrink: 0;
+  border-radius: 4px;
+  background: linear-gradient(180deg, #ff97a3 0%, #ef4444 32%, #991b1b 100%);
+  box-shadow:
+    0 0 14px rgba(239, 68, 68, 0.35),
+    0 6px 14px rgba(0, 0, 0, 0.35);
+  transform: rotate(-8deg);
+}
+
+.summary-event-primary {
+  font-size: 26px;
+  font-weight: 950;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  display: inline-block;
+}
+
+.summary-event-primary--goal {
+  background: linear-gradient(
+    105deg,
+    #a3a3a3   0%,
+    #ffffff   20%,
+    #ffffff   35%,
+    rgba(255,255,255,0.85) 42%,
+    #ffffff   50%,
+    #ffffff   65%,
+    #a3a3a3 100%
+  );
+  background-size: 300% 100%;
+  background-position: 100% 0;
+  animation: scorer-shine 8s ease-in-out infinite;
+}
+
+.summary-event-primary--red-card {
+  color: #fecaca;
+  text-shadow:
+    0 0 10px rgba(239, 68, 68, 0.28),
+    0 0 22px rgba(248, 113, 113, 0.12);
+}
+
+.summary-event-secondary {
+  margin: 0;
+  font-size: 13px;
+  padding-left: 66px;
+  color: rgba(203, 213, 225, 0.55);
+}
+.summary-events-col--opp .summary-event-secondary {
+  padding-left: 0;
+  padding-right: 66px;
+  text-align: right;
+}
+
+.summary-event-secondary-label {
+  font-weight: 800;
+  color: rgba(203, 213, 225, 0.45);
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+}
+
+.summary-event-secondary-value {
+  font-weight: 700;
+  color: rgba(226, 232, 240, 0.7);
+}
+
+.summary-event-secondary--red-card .summary-event-secondary-label {
+  color: rgba(252, 165, 165, 0.82);
+}
+
 /* ── Return button ── */
 .summary-btn-return {
   appearance: none;
@@ -668,10 +793,16 @@
   .summary-goal-scorer    { font-size: 18px; }
   .summary-goal-ball      { width: 15px; height: 15px; }
   .summary-goal-minute    { font-size: 11px; min-width: 22px; }
+  .summary-event-primary  { font-size: 18px; }
+  .summary-event-icon--goal { width: 15px; height: 15px; }
+  .summary-event-icon--red-card { width: 12px; height: 17px; }
+  .summary-event-minute   { font-size: 11px; min-width: 22px; }
   .summary-events-divider { margin: 0 18px; }
   .summary-btn-return     { min-width: 160px; font-size: 12px; padding: 11px 24px; }
   .summary-goal-assist    { padding-left: 45px; }
   .summary-events-col--opp .summary-goal-assist { padding-right: 45px; }
+  .summary-event-secondary { padding-left: 45px; }
+  .summary-events-col--opp .summary-event-secondary { padding-right: 45px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -683,7 +814,8 @@
   .summary-mvp--user .summary-mvp__frame,
   .summary-mvp--opponent .summary-mvp__frame,
   .summary-mvp__img,
-  .summary-goal-scorer {
+  .summary-goal-scorer,
+  .summary-event-primary {
     animation: none !important;
   }
 }

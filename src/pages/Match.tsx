@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { EventLog, type EventLogEntry } from "../components/match/EventLog";
+import { buildHistoryEventLogEntries } from "../components/match/eventLogEntries";
 import GoalModal from "../match-engine/ui_ux/GoalModal";
 import { MatchField } from "../components/match/MatchField";
 import { MatchLineup } from "../components/match/MatchLineup";
@@ -10,7 +11,9 @@ import type { BallMovementType } from "../components/match/MatchBall";
 import {
   useMatchEngine,
 } from "../match-engine/ui_ux/useMatchEngine";
-import PreInteractiveModal from "../match-engine/interactive/PreInteractiveModal";
+import PreInteractiveModal, {
+  type PreInteractiveCardNotice,
+} from "../match-engine/interactive/PreInteractiveModal";
 import CornerModal from "../match-engine/interactive/user/CornerModal";
 import FkModal from "../match-engine/interactive/user/FkModal";
 import PenModal from "../match-engine/interactive/user/PenModal";
@@ -18,10 +21,6 @@ import OppCornerModal from "../match-engine/interactive/opponent/OppCornerModal"
 import OppFkModal from "../match-engine/interactive/opponent/OppFkModal";
 import OppPenModal from "../match-engine/interactive/opponent/OppPenModal";
 import MatchSummaryModal from "../match-engine/ui_ux/MatchSummaryModal";
-import {
-  getMatchActionLabel,
-  getMatchOutcomeLabel,
-} from "../match-engine/ui_ux/narrator";
 import {
   resolveCorner,
   type CornerChoice,
@@ -231,27 +230,6 @@ function isGoalkeeperMatchPlayer(
   return player != null && player.role === "goalkeeper";
 }
 
-function shouldUseGoalkeeperAsDefender(params: {
-  actionType: ActionType;
-  shotOutcome?: ShotResult["outcome"] | null;
-}): boolean {
-  const { actionType, shotOutcome } = params;
-
-  if (actionType === "rush_save" || actionType === "wait") {
-    return true;
-  }
-
-  if (shotOutcome && shotOutcome !== "blocked") {
-    return true;
-  }
-
-  return (
-    actionType === "long_shot" ||
-    actionType === "finish" ||
-    actionType === "header"
-  );
-}
-
 function calculateEventMinute(turn: number): number {
   return Math.min(90, Math.floor((turn - 1) * 1.5) + 1);
 }
@@ -305,6 +283,7 @@ function buildSetPieceEventLogEntry(params: {
 
   return {
     id: `set-piece-${nextTurn}-${index}-${flow.setPieceType}`,
+    kind: "duel",
     minute: calculateEventMinute(nextTurn),
     attacker,
     defender,
@@ -734,67 +713,13 @@ export default function Match({ isMuted, onMatchFinished }: MatchProps) {
 
   const legacyEvents = useMemo<EventLogEntry[]>(() => {
     return history.flatMap((entry) => {
-      const attackerName = entry.attackerName ?? null;
-      const defenderName = shouldUseGoalkeeperAsDefender({
-        actionType: entry.actionType,
-        shotOutcome: entry.shotOutcome,
-      })
-        ? entry.goalkeeperName ?? entry.defenderName ?? null
-        : entry.defenderName ?? entry.goalkeeperName ?? null;
-
-      if (!attackerName || !defenderName) {
-        return [];
-      }
-
-      const userAttacker = findPlayerByName(userPlayers, attackerName);
-      const opponentAttacker = findPlayerByName(opponentPlayers, attackerName);
-      const userDefender = findPlayerByName(userPlayers, defenderName);
-      const opponentDefender = findPlayerByName(opponentPlayers, defenderName);
-
-      const matches: Pick<
-        EventLogEntry,
-        "attacker" | "defender" | "attackerPosition" | "defenderPosition"
-      >[] = [];
-
-      if (userAttacker && opponentDefender) {
-        matches.push({
-          attacker: userAttacker,
-          defender: opponentDefender,
-          attackerPosition: userAssignedPositions.get(userAttacker.name),
-          defenderPosition: opponentAssignedPositions.get(opponentDefender.name),
-        });
-      }
-
-      if (opponentAttacker && userDefender) {
-        matches.push({
-          attacker: opponentAttacker,
-          defender: userDefender,
-          attackerPosition: opponentAssignedPositions.get(opponentAttacker.name),
-          defenderPosition: userAssignedPositions.get(userDefender.name),
-        });
-      }
-
-      if (matches.length !== 1) {
-        return [];
-      }
-
-      const duel = matches[0];
-
-      return [
-        {
-          id: entry.id,
-          minute: entry.minute,
-          attacker: duel.attacker,
-          defender: duel.defender,
-          attackerPosition: duel.attackerPosition,
-          defenderPosition: duel.defenderPosition,
-          action: getMatchActionLabel(entry.actionType),
-          outcome: getMatchOutcomeLabel({
-            outcome: entry.outcome,
-            shotOutcome: entry.shotOutcome,
-          }),
-        },
-      ];
+      return buildHistoryEventLogEntries({
+        entry,
+        userPlayers,
+        opponentPlayers,
+        userAssignedPositions,
+        opponentAssignedPositions,
+      });
     });
   }, [
     history,
@@ -910,6 +835,40 @@ export default function Match({ isMuted, onMatchFinished }: MatchProps) {
     interactiveSetPiece?.side === "opponent"
       ? modalOpponentPlayer
       : modalUserPlayer;
+
+  const preCardNotice = useMemo<PreInteractiveCardNotice | null>(() => {
+    if (interactiveSetPiece?.stage !== "pre") {
+      return null;
+    }
+
+    const foulResult = matchState.lastEvent?.foulResult;
+
+    if (
+      !foulResult?.committed ||
+      foulResult.card === "none" ||
+      foulResult.playerSide == null
+    ) {
+      return null;
+    }
+
+    const playerPool =
+      foulResult.playerSide === "user" ? userPlayers : opponentPlayers;
+    const cardedPlayer = findPlayerById(playerPool, foulResult.playerId);
+
+    if (!cardedPlayer) {
+      return null;
+    }
+
+    return {
+      card: foulResult.card,
+      playerName: cardedPlayer.name,
+    };
+  }, [
+    interactiveSetPiece,
+    matchState.lastEvent,
+    opponentPlayers,
+    userPlayers,
+  ]);
 
   const penaltyResolution =
     pendingSetPieceResolution?.setPieceType === "penalty"
@@ -1165,6 +1124,7 @@ export default function Match({ isMuted, onMatchFinished }: MatchProps) {
         players={userSquad.pitch}
         positions={userFormation.positions}
         playerMatchStats={matchState.playerMatchStats}
+        disciplinaryState={matchState.disciplinaryState}
       />
 
       <main className="match-main-content">
@@ -1217,6 +1177,7 @@ export default function Match({ isMuted, onMatchFinished }: MatchProps) {
         positions={oppPositions}
         isOpponent={true}
         playerMatchStats={matchState.playerMatchStats}
+        disciplinaryState={matchState.disciplinaryState}
       />
 
       <PreInteractiveModal
@@ -1224,6 +1185,7 @@ export default function Match({ isMuted, onMatchFinished }: MatchProps) {
         type={preType}
         player={prePlayer ?? undefined}
         side={interactiveSetPiece?.side ?? "user"}
+        cardNotice={preCardNotice}
         onContinue={handleContinueInteractiveSetPiece}
       />
 

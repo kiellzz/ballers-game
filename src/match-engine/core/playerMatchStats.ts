@@ -2,6 +2,7 @@ import type {
   ActionType,
   EventOutcome,
   EventTransition,
+  FoulResult,
   GoalDetails,
   MatchActors,
   PlayerMatchStats,
@@ -46,6 +47,7 @@ export interface EventStatContext {
   outcome: EventOutcome | null;
   transition: EventTransition | null;
   shotResult: ShotResult;
+  foulResult?: FoulResult | null;
   actors: MatchActors;
   possession: PossessionSide;
   isBigChance?: boolean;
@@ -70,6 +72,7 @@ export function applyEventToPlayerMatchStats(
     outcome,
     transition,
     shotResult,
+    foulResult = null,
     actors,
     possession,
     isBigChance = false,
@@ -190,6 +193,26 @@ export function applyEventToPlayerMatchStats(
     const atk = get(atkKey);
     atk.penaltyMisses += 1;
     next[atkKey] = atk;
+  }
+
+  if (
+    foulResult?.committed &&
+    foulResult.card !== "none" &&
+    foulResult.playerId !== null &&
+    foulResult.playerSide !== null
+  ) {
+    const disciplinedKey = `${foulResult.playerSide}:${foulResult.playerId}`;
+    const disciplined = get(disciplinedKey);
+
+    if (foulResult.card === "yellow" || foulResult.dismissalType === "second_yellow") {
+      disciplined.yellowCards += 1;
+    }
+
+    if (foulResult.sentOff) {
+      disciplined.dismissals += 1;
+    }
+
+    next[disciplinedKey] = disciplined;
   }
 
   // ── 3. Open-play outcome tracking ───────────────────────────────────────────

@@ -6,6 +6,12 @@
 
 ## 📝 Recent Updates
 
+* 🟥 **Full Disciplinary System** - Yellow and red cards are now fully integrated into gameplay, including two yellows = red, goalkeeper protection (max one yellow, never sent off), a three-send-off cap per team, and persistent discipline tracking for both sides
+* ⚖️ **Symmetric Foul & Card Logic** - Mirrored gameplay situations now use the same foul and card probabilities for the user team and the opponent team
+* 📋 **Expanded Match Event Log** - The event log now records both duel events and discipline events, including yellow cards, red cards, and second-yellow dismissals
+* 📉 **Discipline-Aware Ratings** - Player ratings are now penalized for yellow cards and dismissals, with second-yellow send-offs counting as both a caution and a red-card event
+* 🧭 **Card Visibility Across Match UI** - Cards are now surfaced in the lineup, pre-interactive foul modal, match summary, and event log for clearer match storytelling
+* 🧤 **Big Chance Goalkeeper Rebalance** - `atk_bigchance` and `def_bigchance` now separate elite, average, and weak goalkeepers more clearly, with dedicated `rush_save` vs `wait` tradeoffs in one-on-one situations
 * 🔔 **Toast Notifications on Home** - Player creation and deletion now trigger contextual toasts: ✅ green check on creation, ❌ red X on removal, each with the player's name in the message
 * 💾 **Auto-Save on Play Match** - Squad is automatically saved when clicking Play Match in the Lineup, no manual save required
 * ✏️ **Custom Player Creation** - Multi-step modal (Info → Stats → Preview) with photo upload, built-in crop tool, background removal, and position-weighted overall calculation per role
@@ -108,11 +114,18 @@ Deployed on **Vercel** — no installation required, runs directly in the browse
     * Duel-based gameplay system
     * Zone-based match progression
     * Real-time event resolution
+    * Persistent card and dismissal state for both teams
+    * Two yellows convert into a red card
+    * Goalkeepers can receive at most one yellow and can never be sent off
+    * Sent-off players are removed from future open-play and set-piece selection
+    * Linear numerical disadvantage after red cards influences future duels
+    * Big chance goalkeeper duels use dedicated one-on-one logic in both `atk_bigchance` and `def_bigchance`
 
 * 🏆 **Match Summary & MVP System**
     * Post-match summary modal with delay
     * Displays result (win/draw/loss)
     * Goal scorers and assists for both teams
+    * Red cards shown in the post-match timeline with minute markers
     * MVP selection based on **highest rating in the match**
     * Tie-breaking logic (winner priority or random fallback)
     * Penalty goals tagged with **(P)**
@@ -126,6 +139,10 @@ Deployed on **Vercel** — no installation required, runs directly in the browse
     * Clean sheet bonus:
       * GK → +1.0
       * DEF → +0.6
+    * Discipline penalties:
+      * Yellow cards reduce the final rating
+      * Dismissals apply a stronger penalty
+      * Second-yellow send-offs count as both a caution and a dismissal
     * Enhanced goalkeeper logic:
       * Saves, high saves, penalty saves
       * Weak goal detection (long shots)
@@ -173,9 +190,17 @@ Instead of passive simulation:
   - Free Kick (interactive + quick flow)
   - Corner kicks
 
+- **Disciplinary Engine**
+  - Foul resolution
+  - Yellow / red card rules
+  - Two-yellow dismissals
+  - Sent-off player tracking
+  - Numerical advantage state
+
 - **Player Selector**
   - Context-aware player selection
   - Position-based filtering (no secondary position abuse)
+  - Excludes sent-off players from future actions
 
 ---
 
@@ -190,24 +215,29 @@ Instead of passive simulation:
 
 ### 📜 Match Event Log
 
-A real-time duel-based log system
+A real-time match log covering both duels and discipline events.
 
 Examples:
 
 ```
 User Player vs GK Opponent → Finish → Goal
 Opponent Winger vs User CB → Sprint → Stopped
+User CB → Slide tackle → Yellow card
+Opponent CM → Dribble → Second yellow
 FK taker vs GK → Free Kick → Saved
 ```
 
 Features:
 
-- Fully **duel-based structure**
+- Fully **match-event-based structure**
 - Includes:
   - Open play
   - Penalty
   - Free Kick
   - Corner
+  - Yellow cards
+  - Red cards
+  - Second-yellow dismissals
 - Compact horizontal layout
 - Uses player mini-cards (UI consistency with lineup)
 - Smart name formatting (`getDisplayName`)
@@ -223,17 +253,22 @@ Features:
   - Free Kick
   - Corner
   - Match Summary
+  - Pre-interactive foul card notice
 
 - Visual feedback:
   - Action → Outcome transitions
   - Ball animations
   - Goal modal
   - Goal scorers & assisters in the sidebar
+  - Carded player notices on fouls
+  - Red cards in the match summary timeline
   - MVP highlight in post-match
 
 - Strong UI consistency:
   - Same card system across lineup + match
   - Mini cards in event log
+  - Yellow/red markers in the lineup
+  - Sent-off players marked and visually downgraded
   - Player ratings visible in lineup
 
 ---
@@ -252,11 +287,14 @@ Features:
   - Better possession retention
   - Goalkeeper logic adjustments
   - Fair rating distribution across all positions
-
   - Randomized match clock (triangular distribution, 0–3 min/action)
   - Late-game clock compression (85+ min → 0–1 min, no infinite matches)
   - Calibrated big chance conversion rates (striker stats vs GK stats)
   - Goalkeeper action tuning: rush save vs wait tradeoffs
+  - Stronger goalkeeper separation in big chance zones, so low-rated keepers no longer perform too close to elite ones
+  - `atk_bigchance` uses clearer striker-vs-goalkeeper scaling, while `def_bigchance` keeps dedicated one-on-one action tradeoffs for `rush_save` and `wait`
+  - Side-neutral foul and card resolution in mirrored situations
+  - Linear punishment for teams playing with fewer men after red cards
 
 ---
 
@@ -315,6 +353,9 @@ Interactive, decision-based match flow powered by a custom engine.
   - duelEngine (+ calibration tests)
   - eventResolver
   - setPieceEngine
+  - foulEngine
+  - cardEngine
+  - disciplineState
   - playerRating
 * **Separation of concerns:**
   - Engine logic vs UI layer
@@ -350,10 +391,11 @@ Live: https://ballers-game.vercel.app/
 - [x] ⚔️ Interactive Match Engine
 - [x] 🏆 Match Summary & MVP System
 - [x] 📊 Player Rating System
+- [x] 🟥 Cards System
 - [x] 🚀 Deploy on Vercel
 - [x] 🧪 Duel engine calibration test suite (Vitest + GitHub Actions)
 - [x] ✏️ Custom Player Creation (crop, overall weights, squad protection)
-- [ ] 🔄 Cards & Substitution System
+- [ ] 🔄 Substitution System
 - [ ] 📊 Advanced match stats 
 - [ ] 🎮 Draft Mode
 - [ ] 💾 API/Backend integration

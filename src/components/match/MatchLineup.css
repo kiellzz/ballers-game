@@ -171,8 +171,17 @@
   transition: background 0.15s;
 }
 
+.lineup-item--sent-off {
+  background: rgba(127, 29, 29, 0.18);
+  border: 1px solid rgba(239, 68, 68, 0.18);
+}
+
 .lineup-item:hover {
   background: rgba(139, 92, 246, 0.07);
+}
+
+.lineup-item--sent-off:hover {
+  background: rgba(127, 29, 29, 0.22);
 }
 
 .lineup-pos {
@@ -198,11 +207,58 @@
   font-weight: 500;
 }
 
+.lineup-item--sent-off .lineup-name,
+.lineup-item--sent-off .lineup-pos,
+.lineup-item--sent-off .lineup-ovr,
+.lineup-item--sent-off .lineup-flag,
+.lineup-item--sent-off .lineup-rating {
+  opacity: 0.7;
+}
+
 .lineup-stats {
   display: flex;
   align-items: center;
   gap: 5px;
   flex-shrink: 0;
+}
+
+.lineup-card-indicator {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.2rem;
+  height: 1.2rem;
+  padding: 0 0.28rem;
+  border-radius: 4px;
+  font-size: 0.65rem;
+  font-weight: 800;
+  line-height: 1;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+.lineup-card-indicator--yellow {
+  background: linear-gradient(135deg, #fde047 0%, #f59e0b 100%);
+  color: #2a1600;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.lineup-card-indicator--red {
+  background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.lineup-status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.35rem;
+  border-radius: 999px;
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: #fecaca;
+  background: rgba(127, 29, 29, 0.72);
+  border: 1px solid rgba(248, 113, 113, 0.28);
 }
 
 .lineup-badge {

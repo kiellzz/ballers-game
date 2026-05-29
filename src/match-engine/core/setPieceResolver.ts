@@ -1,5 +1,9 @@
 import { createSituation } from "../balancing/situationMaker";
 import { startInteractiveSetPieceFlow } from "../interactive/interactiveSetPieceFlow";
+import {
+  getNumericalAdvantageState,
+  getSentOffPlayerIds,
+} from "../fouls/disciplineState";
 import type { SetPieceResolution } from "../setpiece/setPieceEngine";
 import type {
   DuelContext,MatchEvent,
@@ -89,6 +93,14 @@ export function applyFinalResolution(params: {
 }): MatchState {
   const { state, resolution, random } = params;
   const setPieceContext = state.interactiveSetPiece?.context;
+  const unavailableUserPlayerIds = getSentOffPlayerIds(
+    state.disciplinaryState,
+    "user"
+  );
+  const unavailableOpponentPlayerIds = getSentOffPlayerIds(
+    state.disciplinaryState,
+    "opponent"
+  );
 
   const nextScore = applyScoreFromShot(state.context.score, resolution.shotResult);
 
@@ -194,6 +206,10 @@ export function applyFinalResolution(params: {
       committed: false,
       by: null,
       card: "none",
+      playerId: null,
+      playerSide: null,
+      sentOff: false,
+      dismissalType: "none",
       setPieceAwarded: null,
       awardedTo: null,
     },
@@ -221,6 +237,7 @@ export function applyFinalResolution(params: {
       outcome: null,
       transition: null,
       shotResult: resolution.shotResult,
+      foulResult: setPieceEvent.foulResult,
       actors: setPieceContext?.actors ?? state.currentSituation.actors,
       possession: fromPossession,
       isBigChance: false,
@@ -279,6 +296,8 @@ export function applyFinalResolution(params: {
       possession: resolution.nextPossession,
       userTeam: state.userTeam,
       opponentTeam: state.opponentTeam,
+      unavailableUserPlayerIds,
+      unavailableOpponentPlayerIds,
       situationType: "set_piece",
       setPieceType: nextSetPieceType,
       random,
@@ -292,6 +311,7 @@ export function applyFinalResolution(params: {
       situationType: "set_piece",
       setPieceType: nextSetPieceType,
       actors: setPieceSituation.actors,
+      numericalAdvantage: getNumericalAdvantageState(state.disciplinaryState),
     };
 
     const interactiveSetPiece = startInteractiveSetPieceFlow({
@@ -329,6 +349,8 @@ export function applyFinalResolution(params: {
     possession: resolution.nextPossession,
     userTeam: state.userTeam,
     opponentTeam: state.opponentTeam,
+    unavailableUserPlayerIds,
+    unavailableOpponentPlayerIds,
     situationType: resolution.nextSituationType,
     setPieceType: null,
     forcedUserPlayerId: resolution.forcedUserPlayerId,
