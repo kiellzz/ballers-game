@@ -211,7 +211,7 @@ Live: https://ballers-game.vercel.app/
 - [x] 🧪 Duel engine calibration test suite (Vitest + GitHub Actions)
 - [x] ✏️ Custom Player Creation (crop, overall weights, squad protection)
 - [x] 🔄 Substitution System
-- [x] 📊 Advanced match stats 
+- [x] 📊 Player match stats
 - [ ] 🎮 Draft Mode
 
 ---
