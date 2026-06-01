@@ -57,6 +57,14 @@ npm run dev
 - **Opponent selection**
 - Full squad reveal before match starts
 
+### 🔄 In-Match Substitutions
+- **Up to 3 substitutions** per team during the match
+- **Position-aware selection** (filters bench by replaced player's position)
+- **Smart bench filtering**
+- **Pending & completed tracking** for audit trail
+- **Opponent AI subs** (starts from minute 46, ~45% chance, 8-min intervals)
+- **Sent-off protection** (excluded players unavailable for swaps)
+
 ### ⚽ Interactive Match Engine
 - **Player-driven decisions** (attack & defense each turn)
 - **Duel-based gameplay** (attacker vs defender)
