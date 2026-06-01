@@ -114,10 +114,17 @@ npm run dev
   <img src="./media/lineup.png" width="49%">
 </div>
 
-### Formations & Custom Players
+### Custom Players & Player Management
 <div align="center">
-  <img src="./media/formations.png" width="49%">
-  <img src="./media/createplayer.png" width="49%">
+  <img src="./media/createplayer.png" width="32%">
+  <img src="./media/createplayer2.png" width="32%">
+  <img src="./media/createplayer3.png" width="32%">
+</div>
+
+### Filters & Player Selection
+<div align="center">
+  <img src="./media/filtermodal.png" width="49%">
+  <img src="./media/playermodalLineup.png" width="49%">
 </div>
 
 ### Pre-Match & Match
