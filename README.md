@@ -123,7 +123,7 @@ npm run dev
 ### Pre-Match & Match
 <div align="center">
   <img src="./media/prematch.png" width="49%">
-  <img src="./media/match1.png" width="49%">
+  <img src="./media/match.png" width="49%">
 </div>
 
 ### Match Events & Summary
@@ -178,25 +178,13 @@ Live: https://ballers-game.vercel.app/
 
 ---
 
-## 📋 Project Structure
+## ⚙️ Available Formations
 
-```
-src/
-├── components/          # UI components (home, lineup, match)
-├── pages/              # Route pages
-├── hooks/              # Custom logic hooks
-├── match-engine/       # Core game engine
-│   ├── core/           # matchEngine, duelEngine, eventResolver
-│   ├── balancing/      # situationMaker, events, probabilites
-│   ├── setpiece/       # Penalty, FK, corner
-│   ├── fouls/          # Foul resolution
-│   └── tests/          # Vitest calibration suite
-├── data/               # Players database
-├── types/              # TypeScript types
-└── utils/              # Utilities (formations, rating, sound)
-```
+**🛡️ 4-Back:** 4-3-3 • 4-3-3 (2) • 4-3-3 (3) • 4-3-3 (4) • 4-4-2 • 4-4-2 (2) • 4-4-2 (3) • 4-2-4 • 4-1-2-1-2
 
----
+**🛡️ 5-Back:** 5-3-2 • 5-3-2 (2) • 5-3-2 (3) • 5-2-3
+
+**🛡️ 3-Back:** 3-4-3 • 3-5-2 • 3-5-2 (2) • 3-5-2 (3)
 
 ## 🗺 Roadmap
 
@@ -210,7 +198,6 @@ src/
 - [x] 🔄 Substitution System
 - [x] 📊 Advanced match stats 
 - [ ] 🎮 Draft Mode
-- [ ] 💾 API/Backend integration
 
 ---
 
