@@ -34,22 +34,25 @@ interface MatchSummaryModalProps {
   opponentPositions: string[];
 }
 
-type MatchResult = "win" | "draw" | "loss";
+export type MatchResult = "win" | "draw" | "loss";
 
-function getResult(userScore: number, opponentScore: number): MatchResult {
+export function getResult(
+  userScore: number,
+  opponentScore: number
+): MatchResult {
   if (userScore > opponentScore) return "win";
   if (userScore < opponentScore) return "loss";
   return "draw";
 }
 
-interface PlayerWithRating {
+export interface PlayerWithRating {
   player: Player;
   side: "user" | "opponent";
   rating: number;
   goalContributions: number;
 }
 
-function buildPlayersWithRatings(
+export function buildPlayersWithRatings(
   userPlayers: Player[],
   opponentPlayers: Player[],
   playerMatchStats: PlayerMatchStats,
@@ -91,7 +94,7 @@ function seededPick<T extends { player: Player }>(items: T[]): T {
   return items[seed % items.length]!;
 }
 
-function getMatchMVP(
+export function getMatchMVP(
   players: PlayerWithRating[],
   result: MatchResult
 ): PlayerWithRating | null {

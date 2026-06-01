@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { EventLog, type EventLogEntry } from "../components/match/EventLog";
-import { buildHistoryEventLogEntries } from "../components/match/eventLogEntries";
+import { buildHistoryEventLogEntries } from "../match-engine/ui_ux/eventLogEntries";
 import GoalModal from "../match-engine/ui_ux/GoalModal";
 import { MatchField } from "../components/match/MatchField";
 import { MatchLineup } from "../components/match/MatchLineup";
@@ -20,7 +20,11 @@ import PenModal from "../match-engine/interactive/user/PenModal";
 import OppCornerModal from "../match-engine/interactive/opponent/OppCornerModal";
 import OppFkModal from "../match-engine/interactive/opponent/OppFkModal";
 import OppPenModal from "../match-engine/interactive/opponent/OppPenModal";
-import MatchSummaryModal from "../match-engine/ui_ux/MatchSummaryModal";
+import MatchSummaryModal, {
+  buildPlayersWithRatings,
+  getMatchMVP,
+  getResult,
+} from "../match-engine/ui_ux/MatchSummaryModal";
 import {
   resolveCorner,
   type CornerChoice,
@@ -34,10 +38,7 @@ import {
   resolvePen,
   type PenaltyChoice,
 } from "../match-engine/balancing/resolvePen";
-import type {
-  InteractiveSetPieceResolutionInput,
-  InteractiveSetPieceState,
-} from "../match-engine/interactive/interactiveSetPieceFlow";
+import type { InteractiveSetPieceResolutionInput } from "../match-engine/interactive/interactiveSetPieceFlow";
 import type {
   ActionType,
   EventOutcome,
@@ -183,14 +184,6 @@ function buildCurrentPhaseText(
   }
 }
 
-function findPlayerByName(
-  players: Player[],
-  name?: string | null
-): Player | null {
-  if (!name) return null;
-  return players.find((player) => player.name === name) ?? null;
-}
-
 function findPlayerById(
   players: Player[],
   playerId?: number | null
@@ -215,7 +208,7 @@ function findPlayerByMatchPlayer(
   players: Player[],
   matchPlayer?: MatchPlayer | null
 ): Player | null {
-  return matchPlayer ? findPlayerByName(players, matchPlayer.name) : null;
+  return matchPlayer ? findPlayerById(players, matchPlayer.id) : null;
 }
 
 function isOutfieldMatchPlayer(
@@ -230,218 +223,33 @@ function isGoalkeeperMatchPlayer(
   return player != null && player.role === "goalkeeper";
 }
 
-function calculateEventMinute(turn: number): number {
-  return Math.min(90, Math.floor((turn - 1) * 1.5) + 1);
-}
-
-function buildSetPieceEventLogEntry(params: {
-  flow: InteractiveSetPieceState;
-  resolution: InteractiveSetPieceResolutionInput | null;
-  userPlayers: Player[];
-  opponentPlayers: Player[];
-  userAssignedPositions: Map<string, string>;
-  opponentAssignedPositions: Map<string, string>;
-  nextTurn: number;
+function buildSubstitutionEventLogEntry(params: {
+  outPlayer: Player;
+  inPlayer: Player;
+  minute: number;
+  outPlayerPosition?: string;
+  inPlayerPosition?: string;
   index: number;
-}): EventLogEntry | null {
+}): EventLogEntry {
   const {
-    flow,
-    resolution,
-    userPlayers,
-    opponentPlayers,
-    userAssignedPositions,
-    opponentAssignedPositions,
-    nextTurn,
+    outPlayer,
+    inPlayer,
+    minute,
+    outPlayerPosition,
+    inPlayerPosition,
     index,
   } = params;
 
-  if (!flow.context || !flow.actors || !flow.setPieceType) {
-    return null;
-  }
-
-  const isUserAttacking = flow.context.possession === "user";
-  const attackerMatchPlayer = isUserAttacking
-    ? flow.actors.userPlayer
-    : flow.actors.opponentPlayer;
-  const defenderMatchPlayer = getSetPieceDefenderMatchPlayer({
-    flow,
-    resolution,
-  });
-
-  const attacker = findPlayerByMatchPlayer(
-    isUserAttacking ? userPlayers : opponentPlayers,
-    attackerMatchPlayer
-  );
-  const defender = findPlayerByMatchPlayer(
-    isUserAttacking ? opponentPlayers : userPlayers,
-    defenderMatchPlayer
-  );
-
-  if (!attacker || !defender) {
-    return null;
-  }
-
   return {
-    id: `set-piece-${nextTurn}-${index}-${flow.setPieceType}`,
-    kind: "duel",
-    minute: calculateEventMinute(nextTurn),
-    attacker,
-    defender,
-    attackerPosition: isUserAttacking
-      ? userAssignedPositions.get(attacker.name)
-      : opponentAssignedPositions.get(attacker.name),
-    defenderPosition: isUserAttacking
-      ? opponentAssignedPositions.get(defender.name)
-      : userAssignedPositions.get(defender.name),
-    action: getSetPieceActionLabel(flow, resolution),
-    outcome: getSetPieceOutcomeLabel(flow, resolution),
+    id: `substitution-${index}-${outPlayer.id}-${inPlayer.id}`,
+    kind: "substitution",
+    minute,
+    outPlayer,
+    inPlayer,
+    outPlayerPosition,
+    inPlayerPosition,
+    outcome: "SUB ON",
   };
-}
-
-function getSetPieceDefenderMatchPlayer(params: {
-  flow: InteractiveSetPieceState;
-  resolution: InteractiveSetPieceResolutionInput | null;
-}): MatchPlayer | null {
-  const { flow, resolution } = params;
-
-  if (!flow.actors || !flow.context) {
-    return null;
-  }
-
-  const isUserAttacking = flow.context.possession === "user";
-  const primaryDefender = isUserAttacking
-    ? flow.actors.opponentPlayer
-    : flow.actors.userPlayer;
-  const goalkeeper = isUserAttacking
-    ? flow.actors.opponentGoalkeeper
-    : flow.actors.userGoalkeeper;
-
-  if (flow.isQuickFlow) {
-    return primaryDefender;
-  }
-
-  if (flow.setPieceType === "penalty") {
-    return goalkeeper;
-  }
-
-  if (flow.setPieceType === "freekick") {
-    if (resolution?.setPieceType === "freekick") {
-      return resolution.resolution.result === "blocked_wall"
-        ? primaryDefender
-        : goalkeeper;
-    }
-
-    return goalkeeper;
-  }
-
-  if (resolution?.setPieceType === "corner") {
-    switch (resolution.resolution.result) {
-      case "cross_claimed":
-      case "goal":
-      case "miss":
-        return goalkeeper;
-      default:
-        return primaryDefender;
-    }
-  }
-
-  return primaryDefender;
-}
-
-function getSetPieceActionLabel(
-  flow: InteractiveSetPieceState,
-  resolution: InteractiveSetPieceResolutionInput | null
-): string {
-  if (flow.isQuickFlow) {
-    return "Quick free kick";
-  }
-
-  if (flow.setPieceType === "penalty") {
-    return "Penalty";
-  }
-
-  if (flow.setPieceType === "freekick") {
-    return "Free kick";
-  }
-
-  if (resolution?.setPieceType === "corner") {
-    switch (resolution.resolution.choice) {
-      case "short":
-        return "Short corner";
-      case "cross":
-        return "Corner cross";
-      case "olympic":
-        return "Olympic corner";
-      default:
-        return "Corner";
-    }
-  }
-
-  return "Corner";
-}
-
-function getSetPieceOutcomeLabel(
-  flow: InteractiveSetPieceState,
-  resolution: InteractiveSetPieceResolutionInput | null
-): string {
-  if (flow.isQuickFlow) {
-    return "Play continues";
-  }
-
-  if (!resolution) {
-    return "Resolved";
-  }
-
-  switch (resolution.setPieceType) {
-    case "penalty":
-      switch (resolution.resolution.result) {
-        case "goal":
-          return "Goal";
-        case "save_clean":
-        case "save_touch":
-          return "Saved";
-        default:
-          return "Resolved";
-      }
-
-    case "freekick":
-      switch (resolution.resolution.result) {
-        case "goal":
-          return "Goal";
-        case "save_clean":
-        case "save_touch":
-          return "Saved";
-        case "blocked_wall":
-          return "Blocked";
-        case "miss":
-          return "Missed";
-        default:
-          return "Resolved";
-      }
-
-    case "corner":
-      switch (resolution.resolution.result) {
-        case "short_kept":
-          return "Kept possession";
-        case "cross_claimed":
-          return "Claimed";
-        case "cross_cleared":
-          return "Cleared";
-        case "cross_box":
-          return "Into the box";
-        case "cross_bigchance":
-          return "Big chance";
-        case "goal":
-          return "Goal";
-        case "miss":
-          return "Missed";
-        default:
-          return "Resolved";
-      }
-
-    default:
-      return "Resolved";
-  }
 }
 
 export default function Match({ isMuted, onMatchFinished }: MatchProps) {
@@ -459,21 +267,19 @@ export default function Match({ isMuted, onMatchFinished }: MatchProps) {
   const userSquad = routeState?.userSquad ?? null;
   const opponent = routeState?.opponent ?? null;
 
-  const userPlayers = useMemo(
-    () => userSquad?.pitch.filter((p): p is Player => p !== null) ?? [],
+  const allUserPlayers = useMemo(
+    () =>
+      userSquad
+        ? [...userSquad.pitch, ...userSquad.bench].filter(
+            (player): player is Player => player !== null
+          )
+        : [],
     [userSquad]
   );
 
-  const opponentPlayers = useMemo(() => opponent?.players ?? [], [opponent]);
-
-  const userGK = useMemo(
-    () => userPlayers.find((player) => player.position === "GK") ?? null,
-    [userPlayers]
-  );
-
-  const opponentGK = useMemo(
-    () => opponentPlayers.find((player) => player.position === "GK") ?? null,
-    [opponentPlayers]
+  const allOpponentPlayers = useMemo(
+    () => (opponent ? [...opponent.players, ...opponent.bench] : []),
+    [opponent]
   );
 
   const {
@@ -484,9 +290,21 @@ export default function Match({ isMuted, onMatchFinished }: MatchProps) {
     currentActors,
     availableActions,
     chooseAction,
+    displayedUserStarters,
+    displayedOpponentStarters,
     interactiveSetPiece,
+    pendingUserSubstitutionInIds,
     continueInteractiveSetPiece,
+    queueUserSubstitution,
     resolveInteractiveSetPieceChoice,
+    substitutedInUserPlayerIds,
+    substitutedInOpponentPlayerIds,
+    substitutedOutOpponentPlayerIds,
+    substitutedOutUserPlayerIds,
+    userBenchPlayers,
+    userMatchParticipants,
+    opponentSubstitutionsUsed,
+    userSubstitutionsUsed,
   } = useMatchEngine({
     userSquad: userSquad ?? { pitch: [], bench: [], formation: "4-3-3" },
     opponent: opponent ?? {
@@ -494,8 +312,121 @@ export default function Match({ isMuted, onMatchFinished }: MatchProps) {
       name: "Opponent",
       formation: "4-3-3",
       players: [],
+      bench: [],
     },
   });
+
+  const activeUserPlayers = useMemo(
+    () =>
+      matchState.userTeam.starters.flatMap((player) => {
+        const resolvedPlayer = findPlayerById(allUserPlayers, player.id);
+        return resolvedPlayer ? [resolvedPlayer] : [];
+      }),
+    [allUserPlayers, matchState.userTeam.starters]
+  );
+
+  const displayedUserLineupPlayers = useMemo(
+    () =>
+      displayedUserStarters.map((player) =>
+        findPlayerById(allUserPlayers, player.id)
+      ),
+    [allUserPlayers, displayedUserStarters]
+  );
+
+  const displayedUserLineupPositions = useMemo(
+    () =>
+      displayedUserStarters.map(
+        (player) => player.lineupPosition ?? player.position
+      ),
+    [displayedUserStarters]
+  );
+
+  const displayedUserBenchPlayers = useMemo(
+    () =>
+      userBenchPlayers.map((player) => findPlayerById(allUserPlayers, player.id)),
+    [allUserPlayers, userBenchPlayers]
+  );
+
+  const displayedOpponentLineupPlayers = useMemo(
+    () =>
+      displayedOpponentStarters.map((player) =>
+        findPlayerById(allOpponentPlayers, player.id)
+      ),
+    [allOpponentPlayers, displayedOpponentStarters]
+  );
+
+  const displayedOpponentLineupPositions = useMemo(
+    () =>
+      displayedOpponentStarters.map(
+        (player) => player.lineupPosition ?? player.position
+      ),
+    [displayedOpponentStarters]
+  );
+
+  const userSubbedOffPlayers = useMemo(
+    () =>
+      matchState.substitutionState.completedUserSubstitutions.flatMap(
+        ({ outPlayer }) => {
+          const resolvedPlayer = findPlayerById(allUserPlayers, outPlayer.id);
+
+          if (!resolvedPlayer) {
+            return [];
+          }
+
+          return [
+            {
+              player: resolvedPlayer,
+              position: outPlayer.lineupPosition ?? outPlayer.position,
+            },
+          ];
+        }
+      ),
+    [
+      allUserPlayers,
+      matchState.substitutionState.completedUserSubstitutions,
+    ]
+  );
+
+  const opponentSubbedOffPlayers = useMemo(
+    () =>
+      matchState.substitutionState.completedOpponentSubstitutions.flatMap(
+        ({ outPlayer }) => {
+          const resolvedPlayer = findPlayerById(allOpponentPlayers, outPlayer.id);
+
+          if (!resolvedPlayer) {
+            return [];
+          }
+
+          return [
+            {
+              player: resolvedPlayer,
+              position: outPlayer.lineupPosition ?? outPlayer.position,
+            },
+          ];
+        }
+      ),
+    [
+      allOpponentPlayers,
+      matchState.substitutionState.completedOpponentSubstitutions,
+    ]
+  );
+
+  const userGK = useMemo(() => {
+    const goalkeeper =
+      matchState.userTeam.starters.find((player) => player.role === "goalkeeper") ??
+      null;
+
+    return findPlayerByMatchPlayer(allUserPlayers, goalkeeper);
+  }, [allUserPlayers, matchState.userTeam.starters]);
+
+  const opponentGK = useMemo(() => {
+    const goalkeeper =
+      matchState.opponentTeam.starters.find(
+        (player) => player.role === "goalkeeper"
+      ) ?? null;
+
+    return findPlayerByMatchPlayer(allOpponentPlayers, goalkeeper);
+  }, [allOpponentPlayers, matchState.opponentTeam.starters]);
 
   const latestGoal = matchState.lastGoal ?? null;
 
@@ -537,10 +468,7 @@ export default function Match({ isMuted, onMatchFinished }: MatchProps) {
   const summaryTimeoutRef = useRef<number | null>(null);
   const handledGoalEventIdRef = useRef<string | null>(null);
   const handledGoalModalIdRef = useRef<string | null>(null);
-  const processedHistoryCountRef = useRef(0);
-  const setPieceEventCountRef = useRef(0);
   const latestGoalModalIdRef = useRef<string | null>(null);
-  const [eventLogEntries, setEventLogEntries] = useState<EventLogEntry[]>([]);
 
   useEffect(() => {
     if (interactiveSetPiece?.stage !== "modal") {
@@ -638,7 +566,7 @@ export default function Match({ isMuted, onMatchFinished }: MatchProps) {
     latestGoalModalIdRef.current = goalKey;
 
     const scoringPlayers =
-      latestGoal.scorerSide === "user" ? userPlayers : opponentPlayers;
+      latestGoal.scorerSide === "user" ? allUserPlayers : allOpponentPlayers;
 
     const scorer = findPlayerById(scoringPlayers, latestGoal.scorerId);
     const assistPlayer = findPlayerById(
@@ -662,7 +590,7 @@ export default function Match({ isMuted, onMatchFinished }: MatchProps) {
 
       goalModalTimeoutRef.current = null;
     }, 700);
-  }, [latestGoal, userPlayers, opponentPlayers]);
+  }, [allOpponentPlayers, allUserPlayers, latestGoal]);
 
   if (!routeState || !userSquad || !opponent) {
     return null;
@@ -671,7 +599,7 @@ export default function Match({ isMuted, onMatchFinished }: MatchProps) {
   const userFormation =
     FORMATIONS[userSquad.formation as keyof typeof FORMATIONS];
 
-  const oppPositions = opponent.players.map((player) => player.position);
+  const oppPositions = displayedOpponentLineupPositions;
 
   const userAssignedPositions = useMemo(() => {
     const positions = new Map<string, string>();
@@ -685,29 +613,83 @@ export default function Match({ isMuted, onMatchFinished }: MatchProps) {
       );
     });
 
+    const substitutions = [
+      ...matchState.substitutionState.completedUserSubstitutions,
+      ...matchState.substitutionState.pendingUserSubstitutions,
+    ];
+
+    substitutions.forEach(({ outPlayer, inPlayer }) => {
+      positions.set(
+        outPlayer.name,
+        outPlayer.lineupPosition ?? outPlayer.position
+      );
+      positions.set(inPlayer.name, inPlayer.lineupPosition ?? inPlayer.position);
+    });
+
     return positions;
-  }, [userFormation, userSquad.pitch]);
+  }, [
+    matchState.substitutionState.completedUserSubstitutions,
+    matchState.substitutionState.pendingUserSubstitutions,
+    userFormation,
+    userSquad.pitch,
+  ]);
 
   const opponentAssignedPositions = useMemo(() => {
     const positions = new Map<string, string>();
 
-    opponent.players.forEach((player, index) => {
+    displayedOpponentLineupPlayers.forEach((player, index) => {
+      if (!player) return;
+
       positions.set(player.name, oppPositions[index] ?? player.position);
     });
 
     return positions;
-  }, [oppPositions, opponent.players]);
+  }, [displayedOpponentLineupPlayers, oppPositions]);
 
   // ── Posições dos slots para o MatchSummaryModal ───────────────────────────
   // userFormation.positions pode ter nulls (slots vazios do pitch), então
   // alinhamos com userPlayers (já filtrados) pela mesma lógica do MatchLineup.
-  const userSlotPositions = useMemo(
+  const summaryUserParticipants = useMemo(
     () =>
-      userSquad.pitch.map(
-        (player, idx) => userFormation?.positions[idx] ?? player?.position ?? "CM"
-      ),
-    [userFormation, userSquad.pitch]
+      userMatchParticipants.flatMap((player) => {
+        const resolvedPlayer = findPlayerById(allUserPlayers, player.id);
+        if (!resolvedPlayer) {
+          return [];
+        }
+
+        return [
+          {
+            player: resolvedPlayer,
+            position: player.lineupPosition ?? player.position,
+          },
+        ];
+      }),
+    [allUserPlayers, userMatchParticipants]
   );
+
+  const matchMvp = useMemo(() => {
+    const playersWithRatings = buildPlayersWithRatings(
+      summaryUserParticipants.map(({ player }) => player),
+      allOpponentPlayers,
+      matchState.playerMatchStats,
+      summaryUserParticipants.map(({ position }) => position),
+      oppPositions
+    );
+
+    return getMatchMVP(playersWithRatings, getResult(score.user, score.opponent));
+  }, [
+    allOpponentPlayers,
+    matchState.playerMatchStats,
+    oppPositions,
+    score.opponent,
+    score.user,
+    summaryUserParticipants,
+  ]);
+
+  const userMvpPlayerId =
+    matchMvp?.side === "user" ? Number(matchMvp.player.id) : null;
+  const opponentMvpPlayerId =
+    matchMvp?.side === "opponent" ? Number(matchMvp.player.id) : null;
 
   const phase = matchState.isFinished ? "finished" : "playing";
 
@@ -715,36 +697,101 @@ export default function Match({ isMuted, onMatchFinished }: MatchProps) {
     return history.flatMap((entry) => {
       return buildHistoryEventLogEntries({
         entry,
-        userPlayers,
-        opponentPlayers,
+        userPlayers: allUserPlayers,
+        opponentPlayers: allOpponentPlayers,
         userAssignedPositions,
         opponentAssignedPositions,
       });
     });
   }, [
+    allUserPlayers,
     history,
     opponentAssignedPositions,
-    opponentPlayers,
+    allOpponentPlayers,
     userAssignedPositions,
-    userPlayers,
   ]);
 
-  useEffect(() => {
-    if (legacyEvents.length < processedHistoryCountRef.current) {
-      processedHistoryCountRef.current = 0;
-      setPieceEventCountRef.current = 0;
-      setEventLogEntries([]);
-    }
+  const userSubstitutionEvents = useMemo<EventLogEntry[]>(() => {
+    return matchState.substitutionState.completedUserSubstitutions.flatMap(
+      (substitution, index) => {
+        const outPlayer = findPlayerById(allUserPlayers, substitution.outPlayer.id);
+        const inPlayer = findPlayerById(allUserPlayers, substitution.inPlayer.id);
 
-    const nextEntries = legacyEvents.slice(processedHistoryCountRef.current);
-    processedHistoryCountRef.current = legacyEvents.length;
+        if (!outPlayer || !inPlayer) {
+          return [];
+        }
 
-    if (nextEntries.length > 0) {
-      setEventLogEntries((current) => [...current, ...nextEntries]);
-    }
-  }, [legacyEvents]);
+        return [
+          buildSubstitutionEventLogEntry({
+            outPlayer,
+            inPlayer,
+            minute:
+              substitution.appliedAtMinute ?? substitution.requestedAtMinute,
+            outPlayerPosition:
+              userAssignedPositions.get(outPlayer.name) ??
+              substitution.outPlayer.lineupPosition ??
+              substitution.outPlayer.position,
+            inPlayerPosition:
+              userAssignedPositions.get(inPlayer.name) ??
+              substitution.inPlayer.lineupPosition ??
+              substitution.inPlayer.position,
+            index: index + 1,
+          }),
+        ];
+      }
+    );
+  }, [
+    allUserPlayers,
+    matchState.substitutionState.completedUserSubstitutions,
+    userAssignedPositions,
+  ]);
 
-  const events = eventLogEntries;
+  const opponentSubstitutionEvents = useMemo<EventLogEntry[]>(() => {
+    return matchState.substitutionState.completedOpponentSubstitutions.flatMap(
+      (substitution, index) => {
+        const outPlayer = findPlayerById(
+          allOpponentPlayers,
+          substitution.outPlayer.id
+        );
+        const inPlayer = findPlayerById(allOpponentPlayers, substitution.inPlayer.id);
+
+        if (!outPlayer || !inPlayer) {
+          return [];
+        }
+
+        return [
+          buildSubstitutionEventLogEntry({
+            outPlayer,
+            inPlayer,
+            minute:
+              substitution.appliedAtMinute ?? substitution.requestedAtMinute,
+            outPlayerPosition:
+              opponentAssignedPositions.get(outPlayer.name) ??
+              substitution.outPlayer.lineupPosition ??
+              substitution.outPlayer.position,
+            inPlayerPosition:
+              opponentAssignedPositions.get(inPlayer.name) ??
+              substitution.inPlayer.lineupPosition ??
+              substitution.inPlayer.position,
+            index: index + 101,
+          }),
+        ];
+      }
+    );
+  }, [
+    allOpponentPlayers,
+    matchState.substitutionState.completedOpponentSubstitutions,
+    opponentAssignedPositions,
+  ]);
+
+  const events = useMemo(
+    () => [
+      ...legacyEvents,
+      ...userSubstitutionEvents,
+      ...opponentSubstitutionEvents,
+    ],
+    [legacyEvents, opponentSubstitutionEvents, userSubstitutionEvents]
+  );
 
   const displayPossession = matchState.possession;
   const displayZone = matchState.zone;
@@ -753,26 +800,26 @@ export default function Match({ isMuted, onMatchFinished }: MatchProps) {
   const attackerName = currentActors.attackerName;
   const defenderName =
     currentActors.defenderName ?? currentActors.goalkeeperName ?? null;
-
-  const resolvedUserFrontPlayer = isUserAttacking
-    ? findPlayerByName(userPlayers, attackerName)
-    : findPlayerByName(userPlayers, defenderName);
-
-  const resolvedOpponentFrontPlayer = isUserAttacking
-    ? findPlayerByName(opponentPlayers, defenderName)
-    : findPlayerByName(opponentPlayers, attackerName);
+  const activeActors =
+    matchState.interactiveSetPiece?.actors ?? matchState.currentSituation.actors;
 
   const userFrontPlayer =
-    resolvedUserFrontPlayer ??
+    findPlayerByMatchPlayer(allUserPlayers, activeActors.userPlayer) ??
     (isUserAttacking
-      ? getFallbackOutfieldPlayer(userPlayers, ["ST", "CAM", "LW", "RW", "CM"])
-      : getFallbackOutfieldPlayer(userPlayers, ["CB", "CDM", "LB", "RB"]));
+      ? getFallbackOutfieldPlayer(activeUserPlayers, [
+          "ST",
+          "CAM",
+          "LW",
+          "RW",
+          "CM",
+        ])
+      : getFallbackOutfieldPlayer(activeUserPlayers, ["CB", "CDM", "LB", "RB"]));
 
   const opponentFrontPlayer =
-    resolvedOpponentFrontPlayer ??
+    findPlayerByMatchPlayer(allOpponentPlayers, activeActors.opponentPlayer) ??
     (isUserAttacking
-      ? getFallbackOutfieldPlayer(opponentPlayers, ["CB", "CDM", "LB", "RB"])
-      : getFallbackOutfieldPlayer(opponentPlayers, [
+      ? getFallbackOutfieldPlayer(allOpponentPlayers, ["CB", "CDM", "LB", "RB"])
+      : getFallbackOutfieldPlayer(allOpponentPlayers, [
           "ST",
           "CAM",
           "LW",
@@ -802,32 +849,32 @@ export default function Match({ isMuted, onMatchFinished }: MatchProps) {
   const interactiveActors = interactiveSetPiece?.actors ?? null;
 
   const modalUserPlayer = findPlayerByMatchPlayer(
-    userPlayers,
+    allUserPlayers,
     interactiveActors?.userPlayer
   );
 
   const modalOpponentPlayer = findPlayerByMatchPlayer(
-    opponentPlayers,
+    allOpponentPlayers,
     interactiveActors?.opponentPlayer
   );
 
   const modalUserGoalkeeper = findPlayerByMatchPlayer(
-    userPlayers,
+    allUserPlayers,
     interactiveActors?.userGoalkeeper
   );
 
   const modalOpponentGoalkeeper = findPlayerByMatchPlayer(
-    opponentPlayers,
+    allOpponentPlayers,
     interactiveActors?.opponentGoalkeeper
   );
 
   const modalSupportUserPlayer = findPlayerByMatchPlayer(
-    userPlayers,
+    allUserPlayers,
     interactiveActors?.supportUserPlayer
   );
 
   const modalSupportOpponentPlayer = findPlayerByMatchPlayer(
-    opponentPlayers,
+    allOpponentPlayers,
     interactiveActors?.supportOpponentPlayer
   );
 
@@ -852,7 +899,7 @@ export default function Match({ isMuted, onMatchFinished }: MatchProps) {
     }
 
     const playerPool =
-      foulResult.playerSide === "user" ? userPlayers : opponentPlayers;
+      foulResult.playerSide === "user" ? allUserPlayers : allOpponentPlayers;
     const cardedPlayer = findPlayerById(playerPool, foulResult.playerId);
 
     if (!cardedPlayer) {
@@ -864,10 +911,10 @@ export default function Match({ isMuted, onMatchFinished }: MatchProps) {
       playerName: cardedPlayer.name,
     };
   }, [
+    allUserPlayers,
     interactiveSetPiece,
     matchState.lastEvent,
-    opponentPlayers,
-    userPlayers,
+    allOpponentPlayers,
   ]);
 
   const penaltyResolution =
@@ -885,42 +932,13 @@ export default function Match({ isMuted, onMatchFinished }: MatchProps) {
       ? pendingSetPieceResolution.resolution
       : null;
 
-  function appendSetPieceEventToLog(
-    flow: InteractiveSetPieceState,
-    resolution: InteractiveSetPieceResolutionInput | null
-  ) {
-    const nextIndex = setPieceEventCountRef.current + 1;
-    const entry = buildSetPieceEventLogEntry({
-      flow,
-      resolution,
-      userPlayers,
-      opponentPlayers,
-      userAssignedPositions,
-      opponentAssignedPositions,
-      nextTurn: matchState.context.turn + 1,
-      index: nextIndex,
-    });
-
-    if (!entry) {
-      return;
-    }
-
-    setPieceEventCountRef.current = nextIndex;
-    setEventLogEntries((current) => [...current, entry]);
-  }
-
   function handleContinueInteractiveSetPiece() {
-    if (interactiveSetPiece?.stage === "pre" && interactiveSetPiece.isQuickFlow) {
-      appendSetPieceEventToLog(interactiveSetPiece, null);
-    }
-
     continueInteractiveSetPiece();
   }
 
   function handleInteractiveResolutionContinue() {
     if (!pendingSetPieceResolution || !interactiveSetPiece) return;
 
-    appendSetPieceEventToLog(interactiveSetPiece, pendingSetPieceResolution);
     resolveInteractiveSetPieceChoice(pendingSetPieceResolution);
   }
 
@@ -1121,10 +1139,27 @@ export default function Match({ isMuted, onMatchFinished }: MatchProps) {
     <div className="match-screen">
       <MatchLineup
         title="Your lineup"
-        players={userSquad.pitch}
-        positions={userFormation.positions}
+        players={displayedUserLineupPlayers}
+        positions={displayedUserLineupPositions}
+        starterMatchPlayers={displayedUserStarters}
+        benchPlayers={displayedUserBenchPlayers}
         playerMatchStats={matchState.playerMatchStats}
         disciplinaryState={matchState.disciplinaryState}
+        subsUsed={userSubstitutionsUsed}
+        maxSubs={matchState.substitutionState.maxUserSubstitutions}
+        substitutedOutIds={substitutedOutUserPlayerIds}
+        substitutedInIds={substitutedInUserPlayerIds}
+        completedSubstitutions={
+          matchState.substitutionState.completedUserSubstitutions
+        }
+        subbedOffPlayers={userSubbedOffPlayers}
+        pendingInIds={pendingUserSubstitutionInIds}
+        isMatchFinished={matchState.isFinished}
+        finalMinute={matchState.minute}
+        finalTeamGoalsConceded={score.opponent}
+        mvpPlayerId={userMvpPlayerId}
+        canSubstitute={phase === "playing"}
+        onSubstitute={queueUserSubstitution}
       />
 
       <main className="match-main-content">
@@ -1173,11 +1208,24 @@ export default function Match({ isMuted, onMatchFinished }: MatchProps) {
 
       <MatchLineup
         title="Opp. Lineup"
-        players={opponent.players}
-        positions={oppPositions}
+        players={displayedOpponentLineupPlayers}
+        positions={displayedOpponentLineupPositions}
         isOpponent={true}
+        starterMatchPlayers={displayedOpponentStarters}
         playerMatchStats={matchState.playerMatchStats}
         disciplinaryState={matchState.disciplinaryState}
+        subsUsed={opponentSubstitutionsUsed}
+        maxSubs={matchState.substitutionState.maxOpponentSubstitutions}
+        substitutedOutIds={substitutedOutOpponentPlayerIds}
+        substitutedInIds={substitutedInOpponentPlayerIds}
+        completedSubstitutions={
+          matchState.substitutionState.completedOpponentSubstitutions
+        }
+        subbedOffPlayers={opponentSubbedOffPlayers}
+        isMatchFinished={matchState.isFinished}
+        finalMinute={matchState.minute}
+        finalTeamGoalsConceded={score.user}
+        mvpPlayerId={opponentMvpPlayerId}
       />
 
       <PreInteractiveModal
@@ -1296,11 +1344,11 @@ export default function Match({ isMuted, onMatchFinished }: MatchProps) {
         opponentScore={score.opponent}
         opponentName={opponent.name}
         playerMatchStats={matchState.playerMatchStats}
-        userPlayers={userPlayers}
-        opponentPlayers={opponentPlayers}
+        userPlayers={summaryUserParticipants.map(({ player }) => player)}
+        opponentPlayers={allOpponentPlayers}
         history={history}
         onOpen={() => onMatchFinished?.()}
-        userPositions={userSlotPositions}
+        userPositions={summaryUserParticipants.map(({ position }) => position)}
         opponentPositions={oppPositions}
       />
     </div>

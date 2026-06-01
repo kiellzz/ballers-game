@@ -438,6 +438,30 @@ export interface MatchGoalRecord {
   fromLane: Lane;
 }
 
+export interface MatchSubstitution {
+  outPlayer: MatchPlayer;
+  inPlayer: MatchPlayer;
+  requestedAtTurn: number;
+  requestedAtMinute: number;
+  appliedAtMinute?: number | null;
+}
+
+export interface MatchSubstitutionState {
+  maxUserSubstitutions: number;
+  userBench: MatchPlayer[];
+  pendingUserSubstitutions: MatchSubstitution[];
+  completedUserSubstitutions: MatchSubstitution[];
+  substitutedOutUserPlayerIds: number[];
+  substitutedInUserPlayerIds: number[];
+  maxOpponentSubstitutions: number;
+  opponentBench: MatchPlayer[];
+  pendingOpponentSubstitutions: MatchSubstitution[];
+  completedOpponentSubstitutions: MatchSubstitution[];
+  substitutedOutOpponentPlayerIds: number[];
+  substitutedInOpponentPlayerIds: number[];
+  opponentSubstitutionWindows: number[];
+}
+
 export interface MatchState {
   context: MatchContext;
   userTeam: MatchTeam;
@@ -450,6 +474,7 @@ export interface MatchState {
   lastTouchSide: PossessionSide | null;
   playerMatchStats: PlayerMatchStats;
   disciplinaryState: MatchDisciplinaryState;
+  substitutionState: MatchSubstitutionState;
   lastGoal: MatchGoalRecord | null;
 }
 

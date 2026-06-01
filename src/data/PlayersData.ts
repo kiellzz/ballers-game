@@ -115,7 +115,7 @@ export const playersData: Player[] = [
       pace: 91,
       shooting: 93,
       passing: 65,
-      dribbling: 77,
+      dribbling: 79,
       defending: 45,
       physical: 90
     },
@@ -396,7 +396,7 @@ export const playersData: Player[] = [
   {
     id: 24,
     name: "Trent Alexander-Arnold",
-    overall: 87,
+    overall: 86,
     position: "RB",
     secondaryPositions: ["RM", "CDM"],
     nationality: "England",
@@ -405,7 +405,7 @@ export const playersData: Player[] = [
       shooting: 74,
       passing: 89,
       dribbling: 82,
-      defending: 76,
+      defending: 78,
       physical: 68
     },
     height: 180,
@@ -448,7 +448,7 @@ export const playersData: Player[] = [
   {
     id: 27,
     name: "Virgil van Dijk",
-    overall: 88,
+    overall: 87,
     position: "CB",
     nationality: "Netherlands",
     stats: {
@@ -456,8 +456,8 @@ export const playersData: Player[] = [
       shooting: 60,
       passing: 72,
       dribbling: 68,
-      defending: 89,
-      physical: 89
+      defending: 88,
+      physical: 86
     },
     height: 194,
   },
@@ -497,16 +497,16 @@ export const playersData: Player[] = [
     id: 30,
     name: "Gabriel Magalhães",
     displayFullName: true,
-    overall: 88,
+    overall: 89,
     position: "CB",
     nationality: "Brazil",
     stats: {
-      pace: 70,
+      pace: 72,
       shooting: 55,
       passing: 66,
       dribbling: 63,
-      defending: 88,
-      physical: 90
+      defending: 90,
+      physical: 91
     },
     height: 190,
   },
@@ -529,7 +529,7 @@ export const playersData: Player[] = [
   {
     id: 32,
     name: "Willian Pacho",
-    overall: 87,
+    overall: 88,
     position: "CB",
     nationality: "Ecuador",
     stats: {
@@ -537,7 +537,7 @@ export const playersData: Player[] = [
       shooting: 49,
       passing: 69,
       dribbling: 66,
-      defending: 86,
+      defending: 89,
       physical: 88
     },
     height: 188,
@@ -1127,15 +1127,15 @@ export const playersData: Player[] = [
   {
     id: 68,
     name: "Bukayo Saka",
-    overall: 87,
+    overall: 85,
     position: "RW",
     secondaryPositions: ["RM"],
     nationality: "England",
     stats: {
       pace: 86,
-      shooting: 83,
-      passing: 82,
-      dribbling: 87,
+      shooting: 82,
+      passing: 80,
+      dribbling: 85,
       defending: 52,
       physical: 68
     },
@@ -1162,7 +1162,7 @@ export const playersData: Player[] = [
   {
     id: 70,
     name: "Casemiro",
-    overall: 84,
+    overall: 83,
     position: "CDM",
     secondaryPositions: ["CB"],
     nationality: "Brazil",
@@ -1213,14 +1213,14 @@ export const playersData: Player[] = [
   {
     id: 73,
     name: "Cole Palmer",
-    overall: 86,
+    overall: 85,
     position: "CAM",
     secondaryPositions: ["RW", "RM"],
     nationality: "England",
     stats: {
       pace: 76,
       shooting: 83,
-      passing: 85,
+      passing: 84,
       dribbling: 86,
       defending: 40,
       physical: 66
@@ -1328,16 +1328,16 @@ export const playersData: Player[] = [
   {
     id: 80,
     name: "David Raya",
-    overall: 84,
+    overall: 86,
     position: "GK",
     nationality: "Spain",
     stats: {
-      diving: 83,
+      diving: 85,
       handling: 80,
       kicking: 76,
-      reflexes: 84,
-      speed: 52,
-      positioning: 82
+      reflexes: 87,
+      speed: 57,
+      positioning: 84
     },
     height: 183,
   },
@@ -1393,15 +1393,15 @@ export const playersData: Player[] = [
   {
     id: 84,
     name: "Desiré Doué",
-    overall: 84,
+    overall: 86,
     position: "LW",
     secondaryPositions: ["LM"],
     nationality: "France",
     stats: {
-      pace: 86,
-      shooting: 79,
-      passing: 76,
-      dribbling: 88,
+      pace: 88,
+      shooting: 80,
+      passing: 79,
+      dribbling: 90,
       defending: 30,
       physical: 66
     },
@@ -2064,16 +2064,16 @@ export const playersData: Player[] = [
     id: 124,
     name: "João Neves",
     displayFullName: true,
-    overall: 86,
+    overall: 87,
     position: "CDM",
     secondaryPositions: ["CM"],
     nationality: "Portugal",
     stats: {
-      pace: 77,
+      pace: 79,
       shooting: 70,
-      passing: 81,
+      passing: 83,
       dribbling: 84,
-      defending: 84,
+      defending: 85,
       physical: 80
     },
     height: 174,
@@ -2293,17 +2293,17 @@ export const playersData: Player[] = [
   {
     id: 138,
     name: "Jurrien Timber",
-    overall: 83,
+    overall: 84,
     position: "RB",
     secondaryPositions: ["CB"],
     nationality: "Netherlands",
     stats: {
       pace: 80,
       shooting: 58,
-      passing: 72,
-      dribbling: 76,
-      defending: 82,
-      physical: 74
+      passing: 76,
+      dribbling: 80,
+      defending: 84,
+      physical: 76
     },
     height: 179,
   },
@@ -2412,17 +2412,17 @@ export const playersData: Player[] = [
   {
     id: 145,
     name: "Khvicha Kvaratskhelia",
-    overall: 86,
+    overall: 89,
     position: "LW",
     secondaryPositions: ["RW", "CAM"],
     nationality: "Georgia",
     stats: {
-      pace: 86,
-      shooting: 80,
-      passing: 78,
-      dribbling: 88,
+      pace: 88,
+      shooting: 83,
+      passing: 81,
+      dribbling: 90,
       defending: 34,
-      physical: 68
+      physical: 71
     },
     height: 181,
   },
@@ -2645,24 +2645,24 @@ export const playersData: Player[] = [
   {
     id: 159,
     name: "Luis Diaz",
-    overall: 85,
+    overall: 87,
     position: "LW",
     secondaryPositions: ["LM"],
     nationality: "Colombia",
     stats: {
-      pace: 88,
-      shooting: 80,
-      passing: 74,
-      dribbling: 86,
+      pace: 91,
+      shooting: 82,
+      passing: 78,
+      dribbling: 87,
       defending: 34,
-      physical: 70
+      physical: 73
     },
     height: 179,
   },
   {
     id: 160,
     name: "Luka Modrić",
-    overall: 86,
+    overall: 84,
     position: "CM",
     secondaryPositions: ["CAM"],
     nationality: "Croatia",
@@ -2905,7 +2905,7 @@ export const playersData: Player[] = [
     position: "ST",
     nationality: "Sweden",
     stats: {
-      pace: 87, shooting: 86, passing: 75, dribbling: 82, defending: 45, physical: 89
+      pace: 87, shooting: 86, passing: 75, dribbling: 78, defending: 45, physical: 89
     },
     height: 187,
   },
@@ -3030,12 +3030,12 @@ export const playersData: Player[] = [
   {
     id: 186,
     name: "Scott McTominay",
-    overall: 84,
+    overall: 86,
     position: "CM",
     secondaryPositions: ["CAM"],
     nationality: "Scotland",
     stats: {
-      pace: 78, shooting: 81, passing: 82, dribbling: 80, defending: 77, physical: 84
+      pace: 78, shooting: 84, passing: 82, dribbling: 83, defending: 79, physical: 84
     },
     height: 185,
   },
@@ -3401,11 +3401,11 @@ export const playersData: Player[] = [
   {
     id: 218,
     name: "Rayan Cherki",
-    overall: 84,
+    overall: 85,
     position: "CAM",
     nationality: "France",
     stats: {
-      pace: 75, shooting: 80, passing: 82, dribbling: 90, defending: 30, physical: 68
+      pace: 75, shooting: 80, passing: 85, dribbling: 90, defending: 30, physical: 68
     },
     height: 176,
   },
@@ -3448,11 +3448,11 @@ export const playersData: Player[] = [
   {
     id: 222,
     name: "Robert Lewandowski",
-    overall: 86,
+    overall: 84,
     position: "ST",
     nationality: "Poland",
     stats: {
-      pace: 75, shooting: 88, passing: 78, dribbling: 85, defending: 44, physical: 81
+      pace: 75, shooting: 86, passing: 78, dribbling: 83, defending: 44, physical: 81
     },
     height: 185,
   },
@@ -3553,12 +3553,12 @@ export const playersData: Player[] = [
   {
     id: 231,
     name: "Matheus Cunha",
-    overall: 81,
+    overall: 82,
     position: "ST",
     secondaryPositions: ["CAM", "LW"],
     nationality: "Brazil",
     stats: {
-      pace: 82, shooting: 80, passing: 76, dribbling: 84, defending: 45, physical: 77
+      pace: 82, shooting: 80, passing: 79, dribbling: 84, defending: 45, physical: 77
     },
     height: 183,
   },
@@ -3682,12 +3682,12 @@ export const playersData: Player[] = [
   {
     id: 242,
     name: "Myles Lewis-Skelly",
-    overall: 73,
+    overall: 77,
     position: "LB",
     secondaryPositions: ["CDM", "CM"],
     nationality: "England",
     stats: {
-      pace: 78, shooting: 55, passing: 71, dribbling: 75, defending: 65, physical: 62
+      pace: 78, shooting: 55, passing: 76, dribbling: 78, defending: 71, physical: 62
     },
     height: 177,
   },
@@ -4669,7 +4669,7 @@ export const playersData: Player[] = [
     stats: {
       pace: 74,
       shooting: 80,
-      passing: 88,
+      passing: 89,
       dribbling: 89,
       defending: 79,
       physical: 75

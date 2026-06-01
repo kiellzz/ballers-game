@@ -65,20 +65,46 @@ export const OpponentLineup: React.FC<OpponentLineupProps> = ({
 
         <div className="opp-modal__body">
           <div className="opp-lineup-scroll">
-            {opponent.players.map((player, index) => (
-              <div key={`${player.id}-${index}`} className="opp-player-row">
-                <span className={`opp-pos-badge opp-pos-badge--${getPosGroup(player.position)}`}>
-                  {player.position}
-                </span>
-                <span className="opp-player-name">{player.name}</span>
-                <div className="opp-player-right">
-                  <span className="opp-player-ovr">{player.overall}</span>
-                  <div className="opp-flag-wrap">
-                    <img src={getFlagUrl(player.nationality)} alt={player.nationality} />
+            <div className="opp-lineup-section">
+              <p className="opp-lineup-section__title">Starting XI</p>
+              {opponent.players.map((player, index) => (
+                <div key={`${player.id}-${index}`} className="opp-player-row">
+                  <span className={`opp-pos-badge opp-pos-badge--${getPosGroup(player.position)}`}>
+                    {player.position}
+                  </span>
+                  <span className="opp-player-name">{player.name}</span>
+                  <div className="opp-player-right">
+                    <span className="opp-player-ovr">{player.overall}</span>
+                    <div className="opp-flag-wrap">
+                      <img src={getFlagUrl(player.nationality)} alt={player.nationality} />
+                    </div>
                   </div>
                 </div>
+              ))}
+            </div>
+
+            {opponent.bench.length > 0 ? (
+              <div className="opp-lineup-section opp-lineup-section--bench">
+                <p className="opp-lineup-section__title">Bench</p>
+                {opponent.bench.map((player, index) => (
+                  <div
+                    key={`bench-${player.id}-${index}`}
+                    className="opp-player-row opp-player-row--bench"
+                  >
+                    <span className={`opp-pos-badge opp-pos-badge--${getPosGroup(player.position)}`}>
+                      {player.position}
+                    </span>
+                    <span className="opp-player-name">{player.name}</span>
+                    <div className="opp-player-right">
+                      <span className="opp-player-ovr">{player.overall}</span>
+                      <div className="opp-flag-wrap">
+                        <img src={getFlagUrl(player.nationality)} alt={player.nationality} />
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
+            ) : null}
           </div>
         </div>
 

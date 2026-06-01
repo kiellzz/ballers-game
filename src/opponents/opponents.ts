@@ -1,4 +1,4 @@
-import type { Player } from "../types/PlayerTypes";
+import type { Player, Position } from "../types/PlayerTypes";
 import { FORMATIONS, type FormationKey } from "../utils/formations";
 import { playersData } from "../data/PlayersData";
 import { canPlayerPlayInPosition } from "../utils/playerValidation";
@@ -8,8 +8,11 @@ export interface OpponentTeam {
   name: string;
   formation: FormationKey;
   players: Player[];
+  bench: Player[];
   logo?: string;
 }
+
+const OPPONENT_BENCH_SIZE = 5;
 
 // Embaralhamento Fisher-Yates — garante ordem diferente a cada chamada
 const shuffle = <T>(arr: T[]): T[] => {
@@ -22,6 +25,103 @@ const shuffle = <T>(arr: T[]): T[] => {
 };
 
 const pickRandom = <T>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
+
+function buildOpponentBench(params: {
+  formationPositions: Position[];
+  usedIds: Set<number>;
+  poolMin: number;
+  poolMax: number;
+}): Player[] {
+  const { formationPositions, usedIds, poolMin, poolMax } = params;
+  const pool = shuffle(
+    playersData.filter(
+      (player) =>
+        !usedIds.has(player.id) &&
+        player.overall >= poolMin &&
+        player.overall <= poolMax
+    )
+  );
+  const bench: Player[] = [];
+  const benchTargets = buildOpponentBenchTargets(formationPositions);
+
+  for (const targetPosition of benchTargets) {
+    const nextPlayer =
+      pool.find(
+        (player) =>
+          !usedIds.has(player.id) &&
+          canPlayerPlayInPosition(player, targetPosition)
+      ) ??
+      shuffle(playersData).find(
+        (player) =>
+          !usedIds.has(player.id) &&
+          canPlayerPlayInPosition(player, targetPosition)
+      ) ??
+      playersData.find((player) => !usedIds.has(player.id));
+
+    if (!nextPlayer) {
+      continue;
+    }
+
+    bench.push(nextPlayer);
+    usedIds.add(nextPlayer.id);
+
+    if (bench.length >= OPPONENT_BENCH_SIZE) {
+      return bench;
+    }
+  }
+
+  if (bench.length >= OPPONENT_BENCH_SIZE) {
+    return bench;
+  }
+
+  for (const player of pool) {
+    if (usedIds.has(player.id)) {
+      continue;
+    }
+
+    bench.push(player);
+    usedIds.add(player.id);
+
+    if (bench.length >= OPPONENT_BENCH_SIZE) {
+      break;
+    }
+  }
+
+  return bench;
+}
+
+function buildOpponentBenchTargets(formationPositions: Position[]): Position[] {
+  const firstIndexByPosition = new Map<Position, number>();
+  const countsByPosition = new Map<Position, number>();
+
+  formationPositions.forEach((position, index) => {
+    if (position === "GK") {
+      return;
+    }
+
+    if (!firstIndexByPosition.has(position)) {
+      firstIndexByPosition.set(position, index);
+    }
+
+    countsByPosition.set(position, (countsByPosition.get(position) ?? 0) + 1);
+  });
+
+  return [...countsByPosition.entries()]
+    .sort((a, b) => {
+      const countDelta = b[1] - a[1];
+
+      if (countDelta !== 0) {
+        return countDelta;
+      }
+
+      return (
+        (firstIndexByPosition.get(a[0]) ?? Number.MAX_SAFE_INTEGER) -
+        (firstIndexByPosition.get(b[0]) ?? Number.MAX_SAFE_INTEGER)
+      );
+    })
+    .map(([position]) => position)
+    .slice(0, OPPONENT_BENCH_SIZE);
+}
 
 // Formações agrupadas por tier para variar sem quebrar a média
 const TIER_FORMATIONS: Record<string, FormationKey[]> = {
@@ -131,7 +231,15 @@ const createRandomTeam = (
     finalPlayers = bestAttempt;
   }
 
-  return { id, name, formation: formationKey, players: finalPlayers };
+  const usedIds = new Set(finalPlayers.map((player) => player.id));
+  const bench = buildOpponentBench({
+    formationPositions: formation.positions,
+    usedIds,
+    poolMin,
+    poolMax,
+  });
+
+  return { id, name, formation: formationKey, players: finalPlayers, bench };
 };
 
 export const MOCK_OPPONENTS: OpponentTeam[] = [

@@ -126,6 +126,33 @@
   background: linear-gradient(90deg, rgba(104, 18, 34, 0.84) 0%, rgba(42, 10, 18, 0.92) 100%);
 }
 
+.event-log-item--substitution {
+  background: linear-gradient(90deg, rgba(14, 60, 38, 0.76) 0%, rgba(8, 30, 20, 0.88) 100%);
+}
+
+.event-log-item--substitution:hover {
+  background: linear-gradient(90deg, rgba(16, 76, 46, 0.84) 0%, rgba(10, 38, 24, 0.92) 100%);
+}
+
+.event-log-item--goal {
+  background:
+    linear-gradient(90deg, rgba(20, 62, 96, 0.84) 0%, rgba(13, 39, 72, 0.9) 38%, rgba(10, 23, 42, 0.92) 100%);
+  border: 1px solid rgba(96, 165, 250, 0.24);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 0 0 1px rgba(96, 165, 250, 0.08),
+    0 0 18px rgba(56, 189, 248, 0.14);
+}
+
+.event-log-item--goal:hover {
+  background:
+    linear-gradient(90deg, rgba(24, 76, 116, 0.88) 0%, rgba(15, 48, 86, 0.94) 38%, rgba(11, 28, 50, 0.96) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 0 0 1px rgba(96, 165, 250, 0.12),
+    0 0 22px rgba(56, 189, 248, 0.18);
+}
+
 .event-log-minute {
   flex: 0 0 auto;
   color: #dbc16b;
@@ -247,6 +274,18 @@
 .event-log-outcome--red {
   color: #fca5a5;
   text-shadow: 0 0 12px rgba(239, 68, 68, 0.2);
+}
+
+.event-log-outcome--substitution {
+  color: #86efac;
+  text-shadow: 0 0 12px rgba(34, 197, 94, 0.18);
+}
+
+.event-log-outcome--goal {
+  color: #7dd3fc;
+  text-shadow:
+    0 0 8px rgba(56, 189, 248, 0.3),
+    0 0 16px rgba(96, 165, 250, 0.18);
 }
 
 .event-log__empty {

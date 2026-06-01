@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { buildHistoryEventLogEntries } from "../../components/match/eventLogEntries";
+import { buildHistoryEventLogEntries } from "../ui_ux/eventLogEntries";
 import type { MatchHistoryEntry } from "../ui_ux/useMatchEngine";
 import type { Player } from "../../types/PlayerTypes";
 

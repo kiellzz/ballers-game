@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { getDisplayName } from "../../utils/getDisplayName";
 import MatchEventPlayerCard from "./MatchEventPlayerCard";
-import type { EventLogEntry } from "./eventLogEntries";
+import type { EventLogEntry } from "../../match-engine/ui_ux/eventLogEntries";
 import "./EventLog.css";
 
-export type { EventLogEntry } from "./eventLogEntries";
+export type { EventLogEntry } from "../../match-engine/ui_ux/eventLogEntries";
 
 interface EventLogProps {
   events: EventLogEntry[];
@@ -12,7 +12,20 @@ interface EventLogProps {
 
 export const EventLog = ({ events }: EventLogProps) => {
   const [isEventLogVisible, setIsEventLogVisible] = useState(false);
-  const orderedEvents = [...events].reverse();
+  const orderedEvents = events
+    .map((event, index) => ({ event, index }))
+    .sort((left, right) => {
+      if (right.event.minute !== left.event.minute) {
+        return right.event.minute - left.event.minute;
+      }
+
+      return right.index - left.index;
+    })
+    .map(({ event }) => event);
+
+  function isGoalEvent(event: EventLogEntry): boolean {
+    return event.kind === "duel" && event.outcome === "Goal";
+  }
 
   return (
     <section className="match-events">
@@ -39,6 +52,53 @@ export const EventLog = ({ events }: EventLogProps) => {
             <p className="event-log__empty">No match events yet.</p>
           ) : (
             orderedEvents.map((event) => {
+              if (event.kind === "substitution") {
+                const outPlayerName = getDisplayName(event.outPlayer);
+                const inPlayerName = getDisplayName(event.inPlayer);
+
+                return (
+                  <div
+                    key={event.id}
+                    className="event-log-item event-log-item--substitution"
+                  >
+                    <span className="event-log-minute">[{event.minute}']</span>
+
+                    <div className="event-log-player">
+                      <MatchEventPlayerCard
+                        player={event.outPlayer}
+                        assignedPosition={event.outPlayerPosition}
+                      />
+                      <span
+                        className="event-log-name"
+                        title={event.outPlayer.name}
+                      >
+                        {outPlayerName}
+                      </span>
+                    </div>
+
+                    <span className="event-log-arrow">-&gt;</span>
+
+                    <div className="event-log-player">
+                      <MatchEventPlayerCard
+                        player={event.inPlayer}
+                        assignedPosition={event.inPlayerPosition}
+                      />
+                      <span className="event-log-name" title={event.inPlayer.name}>
+                        {inPlayerName}
+                      </span>
+                    </div>
+
+                    <span className="event-log-arrow">-&gt;</span>
+                    <span
+                      className="event-log-outcome event-log-outcome--substitution"
+                      title={event.outcome}
+                    >
+                      {event.outcome}
+                    </span>
+                  </div>
+                );
+              }
+
               if (event.kind === "card") {
                 const playerName = getDisplayName(event.player);
 
@@ -81,9 +141,15 @@ export const EventLog = ({ events }: EventLogProps) => {
 
               const attackerName = getDisplayName(event.attacker);
               const defenderName = getDisplayName(event.defender);
+              const goalEvent = isGoalEvent(event);
 
               return (
-                <div key={event.id} className="event-log-item">
+                <div
+                  key={event.id}
+                  className={`event-log-item${
+                    goalEvent ? " event-log-item--goal" : ""
+                  }`}
+                >
                   <span className="event-log-minute">[{event.minute}']</span>
 
                   <div className="event-log-player">
@@ -113,7 +179,12 @@ export const EventLog = ({ events }: EventLogProps) => {
                     {event.action}
                   </span>
                   <span className="event-log-arrow">-&gt;</span>
-                  <span className="event-log-outcome" title={event.outcome}>
+                  <span
+                    className={`event-log-outcome${
+                      goalEvent ? " event-log-outcome--goal" : ""
+                    }`}
+                    title={event.outcome}
+                  >
                     {event.outcome}
                   </span>
                 </div>

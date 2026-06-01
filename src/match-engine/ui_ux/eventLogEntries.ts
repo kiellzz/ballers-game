@@ -3,9 +3,9 @@ import type {
   CardType,
   DismissalType,
   ShotResult,
-} from "../../match-engine/matchTypes";
-import { getMatchActionLabel, getMatchOutcomeLabel } from "../../match-engine/ui_ux/narrator";
-import type { MatchHistoryEntry } from "../../match-engine/ui_ux/useMatchEngine";
+} from "../matchTypes";
+import { getMatchActionLabel, getMatchOutcomeLabel } from "./narrator";
+import type { MatchHistoryEntry } from "./useMatchEngine";
 import type { Player } from "../../types/PlayerTypes";
 
 export interface DuelEventLogEntry {
@@ -31,7 +31,21 @@ export interface CardEventLogEntry {
   cardType: Exclude<CardType, "none">;
 }
 
-export type EventLogEntry = DuelEventLogEntry | CardEventLogEntry;
+export interface SubstitutionEventLogEntry {
+  id: string;
+  kind: "substitution";
+  minute: number;
+  outPlayer: Player;
+  inPlayer: Player;
+  outPlayerPosition?: string;
+  inPlayerPosition?: string;
+  outcome: string;
+}
+
+export type EventLogEntry =
+  | DuelEventLogEntry
+  | CardEventLogEntry
+  | SubstitutionEventLogEntry;
 
 interface BuildHistoryEventLogEntriesParams {
   entry: MatchHistoryEntry;
@@ -202,5 +216,9 @@ export function buildHistoryEventLogEntries(
   const duelEntry = buildHistoryDuelEventLogEntry(params);
   const cardEntry = buildHistoryCardEventLogEntry(params);
 
-  return [duelEntry, cardEntry].filter((entry): entry is EventLogEntry => entry !== null);
+  return [duelEntry, cardEntry].filter(
+    (
+      entry
+    ): entry is DuelEventLogEntry | CardEventLogEntry => entry !== null
+  );
 }

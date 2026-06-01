@@ -29,6 +29,7 @@ interface CreateSituationParams {
   forcedOpponentPlayerId?: number | null;
   excludedUserPlayerId?: number | null;
   excludedOpponentPlayerId?: number | null;
+  lastAction?: ActionType | null;
   random?: () => number;
 }
 
@@ -58,6 +59,7 @@ export function createSituation(
     forcedOpponentPlayerId = null,
     excludedUserPlayerId = null,
     excludedOpponentPlayerId = null,
+    lastAction = null,
     random = Math.random,
   } = params;
 
@@ -105,6 +107,7 @@ export function createSituation(
     zone,
     lane,
     possession,
+    lastAction,
     random,
   });
 
@@ -124,15 +127,21 @@ function getAvailableActions(params: {
   zone: Zone;
   lane: Lane;
   possession: PossessionSide;
+  lastAction?: ActionType | null;
   random: () => number;
 }): ActionType[] {
-  const { zone, lane, possession, random } = params;
+  const { zone, lane, possession, lastAction, random } = params;
 
   const possibleActions = getActionsForContext({
     zone,
     lane,
     possession,
   }).filter((action) => {
+    // Previne que "long_shot" e "emergency_clearance" sejam feitas duas vezes seguidas
+    if ((action.type === "long_shot" || action.type === "emergency_clearance") && lastAction === action.type) {
+      return false;
+    }
+
     if (action.type !== "counterattack") {
       return true;
     }

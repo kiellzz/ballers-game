@@ -39,7 +39,7 @@ export const FORMATIONS: Record<FormationKey, FormationConfig> = {
     label: '4-3-3',
     positions: ['GK', 'LB', 'CB', 'CB', 'RB', 'CM', 'CM', 'CM', 'LW', 'ST', 'RW'],
     layout: [
-      { bottom: '-5%', left: '50%' }, // GK
+      { bottom: '-8%', left: '50%' }, // GK
       { bottom: '11%', left: '22%' }, // LB
       { bottom: '9%', left: '40%' },  // CB
       { bottom: '9%', left: '60%' },  // CB
@@ -57,7 +57,7 @@ export const FORMATIONS: Record<FormationKey, FormationConfig> = {
     label: '4-3-3 (2)',
     positions: ['GK', 'LB', 'CB', 'CB', 'RB', 'CDM', 'CM', 'CM', 'LW', 'ST', 'RW'],
     layout: [
-      { bottom: '-5%', left: '50%' }, // GK
+      { bottom: '-8%', left: '50%' }, // GK
       { bottom: '11%', left: '22%' }, // LB
       { bottom: '9%', left: '40%' },  // CB
       { bottom: '9%', left: '60%' },  // CB
@@ -75,7 +75,7 @@ export const FORMATIONS: Record<FormationKey, FormationConfig> = {
     label: '4-3-3 (3)',
     positions: ['GK', 'LB', 'CB', 'CB', 'RB', 'CM', 'CM', 'CAM', 'LW', 'ST', 'RW'],
     layout: [
-      { bottom: '-5%', left: '50%' },
+      { bottom: '-8%', left: '50%' },
       { bottom: '11%', left: '22%' },
       { bottom: '9%', left: '40%' },
       { bottom: '9%', left: '60%' },
@@ -93,7 +93,7 @@ export const FORMATIONS: Record<FormationKey, FormationConfig> = {
     label: '4-3-3 (4)',
     positions: ['GK', 'LB', 'CB', 'CB', 'RB', 'CM', 'CDM', 'CDM', 'LW', 'ST', 'RW'],
     layout: [
-      { bottom: '-5%', left: '50%' },
+      { bottom: '-8%', left: '50%' },
       { bottom: '11%', left: '22%' },
       { bottom: '9%', left: '40%' },
       { bottom: '9%', left: '60%' },
@@ -111,7 +111,7 @@ export const FORMATIONS: Record<FormationKey, FormationConfig> = {
     label: '4-4-2',
     positions: ['GK', 'LB', 'CB', 'CB', 'RB', 'LM', 'CM', 'CM', 'RM', 'ST', 'ST'],
     layout: [
-      { bottom: '-5%', left: '50%' },
+      { bottom: '-8%', left: '50%' },
       { bottom: '11%', left: '22%' },
       { bottom: '9%', left: '40%' },
       { bottom: '9%', left: '60%' },
@@ -129,7 +129,7 @@ export const FORMATIONS: Record<FormationKey, FormationConfig> = {
     label: '4-4-2 (2)',
     positions: ['GK', 'LB', 'CB', 'CB', 'RB', 'CDM', 'CDM', 'CAM', 'CAM', 'ST', 'ST'],
     layout: [
-      { bottom: '-5%', left: '50%' },
+      { bottom: '-8%', left: '50%' },
       { bottom: '11%', left: '22%' },
       { bottom: '9%', left: '40%' },
       { bottom: '9%', left: '60%' },
@@ -147,7 +147,7 @@ export const FORMATIONS: Record<FormationKey, FormationConfig> = {
     label: '4-4-2 (3)',
     positions: ['GK', 'LB', 'CB', 'CB', 'RB', 'CDM', 'CDM', 'LM', 'RM', 'ST', 'ST'],
     layout: [
-      { bottom: '-5%', left: '50%' },
+      { bottom: '-8%', left: '50%' },
       { bottom: '11%', left: '22%' },
       { bottom: '9%', left: '40%' },
       { bottom: '9%', left: '60%' },
@@ -165,7 +165,7 @@ export const FORMATIONS: Record<FormationKey, FormationConfig> = {
     label: '4-2-4',
     positions: ['GK', 'LB', 'CB', 'CB', 'RB', 'CM', 'CM', 'LW', 'ST', 'ST', 'RW'],
     layout: [
-      { bottom: '-5%', left: '50%' },
+      { bottom: '-8%', left: '50%' },
       { bottom: '11%', left: '22%' },
       { bottom: '9%', left: '40%' },
       { bottom: '9%', left: '60%' },
@@ -183,7 +183,7 @@ export const FORMATIONS: Record<FormationKey, FormationConfig> = {
     label: '4-1-2-1-2',
     positions: ['GK', 'LB', 'CB', 'CB', 'RB', 'CDM', 'CM', 'CM', 'CAM', 'ST', 'ST'],
     layout: [
-      { bottom: '-5%', left: '50%' },
+      { bottom: '-8%', left: '50%' },
       { bottom: '11%', left: '22%' },
       { bottom: '9%', left: '40%' },
       { bottom: '9%', left: '60%' },
@@ -201,7 +201,7 @@ export const FORMATIONS: Record<FormationKey, FormationConfig> = {
     label: '5-3-2',
     positions: ['GK', 'LB', 'CB', 'CB', 'CB', 'RB', 'CM', 'CM', 'CM', 'ST', 'ST'],
     layout: [
-      { bottom: '-5%', left: '50%' },
+      { bottom: '-8%', left: '50%' },
       { bottom: '11%', left: '14%' }, // LB
       { bottom: '9%', left: '32%' },  // CB
       { bottom: '9%', left: '50%' },  // CB
@@ -219,7 +219,7 @@ export const FORMATIONS: Record<FormationKey, FormationConfig> = {
     label: '5-3-2 (2)',
     positions: ['GK', 'LB', 'CB', 'CB', 'CB', 'RB', 'CM', 'CM', 'CAM', 'ST', 'ST'],
     layout: [
-      { bottom: '-5%', left: '50%' },
+      { bottom: '-8%', left: '50%' },
       { bottom: '11%', left: '14%' },
       { bottom: '9%', left: '32%' },
       { bottom: '9%', left: '50%' },
@@ -237,7 +237,7 @@ export const FORMATIONS: Record<FormationKey, FormationConfig> = {
     label: '5-3-2 (3)',
     positions: ['GK', 'LB', 'CB', 'CB', 'CB', 'RB', 'CDM', 'CM', 'CM', 'ST', 'ST'],
     layout: [
-      { bottom: '-5%', left: '50%' },
+      { bottom: '-8%', left: '50%' },
       { bottom: '11%', left: '14%' },
       { bottom: '9%', left: '32%' },
       { bottom: '9%', left: '50%' },
@@ -255,7 +255,7 @@ export const FORMATIONS: Record<FormationKey, FormationConfig> = {
     label: '5-2-3',
     positions: ['GK', 'LB', 'CB', 'CB', 'CB', 'RB', 'CM', 'CM', 'LW', 'ST', 'RW'],
     layout: [
-      { bottom: '-5%', left: '50%' },
+      { bottom: '-8%', left: '50%' },
       { bottom: '11%', left: '14%' },
       { bottom: '9%', left: '32%' },
       { bottom: '9%', left: '50%' },
@@ -273,7 +273,7 @@ export const FORMATIONS: Record<FormationKey, FormationConfig> = {
     label: '3-4-3',
     positions: ['GK', 'CB', 'CB', 'CB', 'LM', 'CM', 'CM', 'RM', 'LW', 'ST', 'RW'],
     layout: [
-      { bottom: '-5%', left: '50%' },
+      { bottom: '-8%', left: '50%' },
       { bottom: '9%', left: '28%' }, // CB
       { bottom: '9%', left: '50%' }, // CB
       { bottom: '9%', left: '72%' }, // CB
@@ -291,7 +291,7 @@ export const FORMATIONS: Record<FormationKey, FormationConfig> = {
     label: '3-5-2',
     positions: ['GK', 'CB', 'CB', 'CB', 'LM', 'CM', 'CM', 'CM', 'RM', 'ST', 'ST'],
     layout: [
-      { bottom: '-5%', left: '50%' },
+      { bottom: '-8%', left: '50%' },
       { bottom: '9%', left: '28%' },
       { bottom: '9%', left: '50%' },
       { bottom: '9%', left: '72%' },
@@ -309,7 +309,7 @@ export const FORMATIONS: Record<FormationKey, FormationConfig> = {
     label: '3-5-2 (2)',
     positions: ['GK', 'CB', 'CB', 'CB', 'LM', 'CM', 'CM', 'CAM', 'RM', 'ST', 'ST'],
     layout: [
-      { bottom: '-5%', left: '50%' },
+      { bottom: '-8%', left: '50%' },
       { bottom: '9%', left: '28%' },
       { bottom: '9%', left: '50%' },
       { bottom: '9%', left: '72%' },
@@ -327,7 +327,7 @@ export const FORMATIONS: Record<FormationKey, FormationConfig> = {
     label: '3-5-2 (3)',
     positions: ['GK', 'CB', 'CB', 'CB', 'LM', 'CDM', 'CM', 'CM', 'RM', 'ST', 'ST'],
     layout: [
-      { bottom: '-5%', left: '50%' },
+      { bottom: '-8%', left: '50%' },
       { bottom: '9%', left: '28%' },
       { bottom: '9%', left: '50%' },
       { bottom: '9%', left: '72%' },

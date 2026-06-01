@@ -23,6 +23,20 @@ import type {
   ShotOutcome,
   Zone,
 } from "../matchTypes";
+import {
+  getDisplayedOpponentStarters,
+  getDisplayedUserStarters,
+  getOpponentMatchParticipants,
+  getOpponentSubstitutionsUsed,
+  getSubstitutedInOpponentPlayerIds,
+  getSubstitutedInUserPlayerIds,
+  getSubstitutedOutOpponentPlayerIds,
+  getSubstitutedOutUserPlayerIds,
+  getUserMatchParticipants,
+  getUserSubstitutionsLeft,
+  getUserSubstitutionsUsed,
+  requestUserSubstitution,
+} from "../subs/substitutionEngine";
 
 interface SavedSquad {
   pitch: (Player | null)[];
@@ -150,6 +164,16 @@ function buildUserMatchTeam(userSquad: SavedSquad): MatchTeam {
   };
 }
 
+function buildUserBench(userSquad: SavedSquad): MatchPlayer[] {
+  return userSquad.bench.flatMap((player: Player | null) =>
+    player ? [toMatchPlayer(player)] : []
+  );
+}
+
+function buildOpponentBench(opponent: OpponentTeam): MatchPlayer[] {
+  return opponent.bench.map((player: Player) => toMatchPlayer(player));
+}
+
 function buildOpponentMatchTeam(opponent: OpponentTeam): MatchTeam {
   const formation = FORMATIONS[opponent.formation];
   const starters = opponent.players.map((player: Player, index) =>
@@ -172,8 +196,12 @@ function findTeamPlayerName(
   side: PossessionSide,
   playerId: number
 ): string | null {
-  const team = side === "user" ? state.userTeam : state.opponentTeam;
-  return team.starters.find((player) => player.id === playerId)?.name ?? null;
+  const players =
+    side === "user"
+      ? getUserMatchParticipants(state)
+      : getOpponentMatchParticipants(state);
+
+  return players.find((player) => player.id === playerId)?.name ?? null;
 }
 
 function findActorPlayerName(
@@ -235,24 +263,24 @@ function buildHistoryEntry(
 
     // 🧠 Fonte de verdade: goalDetails
     if (event.goalDetails) {
-      const scoringTeam =
-        event.goalDetails.scorerSide === "user"
-          ? state.userTeam
-          : state.opponentTeam;
-
-      const scorerPlayer = scoringTeam.starters.find(
-        (p) => p.id === event.goalDetails!.scorerId
-      );
-
-      scorerName = scorerPlayer?.name ?? "Unknown";
+      scorerName =
+        findTeamPlayerName(
+          state,
+          event.goalDetails.scorerSide,
+          event.goalDetails.scorerId
+        ) ??
+        findActorPlayerName(event, event.goalDetails.scorerId) ??
+        "Unknown";
 
       // Assist
       if (event.goalDetails.assistPlayerId != null) {
-        const assistPlayer = scoringTeam.starters.find(
-          (p) => p.id === event.goalDetails!.assistPlayerId
-        );
-
-        assisterName = assistPlayer?.name ?? null;
+        assisterName =
+          findTeamPlayerName(
+            state,
+            event.goalDetails.scorerSide,
+            event.goalDetails.assistPlayerId
+          ) ??
+          findActorPlayerName(event, event.goalDetails.assistPlayerId);
       }
     } else {
       // 🛟 fallback (caso raro)
@@ -338,6 +366,8 @@ export function useMatchEngine({ userSquad, opponent }: UseMatchEngineParams) {
   const teams = useMemo(() => {
     return {
       userTeam: buildUserMatchTeam(userSquad),
+      userBench: buildUserBench(userSquad),
+      opponentBench: buildOpponentBench(opponent),
       opponentTeam: buildOpponentMatchTeam(opponent),
     };
   }, [userSquad, opponent]);
@@ -345,6 +375,8 @@ export function useMatchEngine({ userSquad, opponent }: UseMatchEngineParams) {
   const [matchState, setMatchState] = useState<MatchState>(() =>
     createInitialMatchState({
       userTeam: teams.userTeam,
+      userBench: teams.userBench,
+      opponentBench: teams.opponentBench,
       opponentTeam: teams.opponentTeam,
     })
   );
@@ -418,12 +450,43 @@ export function useMatchEngine({ userSquad, opponent }: UseMatchEngineParams) {
     setMatchState(
       createInitialMatchState({
         userTeam: teams.userTeam,
+        userBench: teams.userBench,
+        opponentBench: teams.opponentBench,
         opponentTeam: teams.opponentTeam,
       })
     );
 
     setHistory([]);
   }, [teams]);
+
+  const queueUserSubstitution = useCallback(
+    (outPlayerId: number, inPlayerId: number) => {
+      let result:
+        | {
+            state: MatchState;
+            ok: boolean;
+            error: string | null;
+          }
+        | null = null;
+
+      setMatchState((prev: MatchState) => {
+        result = requestUserSubstitution({
+          state: prev,
+          outPlayerId,
+          inPlayerId,
+        });
+
+        return result.ok ? result.state : prev;
+      });
+
+      return result ?? {
+        state: matchState,
+        ok: false,
+        error: "Unable to queue the substitution.",
+      };
+    },
+    [matchState]
+  );
 
   const playUntilEnd = useCallback(() => {
     setMatchState((prev: MatchState) => {
@@ -507,6 +570,55 @@ export function useMatchEngine({ userSquad, opponent }: UseMatchEngineParams) {
   const nextActors = currentActors;
 
   const availableActions = matchState.currentSituation.availableActions;
+  const displayedUserStarters = useMemo(
+    () => getDisplayedUserStarters(matchState),
+    [matchState]
+  );
+  const displayedOpponentStarters = useMemo(
+    () => getDisplayedOpponentStarters(matchState),
+    [matchState]
+  );
+  const userMatchParticipants = useMemo(
+    () => getUserMatchParticipants(matchState),
+    [matchState]
+  );
+  const userSubstitutionsUsed = useMemo(
+    () => getUserSubstitutionsUsed(matchState.substitutionState),
+    [matchState.substitutionState]
+  );
+  const userSubstitutionsLeft = useMemo(
+    () => getUserSubstitutionsLeft(matchState.substitutionState),
+    [matchState.substitutionState]
+  );
+  const opponentSubstitutionsUsed = useMemo(
+    () => getOpponentSubstitutionsUsed(matchState.substitutionState),
+    [matchState.substitutionState]
+  );
+  const substitutedOutUserPlayerIds = useMemo(
+    () => getSubstitutedOutUserPlayerIds(matchState.substitutionState),
+    [matchState.substitutionState]
+  );
+  const substitutedInUserPlayerIds = useMemo(
+    () => getSubstitutedInUserPlayerIds(matchState.substitutionState),
+    [matchState.substitutionState]
+  );
+  const substitutedOutOpponentPlayerIds = useMemo(
+    () => getSubstitutedOutOpponentPlayerIds(matchState.substitutionState),
+    [matchState.substitutionState]
+  );
+  const substitutedInOpponentPlayerIds = useMemo(
+    () => getSubstitutedInOpponentPlayerIds(matchState.substitutionState),
+    [matchState.substitutionState]
+  );
+  const pendingUserSubstitutionInIds = useMemo(
+    () =>
+      new Set(
+        matchState.substitutionState.pendingUserSubstitutions.map(
+          ({ inPlayer }) => inPlayer.id
+        )
+      ),
+    [matchState.substitutionState.pendingUserSubstitutions]
+  );
 
   const compatMatchState = useMemo(
     () => ({
@@ -534,8 +646,21 @@ export function useMatchEngine({ userSquad, opponent }: UseMatchEngineParams) {
     nextActors,
     availableActions,
     interactiveSetPiece,
+    displayedUserStarters,
+    displayedOpponentStarters,
+    userMatchParticipants,
+    userBenchPlayers: matchState.substitutionState.userBench,
+    userSubstitutionsUsed,
+    userSubstitutionsLeft,
+    opponentSubstitutionsUsed,
+    substitutedOutUserPlayerIds,
+    substitutedInUserPlayerIds,
+    substitutedOutOpponentPlayerIds,
+    substitutedInOpponentPlayerIds,
+    pendingUserSubstitutionInIds,
     prepareStep,
     chooseAction,
+    queueUserSubstitution,
     continueInteractiveSetPiece,
     resolveInteractiveSetPieceChoice,
     playUntilEnd,

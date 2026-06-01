@@ -11,6 +11,7 @@ import { useToast } from '../hooks/useToast';
 import { useDragDrop } from '../hooks/useDragDrop';
 import { useSquad } from '../hooks/useSquad';
 import { useCustomPlayers } from '../hooks/useCustomPlayers';
+import { playersData } from '../data/PlayersData';
 import { canPlayerPlayInPosition } from '../utils/playerValidation';
 import { FORMATIONS, DEFAULT_FORMATION } from '../utils/formations';
 import type { FormationKey } from '../utils/formations';
@@ -95,6 +96,12 @@ export default function Lineup() {
     setBenchPlayers(newBench);
   };
 
+  const handleRemovePitchPlayer = (index: number) => {
+    const newPitch = [...pitchPlayers];
+    newPitch[index] = null;
+    setPitchPlayers(newPitch);
+  };
+
   const handleRemovePlayer = () => {
     if (!activeSlot) return;
     if (activeSlot.zone === 'pitch') {
@@ -112,6 +119,45 @@ export default function Lineup() {
     setBenchPlayers(Array(BENCH_SIZE).fill(null));
     setCurrentFormation(DEFAULT_FORMATION);
     addToast("Squad", "Squad reset", "success");
+  };
+
+  const handleRandomFill = () => {
+    const allAvailablePlayers = [...customPlayers, ...playersData]
+      .filter(p => !occupiedPlayerIds.includes(p.id))
+      .sort(() => Math.random() - 0.5);
+
+    const newPitch = [...pitchPlayers];
+    const newBench = [...benchPlayers];
+    const usedIds = new Set(occupiedPlayerIds);
+
+    for (let i = 0; i < slotPositions.length; i++) {
+      if (newPitch[i] === null) {
+        const position = slotPositions[i];
+        const availableForPosition = allAvailablePlayers.filter(
+          p => !usedIds.has(p.id) && canPlayerPlayInPosition(p, position)
+        );
+        if (availableForPosition.length > 0) {
+          const randomPlayer = availableForPosition[Math.floor(Math.random() * availableForPosition.length)];
+          newPitch[i] = randomPlayer;
+          usedIds.add(randomPlayer.id);
+        }
+      }
+    }
+
+    for (let i = 0; i < BENCH_SIZE; i++) {
+      if (newBench[i] === null) {
+        const remainingPlayers = allAvailablePlayers.filter(p => !usedIds.has(p.id));
+        if (remainingPlayers.length > 0) {
+          const randomPlayer = remainingPlayers[Math.floor(Math.random() * remainingPlayers.length)];
+          newBench[i] = randomPlayer;
+          usedIds.add(randomPlayer.id);
+        }
+      }
+    }
+
+    setPitchPlayers(newPitch);
+    setBenchPlayers(newBench);
+    addToast("Random Fill", "__randomfill__", "success");
   };
 
   const handleDropToPitch = (targetPitchIndex: number) => {
@@ -271,7 +317,11 @@ export default function Lineup() {
               style={{ width: '100%', height: '100%' }}
             >
               {player ? (
-                <LineupCard player={player} assignedPosition={slotPositions[index]} />
+                <LineupCard 
+                  player={player} 
+                  assignedPosition={slotPositions[index]}
+                  onRemovePlayer={() => handleRemovePitchPlayer(index)}
+                />
               ) : (
                 <div className="player-slot__empty">
                   <img src="/images/cards/emptycard.png" alt="Empty Slot" className="empty-card-img" />
@@ -293,25 +343,39 @@ export default function Lineup() {
         onRemoveBenchPlayer={handleRemoveBenchPlayer}
       />
 
-      <div className="lineup__actions-sidebar">
-        <FeatureButton
-          label="RESET SQUAD"
-          variant="danger"
-          onClick={handleResetSquad}
-        />
-        <FeatureButton
-          label="SAVE SQUAD"
-          variant="save"
-          onClick={handleSaveProgress}
-        />
-        <FeatureButton
-          label={isTeamComplete ? 'READY!' : 'FILL YOUR SQUAD TO PLAY'}
-          variant={isTeamComplete ? 'playMatch' : 'less'}
-          disabled={!isTeamComplete}
-          animated={isTeamComplete}
-          onClick={handlePlayMatch}
-        />
-      </div>
+      {(() => {
+        const isSquadFull = 
+          pitchPlayers.every((p): p is Player => p !== null) && 
+          benchPlayers.every((p): p is Player => p !== null);
+
+        return (
+          <div className="lineup__actions-sidebar">
+            <FeatureButton
+              label="RANDOM FILL"
+              variant="random"
+              disabled={isSquadFull}
+              onClick={handleRandomFill}
+            />
+            <FeatureButton
+              label="SAVE SQUAD"
+              variant="save"
+              onClick={handleSaveProgress}
+            />
+            <FeatureButton
+              label="RESET SQUAD"
+              variant="danger"
+              onClick={handleResetSquad}
+            />
+            <FeatureButton
+              label={isTeamComplete ? 'READY!' : 'FILL YOUR SQUAD TO PLAY'}
+              variant={isTeamComplete ? 'playMatch' : 'less'}
+              disabled={!isTeamComplete}
+              animated={isTeamComplete}
+              onClick={handlePlayMatch}
+            />
+          </div>
+        );
+      })()}
 
       {isLineupModalOpen && activeSlot && (
         <LineupModal

@@ -5,7 +5,7 @@ import "./FeatureButton.css";
 type FeatureButtonProps = {
   label: string;
   onClick?: () => void;
-  variant?: "default" | "less" | "save" | "playMatch" | "danger" ;
+  variant?: "default" | "less" | "save" | "playMatch" | "danger" | "random";
   disabled?: boolean;
   animated?: boolean;
 };

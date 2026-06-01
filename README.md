@@ -1,43 +1,11 @@
-<div>
-
-# ⚽ Ballers Game • Interactive Football Experience
-
----
-
-## 📝 Recent Updates
-
-* 🟥 **Full Disciplinary System** - Yellow and red cards are now fully integrated into gameplay, including two yellows = red, goalkeeper protection (max one yellow, never sent off), a three-send-off cap per team, and persistent discipline tracking for both sides
-* ⚖️ **Symmetric Foul & Card Logic** - Mirrored gameplay situations now use the same foul and card probabilities for the user team and the opponent team
-* 📋 **Expanded Match Event Log** - The event log now records both duel events and discipline events, including yellow cards, red cards, and second-yellow dismissals
-* 📉 **Discipline-Aware Ratings** - Player ratings are now penalized for yellow cards and dismissals, with second-yellow send-offs counting as both a caution and a red-card event
-* 🧭 **Card Visibility Across Match UI** - Cards are now surfaced in the lineup, pre-interactive foul modal, match summary, and event log for clearer match storytelling
-* 🧤 **Big Chance Goalkeeper Rebalance** - `atk_bigchance` and `def_bigchance` now separate elite, average, and weak goalkeepers more clearly, with dedicated `rush_save` vs `wait` tradeoffs in one-on-one situations
-* 🔔 **Toast Notifications on Home** - Player creation and deletion now trigger contextual toasts: ✅ green check on creation, ❌ red X on removal, each with the player's name in the message
-* 💾 **Auto-Save on Play Match** - Squad is automatically saved when clicking Play Match in the Lineup, no manual save required
-* ✏️ **Custom Player Creation** - Multi-step modal (Info → Stats → Preview) with photo upload, built-in crop tool, background removal, and position-weighted overall calculation per role
-* ⚙️ **Match Clock Randomization** - Clock now advances 0–3 minutes per action with triangular distribution; late game (85+) slows to 0–1 min with guaranteed progression guard
-* 🧪 **Calibration Test Suite** - Statistical duel engine tests via Vitest with GitHub Actions CI on every push to `src/match-engine/**`
-* 🐛 **Duel Engine Fixes** - Corrected attacker/defender assignment for defensive actions, goalkeeper roles in big chance zones, and finishing weight contexts
-* ✨ **New Play Match Modal** - Direct match initiation interface
-* 🗺️ **Match Map Tooltips** - Enhanced map interaction with contextual tips
-* 📊 **Improved Player Rating System** - Fine-tuned rating calculations for better balance
-* 🎲 **Pack Probability Refinements** - Enhanced weighted probability algorithms
-* 🎨 **UI Refinements** - CSS and component optimizations across home, lineup, and match screens
-* 🔧 **Build Utilities** - Added resize.cjs for image processing
-* 🎵 **Music Library Updates** - Streamlined audio collection
-
----
-
+<div align="center">
+  <img src="./public/images/logo.webp" width="200" alt="Ballers Logo" />
 </div>
 
+# ⚽ Ballers • Interactive Football Experience
+
 <p align="center">
-  <img src="https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React" />
-  <img src="https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
-  <img src="https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white" alt="Vite" />
-  <img src="https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white" alt="CSS3" />
-  <img src="https://img.shields.io/badge/Framer_Motion-EF008F?style=for-the-badge&logo=framer&logoColor=white" alt="Framer Motion" />
-  <img src="https://img.shields.io/badge/Vitest-6E9F18?style=for-the-badge&logo=vitest&logoColor=white" alt="Vitest" />
-  <img src="https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="Vercel" />
+  A browser-based football game combining **squad building**, **dynamic pack opening**, and a **custom-built interactive match engine** where you control every moment.
 </p>
 
 <p align="center">
@@ -49,322 +17,13 @@
   </a>
 </p>
 
-<div>
-
-Ballers is a web-based football application focused on **interaction, squad building, and gameplay systems**, inspired by modern football games like EA FC/FIFA Ultimate Team.
-
-It combines high-quality UI/UX with a **custom-built interactive match engine**, delivering a dynamic and immersive football experience directly in the browser.
-
-[Live Demo](#-live-demo) • [Features](#-features) • [Match Engine](#-interactive-match-engine) • [Preview](#-preview) • [Running Locally](#%EF%B8%8F-running-locally) • [Roadmap](#-roadmap)
-
-</div>
-
 ---
 
-## 🌐 Live Demo
+## 🎯 Quick Start
 
-> **[▶ Play now at ballers-game.vercel.app](https://ballers-game.vercel.app/)**
+> **[▶ Play now at ballers-game.vercel.app](https://ballers-game.vercel.app/)** — No installation, plays directly in the browser.
 
-Deployed on **Vercel** — no installation required, runs directly in the browser.
-
----
-
-## 🎯 Project Goal
-
-* Simulate an engaging football squad-building and gameplay experience.
-* Practice advanced frontend architecture with **React + TypeScript**.
-* Build a **state-driven interactive system**, not just static UI.
-* Develop a scalable foundation for complex gameplay mechanics.
-
----
-
-## 🚀 Features
-
-* 🎴 **Dynamic Pack Opening System**
-    * Tier-based cards (Legend, Gold, Silver, Bronze).
-    * Weighted probability algorithms.
-    * Animated card reveals.
-
-* 👥 **Advanced Squad Building**
-    * Multiple tactical formations.
-    * Drag & drop positioning.
-    * Bench and substitutions.
-    
-* ✏️ **Custom Player Creation**
-    * Multi-step creation modal (Info → Stats → Preview).
-    * Photo upload with built-in crop tool and background removal.
-    * Position-weighted overall calculation per role (ST, CB, GK, etc.).
-    * Custom players protected from removal if active in the squad.
-
-* 🎯 **Deep Player Interaction**
-    * Detailed stat modals.
-    * Quick swap/remove.
-    * Favorites system.
-
-* 🔎 **Robust Filtering**
-    * Filter by rating, tier, position, nationality.
-    * Real-time updates.
-
-* 🆚 **Pre-Match System**
-    * Opponent selection
-    * Squad reveal
-
-* ⚽ **Interactive Match Engine**
-    * Player-driven decisions (attack & defense)
-    * Duel-based gameplay system
-    * Zone-based match progression
-    * Real-time event resolution
-    * Persistent card and dismissal state for both teams
-    * Two yellows convert into a red card
-    * Goalkeepers can receive at most one yellow and can never be sent off
-    * Sent-off players are removed from future open-play and set-piece selection
-    * Linear numerical disadvantage after red cards influences future duels
-    * Big chance goalkeeper duels use dedicated one-on-one logic in both `atk_bigchance` and `def_bigchance`
-
-* 🏆 **Match Summary & MVP System**
-    * Post-match summary modal with delay
-    * Displays result (win/draw/loss)
-    * Goal scorers and assists for both teams
-    * Red cards shown in the post-match timeline with minute markers
-    * MVP selection based on **highest rating in the match**
-    * Tie-breaking logic (winner priority or random fallback)
-    * Penalty goals tagged with **(P)**
-
-* 📊 **Dynamic Player Rating System**
-    * Base rating starts at **6.0 for all players**
-    * Every action impacts rating (+/- micro adjustments)
-    * Duel-based rating impact (winner gains, loser loses)
-    * Offensive players penalized for missed chances
-    * Defensive line impacted when conceding goals
-    * Clean sheet bonus:
-      * GK → +1.0
-      * DEF → +0.6
-    * Discipline penalties:
-      * Yellow cards reduce the final rating
-      * Dismissals apply a stronger penalty
-      * Second-yellow send-offs count as both a caution and a dismissal
-    * Enhanced goalkeeper logic:
-      * Saves, high saves, penalty saves
-      * Weak goal detection (long shots)
-    * Balanced to avoid rating inflation
-
-* 🎬 **Smooth UI Animations**
-    * Powered by **Framer Motion**
-    * Transition-based UI feedback
-    * Animated modals and match elements
-
-* 🔊 **Audio & Immersion**
-    * Music player
-    * SFX feedback
-    * Toggle controls
-
----
-
-## ⚽ Interactive Match Engine
-
-Ballers features a **custom-built interactive match engine** where the user actively participates in every phase of the game.
-
-### 🎮 Core Concept
-
-Instead of passive simulation:
-
-- You choose **offensive actions** when attacking  
-- You choose **defensive reactions** when defending  
-- Every moment is resolved through **player vs player duels**
-
----
-
-### 🧠 Engine Systems
-
-- **Zone-based gameplay**
-  - Midfield, final third, box, big chances, etc.
-
-- **Duel Engine**
-  - Resolves attacker vs defender using player stats
-
-- **Event Resolver**
-  - Determines outcomes (success, fail, rebound, etc.)
-
-- **Set Piece Engine**
-  - Penalty
-  - Free Kick (interactive + quick flow)
-  - Corner kicks
-
-- **Disciplinary Engine**
-  - Foul resolution
-  - Yellow / red card rules
-  - Two-yellow dismissals
-  - Sent-off player tracking
-  - Numerical advantage state
-
-- **Player Selector**
-  - Context-aware player selection
-  - Position-based filtering (no secondary position abuse)
-  - Excludes sent-off players from future actions
-
----
-
-### ⚡ Gameplay Flow
-
-- Continuous chain of **duels**
-- Context-sensitive actions
-- Real-time progression
-- Player decisions directly influence outcomes
-
----
-
-### 📜 Match Event Log
-
-A real-time match log covering both duels and discipline events.
-
-Examples:
-
-```
-User Player vs GK Opponent → Finish → Goal
-Opponent Winger vs User CB → Sprint → Stopped
-User CB → Slide tackle → Yellow card
-Opponent CM → Dribble → Second yellow
-FK taker vs GK → Free Kick → Saved
-```
-
-Features:
-
-- Fully **match-event-based structure**
-- Includes:
-  - Open play
-  - Penalty
-  - Free Kick
-  - Corner
-  - Yellow cards
-  - Red cards
-  - Second-yellow dismissals
-- Compact horizontal layout
-- Uses player mini-cards (UI consistency with lineup)
-- Smart name formatting (`getDisplayName`)
-- Scrollable + customizable UI
-- Optional visibility (can be hidden for cleaner gameplay)
-
----
-
-### 🎯 UI & Interaction
-
-- Interactive modals:
-  - Penalty
-  - Free Kick
-  - Corner
-  - Match Summary
-  - Pre-interactive foul card notice
-
-- Visual feedback:
-  - Action → Outcome transitions
-  - Ball animations
-  - Goal modal
-  - Goal scorers & assisters in the sidebar
-  - Carded player notices on fouls
-  - Red cards in the match summary timeline
-  - MVP highlight in post-match
-
-- Strong UI consistency:
-  - Same card system across lineup + match
-  - Mini cards in event log
-  - Yellow/red markers in the lineup
-  - Sent-off players marked and visually downgraded
-  - Player ratings visible in lineup
-
----
-
-### ⚖️ Balancing & Realism
-
-- Tuned probabilities for:
-  - Goals
-  - Rebounds
-  - Clearances
-  - Fouls
-
-- Improvements:
-  - Reduced unrealistic rebounds
-  - More realistic corner generation
-  - Better possession retention
-  - Goalkeeper logic adjustments
-  - Fair rating distribution across all positions
-  - Randomized match clock (triangular distribution, 0–3 min/action)
-  - Late-game clock compression (85+ min → 0–1 min, no infinite matches)
-  - Calibrated big chance conversion rates (striker stats vs GK stats)
-  - Goalkeeper action tuning: rush save vs wait tradeoffs
-  - Stronger goalkeeper separation in big chance zones, so low-rated keepers no longer perform too close to elite ones
-  - `atk_bigchance` uses clearer striker-vs-goalkeeper scaling, while `def_bigchance` keeps dedicated one-on-one action tradeoffs for `rush_save` and `wait`
-  - Side-neutral foul and card resolution in mirrored situations
-  - Linear punishment for teams playing with fewer men after red cards
-
----
-
-## 📸 Preview
-
-### 🏠 Home & Navigation
-<div align="center">
-  <img src="./media/home1.png" width="49%">
-  <img src="./media/home2.png" width="49%">
-</div>
-
-### 🎴 Pack Opening & Filters
-<div align="center">
-  <img src="./media/packopening.gif" width="49%">
-  <img src="./media/filtermodal.png" width="49%">
-</div>
-
-### 👥 Squad & Lineup System
-<div align="center">
-  <img src="./media/lineup.gif" width="49%">
-  <img src="./media/lineup.png" width="49%">
-</div>
-
-### 🎯 Player Interaction
-<div align="center">
-  <img src="./media/playermodal.png" width="49%">
-  <img src="./media/playermodalLineup.png" width="49%">
-</div>
-
-### 🆚 Pre-Match
-<div align="center">
-  <img src="./media/prematch.png" width="49%">
-  <img src="./media/prematch_opplineup.png" width="49%">
-</div>
-
----
-
-### ⚽ Match Engine & Gameplay
-
-Interactive, decision-based match flow powered by a custom engine.
-
-<div align="center">
-  <img src="./media/match1.png" width="49%">
-  <img src="./media/match2.png" width="49%">
-</div>
-
----
-
-## 🛠 Architecture
-
-* **Component-based UI**
-* **Custom hooks for logic separation**
-* **Utility-driven systems**
-* **Game Engine Layer:**
-  - matchEngine
-  - duelEngine (+ calibration tests)
-  - eventResolver
-  - setPieceEngine
-  - foulEngine
-  - cardEngine
-  - disciplineState
-  - playerRating
-* **Separation of concerns:**
-  - Engine logic vs UI layer
-* **State-driven gameplay loop**
-
----
-
-## ⚙️ Running Locally
-
+**Local Development:**
 ```bash
 git clone https://github.com/kiellzz/ballers-game.git
 cd ballers-game
@@ -372,16 +31,169 @@ npm install
 npm run dev
 ```
 
-App: http://localhost:5173
+---
+
+## 🌟 Core Features
+
+### 🎴 Pack Opening System
+- **Tier-based cards** (Legend, Gold, Silver, Bronze)
+- **Weighted probability** algorithms
+- Animated reveals with visual feedback
+
+### 👥 Squad Building & Lineup
+- **Multiple formations** with drag & drop positioning
+- **Bench system** with 5 substitutes
+- **Random Fill button** to auto-populate the squad respecting positions
+- **Favorites system** for quick player access
+- **Real-time validation** of player positions
+
+### ✏️ Custom Player Creation
+- Multi-step modal (Info → Stats → Preview)
+- **Photo upload** with built-in crop tool and background removal
+- **Position-weighted overall** calculation
+- Custom players protected from removal if active
+
+### 🆚 Pre-Match System
+- **Opponent selection**
+- Full squad reveal before match starts
+
+### ⚽ Interactive Match Engine
+- **Player-driven decisions** (attack & defense each turn)
+- **Duel-based gameplay** (attacker vs defender)
+- **Zone-based progression** (midfield → final third → box)
+- **Set pieces** (Penalty, Free Kick, Corner)
+- **Full disciplinary system** (yellow/red cards, two yellows = red)
+- **Persistent card tracking** for both teams
+- **Sent-off players** removed from selection
+- **Dynamic player ratings** impacted by every action
+
+### 🏆 Post-Match System
+- **Match summary** with goal scorers & assists
+- **MVP selection** based on highest rating
+- **Red cards** displayed in timeline
+- **Penalty goals** tagged with **(P)**
+
+### 📊 Player Rating System
+- Starts at **6.0** for all players
+- Micro-adjustments for every action
+- **Duel-based** rating changes
+- **Clean sheet bonus** (GK +1.0, DEF +0.6)
+- **Discipline penalties** for cards and dismissals
+- **Balanced** to avoid inflation
+
+### 🎵 Audio & Immersion
+- Music player with SFX
+- Toggle controls
+- Interactive feedback sounds
 
 ---
 
-## 🚢 Deploy
+## 🚀 Recent Updates
 
-Deployed on **Vercel** with automatic CI/CD — every push to `main` triggers a new production build.
+* 🎰 **Random Fill Squad Button** - Auto-populate entire squad (pitch + bench) with random players respecting formations
+* 🟥 **Full Disciplinary System** - Two yellows = red, GK protection (max one yellow), sent-off player tracking
+* ⚖️ **Symmetric Foul Logic** - Mirrored situations use identical probabilities
+* 🧤 **Big Chance Rebalance** - `rush_save` vs `wait` tradeoffs for goalkeeper one-on-ones
+* 📉 **Discipline-Aware Ratings** - Cards and dismissals penalize player ratings
+* ⚙️ **Randomized Match Clock** - 0–3 min/action (triangular), compressed late-game (85+)
+* 🧪 **Calibration Test Suite** - Vitest + GitHub Actions on match-engine/
+
+---
+
+## 📸 Screenshots
+
+### Home & Pack Opening
+<div align="center">
+  <img src="./media/home1.png" width="49%">
+  <img src="./media/packopening.gif" width="49%">
+</div>
+
+### Squad Building & Lineup
+<div align="center">
+  <img src="./media/lineup.gif" width="49%">
+  <img src="./media/lineup.png" width="49%">
+</div>
+
+### Formations & Custom Players
+<div align="center">
+  <img src="./media/formations.png" width="49%">
+  <img src="./media/createplayer.png" width="49%">
+</div>
+
+### Pre-Match & Match
+<div align="center">
+  <img src="./media/prematch.png" width="49%">
+  <img src="./media/match1.png" width="49%">
+</div>
+
+### Match Events & Summary
+<div align="center">
+  <img src="./media/match2.png" width="49%">
+  <img src="./media/matchsummary.png" width="49%">
+</div>
+
+---
+
+## 🔧 Tech Stack
+
+<p align="center">
+  <img src="https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React" />
+  <img src="https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white" alt="Vite" />
+  <img src="https://img.shields.io/badge/Framer_Motion-EF008F?style=for-the-badge&logo=framer&logoColor=white" alt="Framer Motion" />
+  <img src="https://img.shields.io/badge/Vitest-6E9F18?style=for-the-badge&logo=vitest&logoColor=white" alt="Vitest" />
+  <img src="https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="Vercel" />
+</p>
+
+---
+
+## 🎮 Match Engine Overview
+
+The **interactive match engine** is custom-built with:
+
+- **Duel System**: Player vs player resolution using stats
+- **Zone Progression**: Midfield → Final Third → Box → Big Chance
+- **Event Resolver**: Success, fail, rebound, injury outcomes
+- **Set Pieces**: Penalty, Free Kick (interactive + quick), Corner
+- **Disciplinary Engine**: Foul resolution, card logic, dismissals
+- **Player Selector**: Context-aware, excludes sent-off players
+- **Player Rating**: Real-time micro-adjustments per action
+
+**Gameplay Flow:**
+1. Choose offensive or defensive action
+2. System resolves duel (attacker stats vs defender stats)
+3. Outcome determines progression (goal, turnover, set piece, card)
+4. Next situation auto-generates
+5. Match continues until 90 minutes
+
+---
+
+## 🚢 Deployment
+
+Deployed on **Vercel** with automatic CI/CD.
 
 ```
 Live: https://ballers-game.vercel.app/
+```
+
+---
+
+## 📋 Project Structure
+
+```
+src/
+├── components/          # UI components (home, lineup, match)
+├── pages/              # Route pages
+├── hooks/              # Custom logic hooks
+├── match-engine/       # Core game engine
+│   ├── core/           # matchEngine, duelEngine, eventResolver
+│   ├── balancing/      # situationMaker, events, probabilites
+│   ├── setpiece/       # Penalty, FK, corner
+│   ├── fouls/          # Foul resolution
+│   └── tests/          # Vitest calibration suite
+├── data/               # Players database
+├── types/              # TypeScript types
+└── utils/              # Utilities (formations, rating, sound)
 ```
 
 ---
@@ -395,8 +207,8 @@ Live: https://ballers-game.vercel.app/
 - [x] 🚀 Deploy on Vercel
 - [x] 🧪 Duel engine calibration test suite (Vitest + GitHub Actions)
 - [x] ✏️ Custom Player Creation (crop, overall weights, squad protection)
-- [ ] 🔄 Substitution System
-- [ ] 📊 Advanced match stats 
+- [x] 🔄 Substitution System
+- [x] 📊 Advanced match stats 
 - [ ] 🎮 Draft Mode
 - [ ] 💾 API/Backend integration
 
@@ -409,4 +221,4 @@ Developed by **Ezequiel Borges**
 - GitHub: [github.com/kiellzz](https://github.com/kiellzz)
 - LinkedIn: [linkedin.com/in/ezequielborgesdev](https://www.linkedin.com/in/ezequielborgesdev)
 
-> This project represents the transition from building UI applications to designing interactive systems with real gameplay structure, focusing on architecture, logic, and user experience.
+> Interactive systems design with gameplay architecture, focusing on logic, scalability, and user experience.

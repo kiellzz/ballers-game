@@ -16,6 +16,11 @@ import { applyEventToPlayerMatchStats } from "./playerMatchStats";
 import { buildGoalDetails, createLastGoalRecord, getPossessionPlayerId } from "./goalHelpers";
 import { applyScoreFromShot } from "./matchStateHelpers";
 import { commitEvent } from "./matchEngineInternal";
+import {
+  applyPendingOpponentSubstitutions,
+  applyPendingUserSubstitutions,
+  maybeQueueOpponentSubstitution,
+} from "../subs/substitutionEngine";
 
 // ─── Corner continuation helper ───────────────────────────────────────────────
 
@@ -264,11 +269,32 @@ export function applyFinalResolution(params: {
       ? resolution.shotResult.setPieceAwarded ?? null
       : null;
 
+  const stateWithQueuedOpponentSub = maybeQueueOpponentSubstitution({
+    state,
+    random,
+  });
+
+  const appliedPendingUserSubs = applyPendingUserSubstitutions({
+    userTeam: stateWithQueuedOpponentSub.userTeam,
+    substitutionState: stateWithQueuedOpponentSub.substitutionState,
+    disciplinaryState: state.disciplinaryState,
+    currentMinute: nextMinute,
+  });
+  const nextUserTeam = appliedPendingUserSubs.userTeam;
+  const appliedPendingOpponentSubs = applyPendingOpponentSubstitutions({
+    opponentTeam: stateWithQueuedOpponentSub.opponentTeam,
+    substitutionState: appliedPendingUserSubs.substitutionState,
+    disciplinaryState: state.disciplinaryState,
+    currentMinute: nextMinute,
+  });
+  const nextOpponentTeam = appliedPendingOpponentSubs.opponentTeam;
+  const nextSubstitutionState = appliedPendingOpponentSubs.substitutionState;
+
   if (nextPhase === "finished") {
-    const { history, lastEvent: _prevEvent, ...withoutPersistence } = state;
+    const { history, lastEvent: _prevEvent } = state;
     return commitEvent(
       {
-        ...withoutPersistence,
+        ...stateWithQueuedOpponentSub,
         history,
         lastEvent: _prevEvent,
         context: {
@@ -278,11 +304,14 @@ export function applyFinalResolution(params: {
           clock: { minute: nextMinute },
           consecutiveZeroMinutes: nextConsecutiveZeros,
         },
+        userTeam: nextUserTeam,
+        opponentTeam: nextOpponentTeam,
         currentSituation: state.currentSituation,
         interactiveSetPiece: null,
         lastTouchPlayerId: nextLastTouch.playerId,
         lastTouchSide: nextLastTouch.side,
         playerMatchStats: nextPlayerMatchStats,
+        substitutionState: state.substitutionState,
         lastGoal: nextLastGoal,
       },
       setPieceEvent
@@ -294,8 +323,8 @@ export function applyFinalResolution(params: {
       zone: resolution.nextZone,
       lane: resolution.nextLane,
       possession: resolution.nextPossession,
-      userTeam: state.userTeam,
-      opponentTeam: state.opponentTeam,
+      userTeam: nextUserTeam,
+      opponentTeam: nextOpponentTeam,
       unavailableUserPlayerIds,
       unavailableOpponentPlayerIds,
       situationType: "set_piece",
@@ -319,10 +348,10 @@ export function applyFinalResolution(params: {
       actors: setPieceSituation.actors,
     });
 
-    const { history, lastEvent: _prevEvent, ...withoutPersistence } = state;
+    const { history, lastEvent: _prevEvent } = state;
     return commitEvent(
       {
-        ...withoutPersistence,
+        ...stateWithQueuedOpponentSub,
         history,
         lastEvent: _prevEvent,
         context: {
@@ -332,11 +361,14 @@ export function applyFinalResolution(params: {
           clock: { minute: nextMinute },
           consecutiveZeroMinutes: nextConsecutiveZeros,
         },
+        userTeam: nextUserTeam,
+        opponentTeam: nextOpponentTeam,
         currentSituation: setPieceSituation,
         interactiveSetPiece,
         lastTouchPlayerId: nextLastTouch.playerId,
         lastTouchSide: nextLastTouch.side,
         playerMatchStats: nextPlayerMatchStats,
+        substitutionState: nextSubstitutionState,
         lastGoal: nextLastGoal,
       },
       setPieceEvent
@@ -347,8 +379,8 @@ export function applyFinalResolution(params: {
     zone: resolution.nextZone,
     lane: resolution.nextLane,
     possession: resolution.nextPossession,
-    userTeam: state.userTeam,
-    opponentTeam: state.opponentTeam,
+    userTeam: nextUserTeam,
+    opponentTeam: nextOpponentTeam,
     unavailableUserPlayerIds,
     unavailableOpponentPlayerIds,
     situationType: resolution.nextSituationType,
@@ -360,10 +392,10 @@ export function applyFinalResolution(params: {
     random,
   });
 
-  const { history, lastEvent: _prevEvent, ...withoutPersistence } = state;
+  const { history, lastEvent: _prevEvent } = state;
   return commitEvent(
     {
-      ...withoutPersistence,
+      ...stateWithQueuedOpponentSub,
       history,
       lastEvent: _prevEvent,
       context: {
@@ -373,11 +405,14 @@ export function applyFinalResolution(params: {
         clock: { minute: nextMinute },
         consecutiveZeroMinutes: nextConsecutiveZeros,
       },
+      userTeam: nextUserTeam,
+      opponentTeam: nextOpponentTeam,
       currentSituation: nextSituation,
       interactiveSetPiece: null,
       lastTouchPlayerId: nextLastTouch.playerId,
       lastTouchSide: nextLastTouch.side,
       playerMatchStats: nextPlayerMatchStats,
+      substitutionState: nextSubstitutionState,
       lastGoal: nextLastGoal,
     },
     setPieceEvent

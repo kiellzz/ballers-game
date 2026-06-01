@@ -1,18 +1,13 @@
 import type { Player } from "../../types/PlayerTypes";
 import type { DragSource } from "../../hooks/useDragDrop";
+import { useCallback } from "react";
+import { getCardTier } from "../../utils/getCardTier";
 import { getPlayerImage } from "../../utils/getPlayerImage";
 import { getFlagUrl } from "../../utils/getFlagUrl";
-import { getCardTier } from "../../utils/getCardTier";
+import { playHover } from "../../utils/sound";
 import "./BenchSlot.css";
 
-const cardBackgroundMap = {
-  legend: "/images/cards/legendcard.png",
-  gold: "/images/cards/goldcard.png",
-  silver: "/images/cards/silvercard.png",
-  bronze: "/images/cards/bronzecard.png",
-};
-
-interface Props {
+type BenchSlotProps = {
   index: number;
   player: Player | null;
   isDragging: boolean;
@@ -20,8 +15,15 @@ interface Props {
   onDragEnd: () => void;
   onDrop: (targetIndex: number) => void;
   onClick: (index: number) => void;
-  onRemovePlayer: (index: number) => void;
-}
+  onRemovePlayer?: (index: number) => void;
+};
+
+const cardBackgroundMap = {
+  legend: "/images/cards/legendcard.png",
+  gold: "/images/cards/goldcard.png",
+  silver: "/images/cards/silvercard.png",
+  bronze: "/images/cards/bronzecard.png",
+};
 
 export default function BenchSlot({
   index,
@@ -31,7 +33,22 @@ export default function BenchSlot({
   onDragEnd,
   onDrop,
   onClick,
-}: Props) {
+  onRemovePlayer,
+}: BenchSlotProps) {
+  const handleMouseEnter = useCallback(() => {
+    playHover(0.25);
+  }, []);
+
+  const handleRemoveClick = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onRemovePlayer?.(index);
+  }, [onRemovePlayer, index]);
+
+  const handleImageError = useCallback((event: React.SyntheticEvent<HTMLImageElement>) => {
+    event.currentTarget.src = "/images/players/default.webp";
+  }, []);
+
   return (
     <div
       className={`bench-slot ${isDragging ? "bench-slot--dragging" : ""}`}
@@ -41,8 +58,8 @@ export default function BenchSlot({
         onDrop(index);
       }}
       onClick={() => onClick(index)}
+      onMouseEnter={handleMouseEnter}
     >
-      {}
       <div
         draggable={!!player}
         onDragStart={(e) => {
@@ -53,46 +70,52 @@ export default function BenchSlot({
           }
         }}
         onDragEnd={onDragEnd}
-        className="draggable-wrapper"
         style={{ width: "100%", height: "100%" }}
       >
         {player ? (
-          <div
-            className="bench-slot__card"
+          <article
+            className={`bench-slot__card bench-slot__card--${getCardTier(player.overall, player.isLegend)}`}
             style={{
-              backgroundImage: `url(${cardBackgroundMap[getCardTier(player.overall, player.isLegend)]
-                })`,
+              backgroundImage: `url(${cardBackgroundMap[getCardTier(player.overall, player.isLegend)]})`,
             }}
           >
-            <div className="bench-slot__img-wrap">
+            {onRemovePlayer && (
+              <button
+                className="bench-slot__remove-btn"
+                onClick={handleRemoveClick}
+                type="button"
+              >
+                <span>×</span>
+              </button>
+            )}
+
+            <div className="bench-slot__image-wrap">
               <img
                 src={player.customImage ?? getPlayerImage(player.name)}
                 alt={player.name}
-                className="bench-slot__img"
-                onError={(e) => {
-                  e.currentTarget.src = "/images/players/default.webp";
-                }}
+                className="bench-slot__image"
+                onError={handleImageError}
               />
             </div>
 
-            <div className="bench-slot__info">
+            <div className="bench-slot__info-bar">
               <span className="bench-slot__overall">{player.overall}</span>
               <img
                 src={getFlagUrl(player.nationality)}
                 alt={player.nationality}
                 className="bench-slot__flag"
               />
-              <span className="bench-slot__pos">{player.position}</span>
+              <span className="bench-slot__position">{player.position}</span>
             </div>
-          </div>
+          </article>
         ) : (
-          <div className="player-slot__empty">
+          <div className="bench-slot__empty">
             <img
               src="/images/cards/emptycard.png"
               alt="Empty Slot"
-              className="empty-card-img"
+              className="bench-slot__empty-img"
             />
-            <span className="slot-pos-label">SUB</span>
+            <span className="bench-slot__empty-label">SUB</span>
           </div>
         )}
       </div>

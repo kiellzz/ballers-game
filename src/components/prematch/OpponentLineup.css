@@ -122,6 +122,24 @@
   scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
 }
 
+.opp-lineup-section + .opp-lineup-section {
+  margin-top: 14px;
+}
+
+.opp-lineup-section__title {
+  margin: 0 0 8px;
+  padding: 0 4px;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #b8a6f8;
+}
+
+.opp-lineup-section--bench .opp-lineup-section__title {
+  color: #7dd3fc;
+}
+
 .opp-lineup-scroll::-webkit-scrollbar {
   width: 4px;
 }
@@ -147,6 +165,10 @@
 
 .opp-player-row:hover {
   background: rgba(255, 255, 255, 0.04);
+}
+
+.opp-player-row--bench {
+  background: rgba(255, 255, 255, 0.02);
 }
 
 .opp-player-row+.opp-player-row {

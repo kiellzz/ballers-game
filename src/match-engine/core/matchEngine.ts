@@ -17,6 +17,12 @@ import {
   resolveInteractiveSetPiece,
 } from "../interactive/interactiveSetPieceFlow";
 import type { InteractiveSetPieceResolutionInput } from "../interactive/interactiveSetPieceFlow";
+import {
+  applyPendingOpponentSubstitutions,
+  applyPendingUserSubstitutions,
+  createInitialSubstitutionState,
+  maybeQueueOpponentSubstitution,
+} from "../subs/substitutionEngine";
 import { calculateNextMinute } from "./matchClock";
 import { applyEventToPlayerMatchStats } from "./playerMatchStats";
 import { buildGoalDetails, createLastGoalRecord, getPossessionPlayerId } from "./goalHelpers";
@@ -38,6 +44,7 @@ import type {
   DuelContext,
   FoulResult,
   MatchEvent,
+  MatchPlayer,
   MatchState,
   MatchTeam,
   PlayerMatchStats,
@@ -50,6 +57,8 @@ import { emptyStatLine } from "../matchTypes";
 interface CreateInitialMatchStateParams {
   userTeam: MatchTeam;
   opponentTeam: MatchTeam;
+  userBench?: MatchPlayer[];
+  opponentBench?: MatchPlayer[];
   random?: () => number;
 }
 
@@ -70,7 +79,13 @@ interface RunInteractiveSetPieceStepParams {
 export function createInitialMatchState(
   params: CreateInitialMatchStateParams
 ): MatchState {
-  const { userTeam, opponentTeam, random = Math.random } = params;
+  const {
+    userTeam,
+    opponentTeam,
+    userBench = [],
+    opponentBench = [],
+    random = Math.random,
+  } = params;
   const initialPlayerMatchStats: PlayerMatchStats = {};
   const disciplinaryState = createInitialDisciplinaryState({
     userTeam,
@@ -131,6 +146,10 @@ export function createInitialMatchState(
     lastTouchSide: null,
     playerMatchStats: initialPlayerMatchStats,
     disciplinaryState,
+    substitutionState: createInitialSubstitutionState({
+      userBench,
+      opponentBench,
+    }),
     lastGoal: null,
   };
 }
@@ -352,13 +371,34 @@ export function runMatchStep(params: RunMatchStepParams): MatchState {
     }) ?? state.lastGoal;
 
   // ─── Set piece branch ──────────────────────────────────────────────────────
+  const stateWithQueuedOpponentSub = maybeQueueOpponentSubstitution({
+    state,
+    random,
+  });
+
+  const appliedPendingUserSubs = applyPendingUserSubstitutions({
+    userTeam: stateWithQueuedOpponentSub.userTeam,
+    substitutionState: stateWithQueuedOpponentSub.substitutionState,
+    disciplinaryState: nextDisciplinaryState,
+    currentMinute: nextMinute,
+  });
+  const nextUserTeam = appliedPendingUserSubs.userTeam;
+  const appliedPendingOpponentSubs = applyPendingOpponentSubstitutions({
+    opponentTeam: stateWithQueuedOpponentSub.opponentTeam,
+    substitutionState: appliedPendingUserSubs.substitutionState,
+    disciplinaryState: nextDisciplinaryState,
+    currentMinute: nextMinute,
+  });
+  const nextOpponentTeam = appliedPendingOpponentSubs.opponentTeam;
+  const nextSubstitutionState = appliedPendingOpponentSubs.substitutionState;
+
   if (transition.nextSituationType === "set_piece" && transition.nextSetPieceType) {
     let setPieceSituation = createSituation({
       zone: transition.toZone,
       lane: transition.toLane,
       possession: transition.toPossession,
-      userTeam: state.userTeam,
-      opponentTeam: state.opponentTeam,
+      userTeam: nextUserTeam,
+      opponentTeam: nextOpponentTeam,
       unavailableUserPlayerIds,
       unavailableOpponentPlayerIds,
       situationType: "set_piece",
@@ -391,8 +431,8 @@ export function runMatchStep(params: RunMatchStepParams): MatchState {
         zone: transition.toZone,
         lane: transition.toLane,
         possession: transition.toPossession,
-        userTeam: state.userTeam,
-        opponentTeam: state.opponentTeam,
+        userTeam: nextUserTeam,
+        opponentTeam: nextOpponentTeam,
         unavailableUserPlayerIds,
         unavailableOpponentPlayerIds,
         situationType: "set_piece",
@@ -417,10 +457,10 @@ export function runMatchStep(params: RunMatchStepParams): MatchState {
       });
     }
 
-    const { history, lastEvent: _prevEvent, ...withoutPersistence } = state;
+    const { history, lastEvent: _prevEvent } = state;
     return commitEvent(
       {
-        ...withoutPersistence,
+        ...stateWithQueuedOpponentSub,
         history,
         lastEvent: _prevEvent,
         context: {
@@ -429,12 +469,15 @@ export function runMatchStep(params: RunMatchStepParams): MatchState {
           clock: { minute: nextMinute },
           consecutiveZeroMinutes: nextConsecutiveZeros,
         },
+        userTeam: nextUserTeam,
+        opponentTeam: nextOpponentTeam,
         currentSituation: setPieceSituation,
         interactiveSetPiece,
         lastTouchPlayerId: nextLastTouch.playerId,
         lastTouchSide: nextLastTouch.side,
         playerMatchStats: nextPlayerMatchStats,
         disciplinaryState: nextDisciplinaryState,
+        substitutionState: nextSubstitutionState,
         lastGoal: nextLastGoal,
       },
       lastEvent
@@ -451,8 +494,8 @@ export function runMatchStep(params: RunMatchStepParams): MatchState {
           resolvedAction,
           transition,
           duelContext,
-          userTeam: state.userTeam,
-          opponentTeam: state.opponentTeam,
+          userTeam: nextUserTeam,
+          opponentTeam: nextOpponentTeam,
           unavailableUserPlayerIds,
           unavailableOpponentPlayerIds,
           random,
@@ -466,21 +509,22 @@ export function runMatchStep(params: RunMatchStepParams): MatchState {
           zone: transition.toZone,
           lane: transition.toLane,
           possession: transition.toPossession,
-          userTeam: state.userTeam,
-          opponentTeam: state.opponentTeam,
+          userTeam: nextUserTeam,
+          opponentTeam: nextOpponentTeam,
           unavailableUserPlayerIds,
           unavailableOpponentPlayerIds,
           situationType: transition.nextSituationType,
           setPieceType: transition.nextSetPieceType ?? null,
           forcedUserPlayerId,
           forcedOpponentPlayerId,
+          lastAction: resolvedAction,
           random,
         });
 
-  const { history, lastEvent: _prevEvent, ...withoutPersistence } = state;
+  const { history, lastEvent: _prevEvent } = state;
   return commitEvent(
     {
-      ...withoutPersistence,
+      ...stateWithQueuedOpponentSub,
       history,
       lastEvent: _prevEvent,
       context: {
@@ -490,12 +534,17 @@ export function runMatchStep(params: RunMatchStepParams): MatchState {
         clock: { minute: nextMinute },
         consecutiveZeroMinutes: nextConsecutiveZeros,
       },
+      userTeam: nextPhase === "finished" ? state.userTeam : nextUserTeam,
+      opponentTeam:
+        nextPhase === "finished" ? state.opponentTeam : nextOpponentTeam,
       currentSituation: nextSituation,
       interactiveSetPiece: null,
       lastTouchPlayerId: nextLastTouch.playerId,
       lastTouchSide: nextLastTouch.side,
       playerMatchStats: nextPlayerMatchStats,
       disciplinaryState: nextDisciplinaryState,
+      substitutionState:
+        nextPhase === "finished" ? state.substitutionState : nextSubstitutionState,
       lastGoal: nextLastGoal,
     },
     lastEvent

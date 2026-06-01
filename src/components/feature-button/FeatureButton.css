@@ -146,6 +146,22 @@
   filter: brightness(1.04);
 }
 
+.feature-button--random {
+  background: linear-gradient(90deg, #d8a8ff 0%, #a855f7 100%);
+  color: #171717;
+  box-shadow: 0 5px 20px rgba(168, 85, 247, 0.28);
+}
+
+.feature-button--random .feature-button__icon-circle {
+  background: #3a0f5a;
+  color: #a855f7;
+}
+
+.feature-button--random:hover {
+  box-shadow: 0 0 35px rgba(168, 85, 247, 0.55);
+  filter: brightness(1.04);
+}
+
 /* ── Animação padrão ── */
 @keyframes feature-pulse {
   0% {
