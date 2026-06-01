@@ -133,9 +133,9 @@ npm run dev
   <img src="./media/match.png" width="49%">
 </div>
 
-### Match Events & Summary
+### Substitution & Summary
 <div align="center">
-  <img src="./media/match2.png" width="49%">
+  <img src="./media/subsmodal.png" width="49%">
   <img src="./media/matchsummary.png" width="49%">
 </div>
 
