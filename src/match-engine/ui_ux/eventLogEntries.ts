@@ -1,10 +1,13 @@
 import type {
   ActionType,
   CardType,
-  DismissalType,
   ShotResult,
 } from "../matchTypes";
-import { getMatchActionLabel, getMatchOutcomeLabel } from "./narrator";
+import {
+  getCardOutcomeLabel,
+  getMatchActionLabel,
+  getMatchOutcomeLabel,
+} from "./narrator";
 import type { MatchHistoryEntry } from "./useMatchEngine";
 import type { Player } from "../../types/PlayerTypes";
 
@@ -90,17 +93,6 @@ function shouldUseGoalkeeperAsDefender(params: {
     actionType === "finish" ||
     actionType === "header"
   );
-}
-
-function getCardOutcomeLabel(
-  cardType: Exclude<CardType, "none">,
-  dismissalType: DismissalType | null
-): string {
-  if (cardType === "yellow") {
-    return "Yellow card";
-  }
-
-  return dismissalType === "second_yellow" ? "Second yellow" : "Red card";
 }
 
 function buildHistoryDuelEventLogEntry(

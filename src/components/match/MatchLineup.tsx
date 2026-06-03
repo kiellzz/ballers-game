@@ -172,6 +172,8 @@ export const MatchLineup: React.FC<MatchLineupProps> = ({
       <div className="lineup-list">
         {players.map((player, idx) => {
           const playerId = player ? Number(player.id) : null;
+          const isMvp =
+            isMatchFinished && playerId != null && playerId === mvpPlayerId;
           const stats =
             playerId != null ? playerMatchStats?.[`${side}:${playerId}`] : undefined;
           const discipline =
@@ -219,7 +221,11 @@ export const MatchLineup: React.FC<MatchLineupProps> = ({
               <span className="lineup-pos">{positions[idx]}</span>
 
               <div className="lineup-name-wrap">
-                <span className="lineup-name">{player?.name || "---"}</span>
+                <span
+                  className={`lineup-name${isMvp ? " lineup-name--mvp" : ""}`}
+                >
+                  {player ? player.name : "---"}
+                </span>
                 {isSubstitutedIn ? (
                   <span
                     className="lineup-sub-indicator"
@@ -346,6 +352,8 @@ export const MatchLineup: React.FC<MatchLineupProps> = ({
           ) : (
             subbedOffPlayers.map(({ player, position }, index) => {
               const playerId = Number(player.id);
+              const isMvp =
+                isMatchFinished && playerId === mvpPlayerId;
               const stats = playerMatchStats?.[`${side}:${playerId}`];
               const rating = calculatePlayerRating(
                 stats ?? emptyStatLine(),
@@ -369,7 +377,11 @@ export const MatchLineup: React.FC<MatchLineupProps> = ({
                   <span className="lineup-pos">{position}</span>
 
                   <div className="lineup-name-wrap">
-                    <span className="lineup-name">{player.name}</span>
+                    <span
+                      className={`lineup-name${isMvp ? " lineup-name--mvp" : ""}`}
+                    >
+                      {player.name}
+                    </span>
                     <span
                       className="lineup-sub-indicator lineup-sub-indicator--off"
                       title="Subbed off"

@@ -98,7 +98,7 @@ npm run dev
 
 ## 🚀 Recent Updates
 
-* 🎰 **Random Fill Squad Button** - Auto-populate entire squad (pitch + bench) with random players respecting formations
+* 📊 **Random Fill Squad Button** - Auto-populate entire squad (pitch + bench) with random players respecting formations
 * 🟥 **Full Disciplinary System** - Two yellows = red, GK protection (max one yellow), sent-off player tracking
 * ⚖️ **Symmetric Foul Logic** - Mirrored situations use identical probabilities
 * 🧤 **Big Chance Rebalance** - `rush_save` vs `wait` tradeoffs for goalkeeper one-on-ones

@@ -8,6 +8,7 @@ import {
 import type { PlayerMatchStatLine } from "../../match-engine/matchTypes";
 import MatchModal from "./MatchModal";
 import "./PlayerStatsModal.css";
+import { motion, type Variants } from "framer-motion";
 
 interface PlayerStatsModalProps {
   isOpen: boolean;
@@ -34,8 +35,6 @@ const PRIMARY_STATS: Array<{
   { key: "failedActions", label: "Failed actions" },
   { key: "clearances", label: "Clearances" },
   { key: "penaltyMisses", label: "Penalty misses" },
-  { key: "duelWins", label: "Duel wins" },
-  { key: "duelLosses", label: "Duel losses" },
 ];
 
 const GOALKEEPER_STATS: Array<{
@@ -53,6 +52,35 @@ const GOALKEEPER_STATS: Array<{
   { key: "yellowCards", label: "Yellow cards" },
   { key: "dismissals", label: "Red card" },
 ];
+
+// Configurações de animação tipadas para evitar o erro TS2322
+const containerVariants: Variants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.04,
+    },
+  },
+};
+
+const itemVariants: Variants = {
+  hidden: { opacity: 0, y: 15 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { type: "spring", stiffness: 120, damping: 14 },
+  },
+};
+
+const badgeVariants: Variants = {
+  hidden: { scale: 0, opacity: 0 },
+  visible: {
+    scale: 1,
+    opacity: 1,
+    transition: { type: "spring", stiffness: 200, delay: 0.2 },
+  },
+};
 
 export function PlayerStatsModal(props: PlayerStatsModalProps) {
   const {
@@ -101,7 +129,14 @@ export function PlayerStatsModal(props: PlayerStatsModalProps) {
             }`}
           >
             {isMvp ? (
-              <span className="player-stats-modal__mvp-badge">MVP</span>
+              <motion.span
+                className="player-stats-modal__mvp-badge"
+                variants={badgeVariants}
+                initial="hidden"
+                animate="visible"
+              >
+                MVP!
+              </motion.span>
             ) : null}
             <div className="player-stats-modal__avatar-wrap">
               <img
@@ -130,17 +165,22 @@ export function PlayerStatsModal(props: PlayerStatsModalProps) {
         </div>
       }
     >
-      <section className="player-stats-modal__section">
-        <div className="player-stats-modal__clean-sheet">
+      <motion.section
+        className="player-stats-modal__section"
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+      >
+        <motion.div className="player-stats-modal__clean-sheet" variants={itemVariants}>
           <span className="player-stats-modal__clean-sheet-label">
             Minutes played
           </span>
           <span className="player-stats-modal__clean-sheet-minutes">
             {minutesPlayed ?? 0}
           </span>
-        </div>
+        </motion.div>
 
-        <div className="player-stats-modal__clean-sheet">
+        <motion.div className="player-stats-modal__clean-sheet" variants={itemVariants}>
           <span className="player-stats-modal__clean-sheet-label">
             Clean sheet
           </span>
@@ -153,19 +193,24 @@ export function PlayerStatsModal(props: PlayerStatsModalProps) {
           >
             {hasCleanSheet ? "\u2713" : "\u2715"}
           </span>
-        </div>
+        </motion.div>
 
         <div className="player-stats-modal__grid">
           {statItems.map(({ key, label }) => (
-            <div key={String(key)} className="player-stats-modal__stat-card">
+            <motion.div
+              key={String(key)}
+              className="player-stats-modal__stat-card"
+              variants={itemVariants}
+              whileHover={{ scale: 1.03, translateY: -2 }}
+            >
               <span className="player-stats-modal__stat-label">{label}</span>
               <span className="player-stats-modal__stat-value">
                 {stats[key] ?? 0}
               </span>
-            </div>
+            </motion.div>
           ))}
         </div>
-      </section>
+      </motion.section>
     </MatchModal>
   );
 }

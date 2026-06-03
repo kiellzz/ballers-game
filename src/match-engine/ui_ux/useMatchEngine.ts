@@ -8,6 +8,7 @@ import {
   runMatchStep,
   runInteractiveSetPieceStep,
 } from "../core/matchEngine";
+import { getFallbackEventNarration } from "./narrator";
 import type { InteractiveSetPieceResolutionInput } from "../interactive/interactiveSetPieceFlow";
 import type {
   ActionType,
@@ -188,7 +189,7 @@ function buildOpponentMatchTeam(opponent: OpponentTeam): MatchTeam {
 }
 
 function buildEventNarration(state: MatchState): string {
-  return state.lastEvent?.narration ?? "Play without description.";
+  return state.lastEvent?.narration ?? getFallbackEventNarration();
 }
 
 function findTeamPlayerName(

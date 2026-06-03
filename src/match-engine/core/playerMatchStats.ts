@@ -40,6 +40,102 @@ function statGkKey(side: PossessionSide, actors: MatchActors): string {
   return `${side}:${gk.id}`;
 }
 
+function isDefensiveOutfieldAction(action: ActionType): boolean {
+  return (
+    action === "intercept" ||
+    action === "tackle" ||
+    action === "slide_tackle" ||
+    action === "block" ||
+    action === "shoulder_charge" ||
+    action === "emergency_clearance" ||
+    action === "clearance"
+  );
+}
+
+function isGoalkeeperAction(action: ActionType): boolean {
+  return action === "gk_clearance" || action === "rush_save" || action === "wait";
+}
+
+function inferDefensiveCredit(params: {
+  action: ActionType;
+  shotResult: ShotResult;
+  possession: PossessionSide;
+  setPieceType: SetPieceType | null;
+  isFail: boolean;
+}): {
+  target: "defender" | "goalkeeper" | null;
+  tackleWon?: boolean;
+  interception?: boolean;
+  block?: boolean;
+  clearance?: boolean;
+} {
+  const { action, shotResult, possession, setPieceType, isFail } = params;
+
+  if (isDefensiveOutfieldAction(action) || action === "gk_clearance") {
+    return { target: null };
+  }
+
+  if (shotResult.happened && shotResult.outcome === "blocked") {
+    return {
+      target: "defender",
+      block: true,
+    };
+  }
+
+  if (
+    possession === "user" &&
+    shotResult.happened &&
+    shotResult.outcome === "save" &&
+    (setPieceType === "penalty" || setPieceType === "freekick")
+  ) {
+    return {
+      target: "goalkeeper",
+    };
+  }
+
+  if (!isFail) {
+    return { target: null };
+  }
+
+  if (action === "dribble" || action === "sprint" || action === "shield") {
+    return {
+      target: "defender",
+      tackleWon: true,
+    };
+  }
+
+  if (action === "cross") {
+    return {
+      target: "defender",
+      clearance: true,
+    };
+  }
+
+  if (
+    action === "side_pass" ||
+    action === "forward_pass" ||
+    action === "long_pass"
+  ) {
+    return {
+      target: "defender",
+      interception: true,
+    };
+  }
+
+  if (
+    action === "long_shot" ||
+    action === "finish" ||
+    action === "header"
+  ) {
+    return {
+      target: "defender",
+      block: true,
+    };
+  }
+
+  return { target: null };
+}
+
 // ─── Context type ─────────────────────────────────────────────────────────────
 
 export interface EventStatContext {
@@ -82,9 +178,45 @@ export function applyEventToPlayerMatchStats(
   const atkKey  = attackerKey(possession, actors);
   const defKey  = defenderKey(possession, actors);
   const defSide = defenderSide(possession);
+  const defensiveOutfieldAction = isDefensiveOutfieldAction(action);
+  const goalkeeperAction = isGoalkeeperAction(action);
+  const actingKey = goalkeeperAction
+    ? action === "gk_clearance"
+      ? statGkKey(possession, actors)
+      : statGkKey(defSide, actors)
+    : defensiveOutfieldAction
+      ? defKey
+      : atkKey;
+  const counterpartKey =
+    action === "gk_clearance"
+      ? defKey
+      : goalkeeperAction || defensiveOutfieldAction
+        ? atkKey
+        : defKey;
 
   const isSuccess = outcome === "success" || outcome === "success_high";
   const isFail    = outcome === "fail"    || outcome === "fail_high";
+  const isPenaltySavedWithRebound =
+    setPieceType === "penalty" &&
+    shotResult.happened &&
+    shotResult.outcome === "rebound";
+  const shouldCountShotAttempt =
+    shotResult.happened &&
+    (
+      action === "long_shot" ||
+      action === "finish" ||
+      action === "header" ||
+      possession === "opponent" ||
+      setPieceType === "penalty" ||
+      setPieceType === "freekick"
+    );
+  const inferredDefensiveCredit = inferDefensiveCredit({
+    action,
+    shotResult,
+    possession,
+    setPieceType,
+    isFail,
+  });
 
   // ── 0. Mark clean-sheet eligible roles ──────────────────────────────────────
   {
@@ -154,7 +286,10 @@ export function applyEventToPlayerMatchStats(
   }
 
   // ── 2. Shots on target & GK saves ───────────────────────────────────────────
-  if (shotResult.happened && shotResult.outcome === "save") {
+  if (
+    shotResult.happened &&
+    (shotResult.outcome === "save" || isPenaltySavedWithRebound)
+  ) {
     const atk = get(atkKey);
     atk.shotsOnTarget += 1;
     next[atkKey] = atk;
@@ -171,7 +306,7 @@ export function applyEventToPlayerMatchStats(
     next[gkk] = gkSt;
   }
 
-  if (action === "long_shot" || action === "finish" || action === "header") {
+  if (shouldCountShotAttempt) {
     const atk = get(atkKey);
     const isRealBigChance = transition?.createdBigChance ?? isBigChance;
     atk.shotAttempts += 1;
@@ -220,46 +355,22 @@ export function applyEventToPlayerMatchStats(
 
     // 3a. Volume action counters
     {
-      const atk = get(atkKey);
-      if (isSuccess) {
-        atk.successfulActions += 1;
-      } else if (outcome === "fail_high") {
-        atk.failedHighActions += 1;
-      } else {
-        atk.failedActions += 1;
-      }
-      next[atkKey] = atk;
-    }
+      const winnerKey = isSuccess ? actingKey : counterpartKey;
+      const loserKey = isSuccess ? counterpartKey : actingKey;
+      const winner = get(winnerKey);
+      const loser = get(loserKey);
 
-    // 3b. Duel result
-    const isDefensiveAction =
-      action === "intercept" ||
-      action === "tackle" ||
-      action === "slide_tackle" ||
-      action === "block" ||
-      action === "shoulder_charge" ||
-      action === "emergency_clearance" ||
-      action === "clearance" ||
-      action === "gk_clearance";
+      winner.successfulActions += 1;
+      winner.duelWins += 1;
+      loser.failedActions += 1;
+      loser.duelLosses += 1;
 
-    if (!isDefensiveAction) {
-      if (isSuccess) {
-        const atk = get(atkKey);
-        const def = get(defKey);
-        atk.duelWins   += 1;
-        def.duelLosses += 1;
-        next[atkKey] = atk;
-        next[defKey] = def;
+      if (outcome === "success_high" || outcome === "fail_high") {
+        loser.failedHighActions += 1;
       }
 
-      if (isFail) {
-        const atk = get(atkKey);
-        const def = get(defKey);
-        atk.duelLosses += 1;
-        def.duelWins   += 1;
-        next[atkKey] = atk;
-        next[defKey] = def;
-      }
+      next[winnerKey] = winner;
+      next[loserKey] = loser;
     }
 
     // 3c. Offensive skill actions
@@ -330,7 +441,7 @@ export function applyEventToPlayerMatchStats(
         action === "clearance" ||
         action === "gk_clearance")
     ) {
-      const def = get(atkKey);
+      const def = get(actingKey);
       def.defensiveActions += 1;
       if (action === "tackle" || action === "slide_tackle") def.tacklesWon    += 1;
       if (action === "intercept")                           def.interceptions += 1;
@@ -342,7 +453,35 @@ export function applyEventToPlayerMatchStats(
       ) {
         def.clearances += 1;
       }
-      next[atkKey] = def;
+      next[actingKey] = def;
+    }
+
+    if (inferredDefensiveCredit.target !== null) {
+      const defensiveCreditKey =
+        inferredDefensiveCredit.target === "goalkeeper"
+          ? statGkKey(defSide, actors)
+          : defKey;
+      const defensiveWinner = get(defensiveCreditKey);
+
+      defensiveWinner.defensiveActions += 1;
+
+      if (inferredDefensiveCredit.tackleWon) {
+        defensiveWinner.tacklesWon += 1;
+      }
+
+      if (inferredDefensiveCredit.interception) {
+        defensiveWinner.interceptions += 1;
+      }
+
+      if (inferredDefensiveCredit.block) {
+        defensiveWinner.blocks += 1;
+      }
+
+      if (inferredDefensiveCredit.clearance) {
+        defensiveWinner.clearances += 1;
+      }
+
+      next[defensiveCreditKey] = defensiveWinner;
     }
   }
 

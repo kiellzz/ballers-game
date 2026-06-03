@@ -228,6 +228,30 @@
   font-weight: 500;
 }
 
+.lineup-name--mvp {
+  font-weight: 800;
+  background: linear-gradient(
+    90deg,
+    #f59e0b 0%,
+    #fde047 20%,
+    #facc15 40%,
+    #fff7a0 52%,
+    #facc15 64%,
+    #fde047 80%,
+    #f59e0b 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: mvp-shine 2.4s linear infinite;
+}
+
+@keyframes mvp-shine {
+  0%   { background-position: 200% center; }
+  100% { background-position: -200% center; }
+}
+
 .lineup-name-wrap {
   display: flex;
   align-items: center;
@@ -606,4 +630,26 @@
   width: 156px;
   object-fit: contain;
   user-select: none;
+}
+
+.lineup-item:has(.lineup-name--mvp) {
+  /* Um fundo escuro ligeiramente dourado/quente para não acinzentar */
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.1), rgba(0, 0, 0, 0.4)) !important;
+  /* Borda dourada bem definida */
+  border: 1px solid rgba(251, 191, 36, 0.6);
+  /* Sombra interna e externa para dar profundidade (Glow) */
+  box-shadow: 0 0 12px rgba(251, 191, 36, 0.15), inset 0 0 8px rgba(251, 191, 36, 0.05);
+  transition: all 0.2s ease-in-out;
+}
+
+.lineup-item:has(.lineup-name--mvp):hover {
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.18), rgba(0, 0, 0, 0.5)) !important;
+  border-color: rgba(251, 191, 36, 0.9);
+  box-shadow: 0 0 16px rgba(251, 191, 36, 0.3), inset 0 0 10px rgba(251, 191, 36, 0.1);
+}
+
+.lineup-item:has(.lineup-name--mvp) .lineup-ovr {
+  color: #fbbf24; /* Amarelo/Dourado combinando com o nome */
+  font-weight: bold;
+  text-shadow: 0 0 8px rgba(251, 191, 36, 0.5);
 }

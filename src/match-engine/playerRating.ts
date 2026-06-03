@@ -100,7 +100,7 @@ const WEIGHTS: Record<PositionGroup, RatingWeights> = {
     pass:               0.015,
 
     save:               0.3,
-    defensiveAction:    0.08,
+    defensiveAction:    0.06,
 
     goalConceded:      -0.64,
     failedDribble:     -0.05,
@@ -120,10 +120,10 @@ const WEIGHTS: Record<PositionGroup, RatingWeights> = {
     yellowCard:        -0.30,
     dismissal:         -1.20,
 
-    tackleWon:          0.20,
-    interception:       0.15,
-    block:              0.15,
-    clearance:          0.06,
+    tackleWon:          0.16,
+    interception:       0.12,
+    block:              0.12,
+    clearance:          0.05,
 
     concededByDefense:  0,
     weakGoalConceded:  -0.8,
@@ -145,7 +145,7 @@ const WEIGHTS: Record<PositionGroup, RatingWeights> = {
     pass:               0.018,  // 0.028 → 0.018  ★
 
     save:               0.0,
-    defensiveAction:    0.22,   // 0.45  → 0.22   ★
+    defensiveAction:    0.18,   // 0.45  → 0.22   ★
 
     goalConceded:       0.0,
     failedDribble:     -0.08,
@@ -162,10 +162,10 @@ const WEIGHTS: Record<PositionGroup, RatingWeights> = {
     penaltyMiss:       -0.80,
     yellowCard:        -0.35,
     dismissal:         -1.20,
-    tackleWon:          0.22,   // 0.36  → 0.22   ★
-    interception:       0.22,   // 0.32  → 0.22   ★
-    block:              0.30,
-    clearance:          0.10,   // 0.18  → 0.10   ★
+    tackleWon:          0.18,   // 0.36  → 0.22   ★
+    interception:       0.18,   // 0.32  → 0.22   ★
+    block:              0.24,
+    clearance:          0.08,   // 0.18  → 0.10   ★
     concededByDefense: -0.22,
     weakGoalConceded:   0,
     highSave:           0,
@@ -186,7 +186,7 @@ const WEIGHTS: Record<PositionGroup, RatingWeights> = {
     pass:               0.015,
 
     save:               0.0,
-    defensiveAction:    0.22,
+    defensiveAction:    0.18,
 
     goalConceded:       0.0,
     failedDribble:     -0.10,
@@ -206,10 +206,10 @@ const WEIGHTS: Record<PositionGroup, RatingWeights> = {
     yellowCard:        -0.35,
     dismissal:         -1.20,
 
-    tackleWon:          0.25,
-    interception:       0.20,
-    block:              0.20,
-    clearance:          0.12,
+    tackleWon:          0.22,
+    interception:       0.17,
+    block:              0.17,
+    clearance:          0.10,
 
     concededByDefense:  0,
     weakGoalConceded:   0,
@@ -231,7 +231,7 @@ const WEIGHTS: Record<PositionGroup, RatingWeights> = {
     pass:               0.016,
 
     save:               0.0,
-    defensiveAction:    0.08,
+    defensiveAction:    0.06,
 
     goalConceded:       0.0,
     failedDribble:     -0.20,
@@ -251,10 +251,10 @@ const WEIGHTS: Record<PositionGroup, RatingWeights> = {
     yellowCard:        -0.35,
     dismissal:         -1.20,
 
-    tackleWon:          0.25,
-    interception:       0.20,
-    block:              0.20,
-    clearance:          0.12,
+    tackleWon:          0.20,
+    interception:       0.16,
+    block:              0.16,
+    clearance:          0.09,
 
     concededByDefense:  0,
     weakGoalConceded:   0,
@@ -282,6 +282,10 @@ export function calculatePlayerRating(
 ): number {
   const group = getPositionGroup(position);
   const w = WEIGHTS[group];
+  const regularFailedActions = Math.max(
+    0,
+    stats.failedActions - stats.failedHighActions
+  );
   const hasCleanSheet = (stats.teamGoalsConceded ?? 0) === 0;
   const cleanSheetBonus =
     hasCleanSheet && stats.cleanSheetBonusEligible > 0
@@ -321,7 +325,7 @@ export function calculatePlayerRating(
     stats.failedDribbles     * w.failedDribble +
     stats.lostPossessions    * w.lostPossession +
     stats.successfulActions  * w.successfulAction +
-    stats.failedActions      * w.failedAction +
+    regularFailedActions     * w.failedAction +
     stats.failedHighActions  * w.failedHighAction +
     stats.duelWins           * w.duelWin +
     stats.duelLosses         * w.duelLoss +

@@ -11,6 +11,7 @@ import type { BallMovementType } from "../components/match/MatchBall";
 import {
   useMatchEngine,
 } from "../match-engine/ui_ux/useMatchEngine";
+import { getCurrentPhaseText } from "../match-engine/ui_ux/narrator";
 import PreInteractiveModal, {
   type PreInteractiveCardNotice,
 } from "../match-engine/interactive/PreInteractiveModal";
@@ -121,67 +122,6 @@ function getBallMovementType(params: {
   }
 
   return "normal";
-}
-
-function buildCurrentPhaseText(
-  isUserAttacking: boolean,
-  zone: string,
-  attackerName?: string | null,
-  defenderName?: string | null
-): string {
-  const attackerText = attackerName
-    ? `${attackerName} drives the attack forward.`
-    : "The attack is building.";
-
-  const duelText =
-    attackerName && defenderName
-      ? `${attackerName} faces ${defenderName}.`
-      : attackerText;
-
-  if (isUserAttacking) {
-    switch (zone) {
-      case "def_box":
-      case "def_nearbox":
-      case "def_third":
-        return "Your team tries to build from the back.";
-      case "def_mid":
-      case "atk_mid":
-      case "atk_third":
-      case "atk_nearbox":
-        return duelText;
-      case "atk_box":
-      case "atk_bigchance":
-        return attackerName
-          ? `${attackerName} arrives dangerously inside the box.`
-          : "Your team arrives dangerously inside the box.";
-      default:
-        return attackerText;
-    }
-  }
-
-  switch (zone) {
-    case "atk_box":
-    case "atk_nearbox":
-    case "atk_third":
-      return attackerName
-        ? `${attackerName} is putting your defense under pressure.`
-        : "The opponent is putting your defense under pressure.";
-    case "atk_mid":
-    case "def_mid":
-      return duelText;
-    case "def_third":
-    case "def_nearbox":
-      return attackerName
-        ? `${attackerName} advances towards your box.`
-        : "The opponent advances towards your box.";
-    case "def_box":
-    case "def_bigchance":
-      return attackerName
-        ? `${attackerName} is threatening inside the box.`
-        : "The opponent is threatening inside the box.";
-    default:
-      return attackerText;
-  }
 }
 
 function findPlayerById(
@@ -827,12 +767,12 @@ export default function Match({ isMuted, onMatchFinished }: MatchProps) {
           "CM",
         ]));
 
-  const fieldHeaderText = buildCurrentPhaseText(
+  const fieldHeaderText = getCurrentPhaseText({
     isUserAttacking,
-    displayZone,
+    zone: displayZone,
     attackerName,
-    defenderName
-  );
+    defenderName,
+  });
 
   const ballMovementType: BallMovementType =
     latestEntry && !latestEntry.isGoal
