@@ -1,12 +1,7 @@
-export function normalizePlayerName(name: string): string {
-  return name
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]/g, "");
-}
+import { normalizePlayerName } from "./playerValidation";
 
-export function getPlayerImage(name: string): string {
+export function getPlayerImage(name: string, isWCCard?: boolean): string {
   const normalizedName = normalizePlayerName(name);
-  return `/images/players/${normalizedName}.webp`;
+  const folder = isWCCard ? "wc/" : "";
+  return `/images/players/${folder}${normalizedName}.webp`;
 }

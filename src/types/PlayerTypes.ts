@@ -40,6 +40,7 @@ export interface Player {
   nationality: string;
   stats: PlayerStats | GKStats;
   isLegend?: boolean;
+  isWCCard?: boolean;
   height: number;
   isCustom?: boolean;        
   customImage?: string;  

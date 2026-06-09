@@ -1,6 +1,7 @@
 import type { Player } from "../../types/PlayerTypes";
 import { isGKStats } from "../../types/PlayerTypes";
 import { getCardTier } from "../../utils/getCardTier";
+import { getCardBackgroundImage } from "../../utils/getCardImage";
 import { getPlayerImage } from "../../utils/getPlayerImage";
 import { getFlagUrl } from "../../utils/getFlagUrl";
 import { getDisplayName } from "../../utils/getDisplayName";
@@ -14,13 +15,6 @@ type PlayerCardProps = {
   onCardClick?: () => void;
 };
 
-const cardBackgroundMap = {
-  legend: "/images/cards/legendcard.png",
-  gold: "/images/cards/goldcard.png",
-  silver: "/images/cards/silvercard.png",
-  bronze: "/images/cards/bronzecard.png",
-};
-
 export default function PlayerCard({
   player,
   className = "",
@@ -28,7 +22,7 @@ export default function PlayerCard({
   onCardClick,
 }: PlayerCardProps) {
   const tier = getCardTier(player.overall, player.isLegend);
-  const cardBackground = cardBackgroundMap[tier];
+  const cardBackground = getCardBackgroundImage(player);
   const { stats } = player;
 
   return (
@@ -61,7 +55,7 @@ export default function PlayerCard({
 
       <div className="player-card__image-wrap">
         <img
-          src={player.customImage ?? getPlayerImage(player.name)}
+          src={player.customImage ?? getPlayerImage(player.name, player.isWCCard)}
           alt={player.name}
           className="player-card__image"
           onError={(event) => {

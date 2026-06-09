@@ -2,6 +2,7 @@ import type { Player } from "../../types/PlayerTypes";
 import type { DragSource } from "../../hooks/useDragDrop";
 import { useCallback } from "react";
 import { getCardTier } from "../../utils/getCardTier";
+import { getCardBackgroundImage } from "../../utils/getCardImage";
 import { getPlayerImage } from "../../utils/getPlayerImage";
 import { getFlagUrl } from "../../utils/getFlagUrl";
 import { playHover } from "../../utils/sound";
@@ -18,13 +19,6 @@ type BenchSlotProps = {
   onRemovePlayer?: (index: number) => void;
 };
 
-const cardBackgroundMap = {
-  legend: "/images/cards/legendcard.png",
-  gold: "/images/cards/goldcard.png",
-  silver: "/images/cards/silvercard.png",
-  bronze: "/images/cards/bronzecard.png",
-};
-
 export default function BenchSlot({
   index,
   player,
@@ -35,6 +29,9 @@ export default function BenchSlot({
   onClick,
   onRemovePlayer,
 }: BenchSlotProps) {
+  const tier = player ? getCardTier(player.overall, player.isLegend) : null;
+  const cardBackground = player ? getCardBackgroundImage(player) : null;
+
   const handleMouseEnter = useCallback(() => {
     playHover(0.25);
   }, []);
@@ -74,9 +71,9 @@ export default function BenchSlot({
       >
         {player ? (
           <article
-            className={`bench-slot__card bench-slot__card--${getCardTier(player.overall, player.isLegend)}`}
+            className={`bench-slot__card bench-slot__card--${tier}`}
             style={{
-              backgroundImage: `url(${cardBackgroundMap[getCardTier(player.overall, player.isLegend)]})`,
+              backgroundImage: `url(${cardBackground})`,
             }}
           >
             {onRemovePlayer && (
@@ -91,7 +88,7 @@ export default function BenchSlot({
 
             <div className="bench-slot__image-wrap">
               <img
-                src={player.customImage ?? getPlayerImage(player.name)}
+                src={player.customImage ?? getPlayerImage(player.name, player.isWCCard)}
                 alt={player.name}
                 className="bench-slot__image"
                 onError={handleImageError}

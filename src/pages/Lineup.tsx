@@ -12,7 +12,11 @@ import { useDragDrop } from '../hooks/useDragDrop';
 import { useSquad } from '../hooks/useSquad';
 import { useCustomPlayers } from '../hooks/useCustomPlayers';
 import { playersData } from '../data/PlayersData';
-import { canPlayerPlayInPosition } from '../utils/playerValidation';
+import {
+  canPlayerPlayInPosition,
+  findDuplicatePlayer,
+  isPlayerAlreadySelected,
+} from '../utils/playerValidation';
 import { FORMATIONS, DEFAULT_FORMATION } from '../utils/formations';
 import type { FormationKey } from '../utils/formations';
 import type { Player } from '../types/PlayerTypes';
@@ -70,18 +74,38 @@ export default function Lineup() {
   const slotPositions = formation.positions;
   const slotLayout = formation.layout;
 
-  const occupiedPlayerIds = [
-    ...pitchPlayers.filter((p): p is Player => p !== null),
-    ...benchPlayers.filter((p): p is Player => p !== null),
-  ].map(p => p.id);
+  const occupiedSlots = [
+    ...pitchPlayers
+      .map((player, index) => player ? { zone: 'pitch' as const, index, player } : null)
+      .filter((slot): slot is { zone: 'pitch'; index: number; player: Player } => slot !== null),
+    ...benchPlayers
+      .map((player, index) => player ? { zone: 'bench' as const, index, player } : null)
+      .filter((slot): slot is { zone: 'bench'; index: number; player: Player } => slot !== null),
+  ];
+
+  const occupiedPlayers = occupiedSlots.map(slot => slot.player);
+  const duplicatePlayer = findDuplicatePlayer(occupiedPlayers);
+  const blockedPlayersForActiveSlot = occupiedSlots
+    .filter(slot => !activeSlot || slot.zone !== activeSlot.zone || slot.index !== activeSlot.index)
+    .map(slot => slot.player);
 
   const handleSaveProgress = () => {
+    if (duplicatePlayer) {
+      addToast(duplicatePlayer.name, '__duplicate__');
+      return;
+    }
+
     if (saveProgress(pitchPlayers, benchPlayers, currentFormation)) {
       addToast("Squad", "Progress Saved", "success");
     }
   };
 
   const handlePlayMatch = () => {
+    if (duplicatePlayer) {
+      addToast(duplicatePlayer.name, '__duplicate__');
+      return;
+    }
+
     const success = saveAndPlay(pitchPlayers, benchPlayers, currentFormation);
     if (success) {
       saveProgress(pitchPlayers, benchPlayers, currentFormation);
@@ -122,35 +146,35 @@ export default function Lineup() {
   };
 
   const handleRandomFill = () => {
+    const selectedPlayers = [...occupiedPlayers];
     const allAvailablePlayers = [...customPlayers, ...playersData]
-      .filter(p => !occupiedPlayerIds.includes(p.id))
+      .filter(p => !isPlayerAlreadySelected(p, selectedPlayers))
       .sort(() => Math.random() - 0.5);
 
     const newPitch = [...pitchPlayers];
     const newBench = [...benchPlayers];
-    const usedIds = new Set(occupiedPlayerIds);
 
     for (let i = 0; i < slotPositions.length; i++) {
       if (newPitch[i] === null) {
         const position = slotPositions[i];
         const availableForPosition = allAvailablePlayers.filter(
-          p => !usedIds.has(p.id) && canPlayerPlayInPosition(p, position)
+          p => !isPlayerAlreadySelected(p, selectedPlayers) && canPlayerPlayInPosition(p, position)
         );
         if (availableForPosition.length > 0) {
           const randomPlayer = availableForPosition[Math.floor(Math.random() * availableForPosition.length)];
           newPitch[i] = randomPlayer;
-          usedIds.add(randomPlayer.id);
+          selectedPlayers.push(randomPlayer);
         }
       }
     }
 
     for (let i = 0; i < BENCH_SIZE; i++) {
       if (newBench[i] === null) {
-        const remainingPlayers = allAvailablePlayers.filter(p => !usedIds.has(p.id));
+        const remainingPlayers = allAvailablePlayers.filter(p => !isPlayerAlreadySelected(p, selectedPlayers));
         if (remainingPlayers.length > 0) {
           const randomPlayer = remainingPlayers[Math.floor(Math.random() * remainingPlayers.length)];
           newBench[i] = randomPlayer;
-          usedIds.add(randomPlayer.id);
+          selectedPlayers.push(randomPlayer);
         }
       }
     }
@@ -225,21 +249,38 @@ export default function Lineup() {
     const newPositions = FORMATIONS[newFormation].positions;
     const newPitch: (Player | null)[] = Array(11).fill(null);
     const availablePlayers = pitchPlayers.filter((p): p is Player => p !== null);
-    const usedIds = new Set<number>();
+    const usedPlayers: Player[] = [];
 
     newPositions.forEach((pos, slotIndex) => {
-      const match = availablePlayers.find(p => !usedIds.has(p.id) && canPlayerPlayInPosition(p, pos));
+      const match = availablePlayers.find(
+        p => !isPlayerAlreadySelected(p, usedPlayers) && canPlayerPlayInPosition(p, pos)
+      );
       if (match) {
         newPitch[slotIndex] = match;
-        usedIds.add(match.id);
+        usedPlayers.push(match);
       }
     });
 
-    const removedPlayers = availablePlayers.filter(p => !usedIds.has(p.id));
+    const removedPlayers = availablePlayers.filter(
+      p => !usedPlayers.some(usedPlayer => usedPlayer.id === p.id)
+    );
     const newBench = [...benchPlayers];
+    const selectedPlayers = [
+      ...newPitch.filter((p): p is Player => p !== null),
+      ...newBench.filter((p): p is Player => p !== null),
+    ];
+
     removedPlayers.forEach(p => {
+      if (isPlayerAlreadySelected(p, selectedPlayers)) {
+        addToast(p.name, '__duplicate__');
+        return;
+      }
+
       const emptyIdx = newBench.findIndex(b => b === null);
-      if (emptyIdx !== -1) newBench[emptyIdx] = p;
+      if (emptyIdx !== -1) {
+        newBench[emptyIdx] = p;
+        selectedPlayers.push(p);
+      }
       addToast(p.name, p.position);
     });
 
@@ -262,6 +303,12 @@ export default function Lineup() {
 
   const handlePlayerSelect = (player: Player) => {
     if (!activeSlot) return;
+
+    if (isPlayerAlreadySelected(player, blockedPlayersForActiveSlot)) {
+      addToast(player.name, '__duplicate__');
+      return;
+    }
+
     if (activeSlot.zone === 'pitch') {
       const slotPos = slotPositions[activeSlot.index];
       if (canPlayerPlayInPosition(player, slotPos)) {
@@ -393,7 +440,7 @@ export default function Lineup() {
           freePosition={activeSlot.zone === 'bench'}
           onClose={() => setIsModalOpen(false)}
           onSelect={handlePlayerSelect}
-          excludePlayerIds={occupiedPlayerIds}
+          excludedPlayers={blockedPlayersForActiveSlot}
           filters={filters}
           setFilters={setFilters}
           customPlayers={customPlayers}

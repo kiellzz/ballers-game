@@ -1,5 +1,6 @@
 import type { Player } from "../../types/PlayerTypes";
 import { getCardTier } from "../../utils/getCardTier";
+import { getCardFlipImage } from "../../utils/getCardImage";
 import PlayerCard from "../player-card/PlayerCard";
 import "./PackOpening.css";
 
@@ -12,15 +13,9 @@ interface PackCardProps {
   onCardClick?: () => void;
 }
 
-const cardFlipImageMap = {
-  legend: "/images/cards/legendflip.png",
-  gold: "/images/cards/goldflip.png",
-  silver: "/images/cards/silverflip.png",
-  bronze: "/images/cards/bronzeflip.png",
-};
-
 export function PackCard({ player, index, allRevealed, flipped, onFlip, onCardClick }: PackCardProps) {
   const tier = getCardTier(player.overall, player.isLegend);
+  const cardFlipImage = getCardFlipImage(player);
 
   function handleClick() {
     if (flipped) {
@@ -40,7 +35,7 @@ export function PackCard({ player, index, allRevealed, flipped, onFlip, onCardCl
         {/* VERSO */}
         <div className="pack-card-face pack-card-face--back">
           <img
-            src={cardFlipImageMap[tier]}
+            src={cardFlipImage}
             alt={`${tier} card back`}
             className="pack-card-back__img"
           />

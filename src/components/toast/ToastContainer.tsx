@@ -27,6 +27,7 @@ export default function ToastContainer({ toasts, onRemove }: Props) {
         const isDeleteToast = isSuccess && toast.playerPosition === '__deleted__';
         const isCreateToast = isSuccess && toast.playerPosition === '__created__';
         const isRandomFillToast = isSuccess && toast.playerPosition === '__randomfill__';
+        const isDuplicateToast = !isSuccess && toast.playerPosition === '__duplicate__';
 
         return (
           <div
@@ -46,6 +47,8 @@ export default function ToastContainer({ toasts, onRemove }: Props) {
                   ? 'Player created!'
                   : isRandomFillToast
                   ? 'Squad filled!'
+                  : isDuplicateToast
+                  ? 'Player already selected'
                   : isSuccess
                   ? 'Success!'
                   : 'Unavailable Player'}
@@ -58,6 +61,8 @@ export default function ToastContainer({ toasts, onRemove }: Props) {
                   <><strong>{toast.playerName}</strong> was added to your collection!</>
                 ) : isRandomFillToast ? (
                   <>Your squad has been <strong>randomly filled!</strong></>
+                ) : isDuplicateToast ? (
+                  <><strong>{toast.playerName}</strong> is already in your squad.</>
                 ) : toast.message ? (
                   <span dangerouslySetInnerHTML={{ __html: toast.message }} />
                 ) : isSuccess ? (

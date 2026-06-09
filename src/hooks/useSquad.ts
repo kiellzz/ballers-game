@@ -1,5 +1,6 @@
 import type { Player } from '../types/PlayerTypes';
 import type { FormationKey } from '../utils/formations';
+import { hasDuplicatePlayers } from '../utils/playerValidation';
 import { playSelect } from '../utils/sound';
 
 interface SquadData {
@@ -14,18 +15,26 @@ export function useSquad(
   pitchPlayers: (Player | null)[] = [],
   benchPlayers: (Player | null)[] = []
 ) {
+  const selectedPlayers = [...pitchPlayers, ...benchPlayers];
+  const hasDuplicateSquadPlayers = hasDuplicatePlayers(selectedPlayers);
 
   const isTeamComplete =
     (pitchPlayers?.length === 11) &&
     (pitchPlayers?.every(p => p !== null) ?? false) &&
     (benchPlayers?.length > 0) && 
-    (benchPlayers?.every(p => p !== null) ?? false);
+    (benchPlayers?.every(p => p !== null) ?? false) &&
+    !hasDuplicateSquadPlayers;
 
   const saveProgress = (
     pitch: (Player | null)[],
     bench: (Player | null)[],
     formation: FormationKey
   ) => {
+    if (hasDuplicatePlayers([...pitch, ...bench])) {
+      console.warn("Cannot save squad: duplicate player identity found.");
+      return false;
+    }
+
     try {
       const squadData: SquadData = {
         formation,
@@ -49,6 +58,11 @@ export function useSquad(
     bench: (Player | null)[],
     formation: FormationKey
   ) => {
+    if (hasDuplicatePlayers([...pitch, ...bench])) {
+      console.warn("Cannot start match: duplicate player identity found.");
+      return false;
+    }
+
     if (!isTeamComplete) {
       console.warn("⚠️ Cannot start match: Squad is incomplete.");
       return false;

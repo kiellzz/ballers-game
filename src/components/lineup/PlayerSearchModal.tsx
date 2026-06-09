@@ -3,7 +3,7 @@ import { List } from 'lucide-react';
 import type { Player, Position } from '../../types/PlayerTypes';
 import type { FilterState } from '../../types/FilterTypes';
 import { playersData } from '../../data/PlayersData';
-import { canPlayerPlayInPosition } from '../../utils/playerValidation';
+import { canPlayerPlayInPosition, isPlayerAlreadySelected } from '../../utils/playerValidation';
 import { getCardTier } from '../../utils/getCardTier';
 import { useFavorites } from '../../hooks/useFavorite';
 import { playSelect } from '../../utils/sound';
@@ -15,7 +15,7 @@ interface Props {
   slotPosition: Position;
   onSelect: (player: Player) => void;
   onClose: () => void;
-  excludePlayerIds: number[];
+  excludedPlayers: Player[];
   filters: FilterState;
   setFilters: (filters: FilterState) => void;
   freePosition?: boolean;
@@ -27,7 +27,7 @@ export default function PlayerSearchModal({
   slotPosition,
   onSelect,
   onClose,
-  excludePlayerIds,
+  excludedPlayers,
   filters,
   setFilters,
   freePosition = false,
@@ -59,7 +59,7 @@ export default function PlayerSearchModal({
         if (!filters.positions.includes(player.position)) return false;
       }
 
-      if (excludePlayerIds.includes(player.id)) return false;
+      if (isPlayerAlreadySelected(player, excludedPlayers)) return false;
       if (filters.onlyFavorites && !favorites.includes(player.id)) return false;
 
       if (searchTerm) {
@@ -85,7 +85,7 @@ export default function PlayerSearchModal({
       const order = filters.sortBy ?? 'desc';
       return order === 'desc' ? b.overall - a.overall : a.overall - b.overall;
     });
-  }, [searchTerm, slotPosition, freePosition, excludePlayerIds, filters, favorites, allPlayers]);
+  }, [searchTerm, slotPosition, freePosition, excludedPlayers, filters, favorites, allPlayers]);
 
   const toggleGlobalFavoriteFilter = () => {
     setFilters({ ...filters, onlyFavorites: !filters.onlyFavorites });
