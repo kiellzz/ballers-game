@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { createPortal } from "react-dom";
 import "./MatchModal.css";
 
 interface MatchModalProps {
@@ -37,7 +38,7 @@ export default function MatchModal({
 }: MatchModalProps) {
   if (!isOpen) return null;
 
-  return (
+  return createPortal(
     <div className="match-modal-overlay">
       <div className={`match-modal match-modal--${size} ${className}`.trim()}>
         <div className="match-modal__header">
@@ -77,6 +78,7 @@ export default function MatchModal({
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
