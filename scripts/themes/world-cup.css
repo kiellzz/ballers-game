@@ -1036,23 +1036,28 @@ body.theme-world-cup .lineup::after {
   background: url("/images/wc/wclogo.png") center / contain no-repeat;
   opacity: 0.09;
   transform: translateY(-50%);
-  filter:
-    drop-shadow(0 18px 34px rgba(0, 0, 0, 0.4))
-    drop-shadow(0 0 22px rgba(248, 251, 255, 0.16));
+  filter: none;
+}
+
+body.theme-world-cup .lineup-bg-effects,
+body.theme-world-cup .lineup-bg-vignette,
+body.theme-world-cup .lineup-bg-backdrop,
+body.theme-world-cup .lineup__particles {
+  contain: paint;
 }
 
 body.theme-world-cup .lineup-bg-effects::before {
   background:
-    radial-gradient(circle at top center, rgba(0, 94, 184, 0.2), transparent 45%),
-    radial-gradient(circle at 22% 54%, rgba(0, 132, 61, 0.1), transparent 38%),
-    radial-gradient(circle at 78% 58%, rgba(215, 25, 32, 0.09), transparent 40%),
-    radial-gradient(circle at bottom center, rgba(248, 251, 255, 0.035), transparent 45%);
-  filter: blur(76px);
+    radial-gradient(circle at top center, rgba(0, 94, 184, 0.16), transparent 55%),
+    radial-gradient(circle at 22% 54%, rgba(0, 132, 61, 0.08), transparent 48%),
+    radial-gradient(circle at 78% 58%, rgba(215, 25, 32, 0.07), transparent 50%),
+    radial-gradient(circle at bottom center, rgba(248, 251, 255, 0.03), transparent 55%);
+  filter: none;
+  transform: none;
 }
 
 body.theme-world-cup .lineup-bg-effects::after {
-  opacity: 0.12;
-  filter: blur(18px) saturate(1.2) contrast(1.05);
+  display: none;
 }
 
 body.theme-world-cup .lineup-bg-vignette {
@@ -1062,33 +1067,40 @@ body.theme-world-cup .lineup-bg-vignette {
 }
 
 body.theme-world-cup .lineup-bg-backdrop {
-  opacity: 0.045;
-  mix-blend-mode: screen;
+  opacity: 0.025;
+  mix-blend-mode: normal;
+}
+
+body.theme-world-cup .lineup-bg-noise {
+  display: none;
 }
 
 body.theme-world-cup .lineup__particles {
-  opacity: 0.48;
+  opacity: 0.28;
   background-image:
-    radial-gradient(rgba(248, 251, 255, 0.18) 1px, transparent 1px),
-    radial-gradient(rgba(0, 94, 184, 0.16) 1px, transparent 1px),
-    radial-gradient(rgba(0, 132, 61, 0.12) 2px, transparent 2px),
-    radial-gradient(rgba(215, 25, 32, 0.1) 1px, transparent 1px);
+    radial-gradient(rgba(248, 251, 255, 0.14) 1px, transparent 1px),
+    radial-gradient(rgba(0, 94, 184, 0.12) 1px, transparent 1px),
+    radial-gradient(rgba(0, 132, 61, 0.09) 2px, transparent 2px),
+    radial-gradient(rgba(215, 25, 32, 0.08) 1px, transparent 1px);
   background-size:
     150px 150px,
     230px 230px,
     340px 340px,
     410px 410px;
+  animation: none;
+  filter: none;
+  transform: translate3d(0, 0, 0);
+  -webkit-mask-image: none;
+  mask-image: none;
 }
 
 body.theme-world-cup .lineup__watermark {
-  opacity: 0.22;
-  filter:
-    brightness(1.08)
-    drop-shadow(0 0 22px rgba(248, 251, 255, 0.14))
-    drop-shadow(0 0 30px rgba(0, 94, 184, 0.18));
+  opacity: 0.18;
+  filter: brightness(1.04);
 }
 
 body.theme-world-cup .lineup__pitch {
+  animation: none;
   border-color: rgba(248, 251, 255, 0.58);
   box-shadow:
     0 0 0 1px rgba(0, 94, 184, 0.28),
@@ -1105,9 +1117,8 @@ body.theme-world-cup .lineup__pitch::after {
 
 body.theme-world-cup .player-slot:hover {
   filter:
-    drop-shadow(0 0 16px rgba(0, 94, 184, 0.38))
-    drop-shadow(0 0 10px rgba(248, 251, 255, 0.2))
-    brightness(1.12);
+    drop-shadow(0 8px 12px rgba(0, 0, 0, 0.36))
+    brightness(1.08);
 }
 
 body.theme-world-cup .empty-card-img,
@@ -1140,6 +1151,8 @@ body.theme-world-cup .formation-selector__select {
     0 10px 24px rgba(0, 0, 0, 0.24),
     0 0 20px rgba(0, 94, 184, 0.16),
     inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 body.theme-world-cup .pack-header__back:hover,
@@ -1161,6 +1174,7 @@ body.theme-world-cup .formation-selector__select option {
 }
 
 body.theme-world-cup .pack-header__logo {
+  animation: none;
   filter:
     drop-shadow(0 0 16px rgba(248, 251, 255, 0.18))
     drop-shadow(0 0 24px rgba(0, 94, 184, 0.18));
@@ -1189,10 +1203,7 @@ body.theme-world-cup .bench__title::after {
 
 body.theme-world-cup .lineup-card[style*="wccard"],
 body.theme-world-cup .bench-slot__card[style*="wccard"] {
-  filter:
-    drop-shadow(0 8px 14px rgba(0, 0, 0, 0.35))
-    drop-shadow(0 0 14px rgba(248, 251, 255, 0.16))
-    drop-shadow(0 0 18px rgba(0, 94, 184, 0.16));
+  filter: drop-shadow(0 8px 12px rgba(0, 0, 0, 0.34));
 }
 
 body.theme-world-cup .lineup__actions-sidebar .feature-button {
@@ -1343,9 +1354,34 @@ body.theme-world-cup .matchmap-tip-container {
 }
 
 body.theme-world-cup .match-column {
+  position: relative;
+  isolation: isolate;
   background:
     linear-gradient(180deg, rgba(248, 251, 255, 0.06), rgba(248, 251, 255, 0.018)),
     linear-gradient(180deg, #07172f 0%, #030a18 100%);
+}
+
+body.theme-world-cup .match-column::before {
+  content: "";
+  position: absolute;
+  top: 52%;
+  left: 50%;
+  z-index: 0;
+  width: min(74%, 230px);
+  aspect-ratio: 1;
+  pointer-events: none;
+  background: url("/images/wc/wclogo.png") center / contain no-repeat;
+  opacity: 0.055;
+  transform: translate(-50%, -50%);
+}
+
+body.theme-world-cup .match-column > .lineup-header,
+body.theme-world-cup .match-column > .lineup-list,
+body.theme-world-cup .match-column > .lineup-sub-footer,
+body.theme-world-cup .match-column > .lineup-subbed-off,
+body.theme-world-cup .match-column > .lineup-logo-wrapper {
+  position: relative;
+  z-index: 1;
 }
 
 body.theme-world-cup .match-column--left {

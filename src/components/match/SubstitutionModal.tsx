@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import type { MatchPlayer } from "../../match-engine/matchTypes";
 import type { Player } from "../../types/PlayerTypes";
 import { canPlayerPlayInPosition } from "../../utils/playerValidation";
@@ -213,7 +214,7 @@ export const SubstitutionModal: React.FC<SubstitutionModalProps> = ({
 
   // ── Render ────────────────────────────────────────────────────────
 
-  return (
+  return createPortal(
     <div className="sub-modal-overlay" onClick={handleClose}>
       <div className="sub-modal" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
@@ -421,6 +422,7 @@ export const SubstitutionModal: React.FC<SubstitutionModalProps> = ({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
