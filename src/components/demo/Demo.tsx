@@ -1,6 +1,7 @@
 export default function Demo() {
   return (
     <div
+      className="demo-badge"
       style={{
         display: "flex",
         alignItems: "center",
@@ -11,6 +12,7 @@ export default function Demo() {
     >
       {/* Badge principal */}
       <div
+        className="demo-badge__content"
         style={{
           display: "flex",
           alignItems: "center",
@@ -33,40 +35,49 @@ export default function Demo() {
         }}
       >
         {/* Shimmer */}
-        <div style={{
-          position: "absolute",
-          top: 0,
-          left: "-100%",
-          width: "60%",
-          height: "100%",
-          background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.07), transparent)",
-          transform: "skewX(-20deg)",
-          animation: "demoShimmer 3s ease-in-out infinite",
-        }} />
+        <div
+          className="demo-badge__shimmer"
+          style={{
+            position: "absolute",
+            top: 0,
+            left: "-100%",
+            width: "60%",
+            height: "100%",
+            background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.07), transparent)",
+            transform: "skewX(-20deg)",
+            animation: "demoShimmer 3s ease-in-out infinite",
+          }}
+        />
 
         {/* Dot pulsante */}
-        <span style={{
-          width: "8px",
-          height: "8px",
-          borderRadius: "50%",
-          background: "#c084fc",
-          flexShrink: 0,
-          animation: "demoDot 1.5s ease-in-out infinite",
-          boxShadow: "0 0 10px rgba(192, 132, 252, 1)",
-        }} />
+        <span
+          className="demo-badge__dot"
+          style={{
+            width: "8px",
+            height: "8px",
+            borderRadius: "50%",
+            background: "#c084fc",
+            flexShrink: 0,
+            animation: "demoDot 1.5s ease-in-out infinite",
+            boxShadow: "0 0 10px rgba(192, 132, 252, 1)",
+          }}
+        />
 
         DEMO
 
         {/* Diamond direito */}
-        <span style={{
-          width: "8px",
-          height: "8px",
-          background: "#c084fc",
-          clipPath: "polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)",
-          flexShrink: 0,
-          boxShadow: "0 0 8px rgba(192, 132, 252, 0.8)",
-          animation: "demoDot 1.5s ease-in-out infinite 0.3s",
-        }} />
+        <span
+          className="demo-badge__diamond"
+          style={{
+            width: "8px",
+            height: "8px",
+            background: "#c084fc",
+            clipPath: "polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)",
+            flexShrink: 0,
+            boxShadow: "0 0 8px rgba(192, 132, 252, 0.8)",
+            animation: "demoDot 1.5s ease-in-out infinite 0.3s",
+          }}
+        />
       </div>
 
       <style>{`

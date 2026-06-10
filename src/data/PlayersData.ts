@@ -238,7 +238,7 @@ export const playersData: Player[] = [
       defending: 30,
       physical: 63
     },
-    height: 181,
+    height: 179,
   },
   {
     id: 15,
@@ -299,11 +299,11 @@ export const playersData: Player[] = [
     secondaryPositions: ["CM"],
     nationality: "England",
     stats: {
-      pace: 72,
-      shooting: 70,
-      passing: 83,
-      dribbling: 78,
-      defending: 85,
+      pace: 75,
+      shooting: 73,
+      passing: 85,
+      dribbling: 80,
+      defending: 86,
       physical: 82
     },
     height: 185,
@@ -4740,11 +4740,11 @@ export const playersData: Player[] = [
     nationality: "England",
     isWCCard: true,
     stats: {
-      pace: 76,
-      shooting: 74,
-      passing: 87,
-      dribbling: 82,
-      defending: 89,
+      pace: 79,
+      shooting: 77,
+      passing: 89,
+      dribbling: 84,
+      defending: 90,
       physical: 86
     },
     height: 185,
@@ -4908,12 +4908,12 @@ export const playersData: Player[] = [
       defending: 34,
       physical: 67
     },
-    height: 181,
+    height: 179,
   },
   {
     id: 317,
     name: "Lionel Messi",
-    overall: 91,
+    overall: 90,
     position: "ST",
     secondaryPositions: ["CAM", "RW"],
     nationality: "Argentina",
@@ -4921,8 +4921,8 @@ export const playersData: Player[] = [
     stats: {
       pace: 77,
       shooting: 90,
-      passing: 92,
-      dribbling: 93,
+      passing: 91,
+      dribbling: 92,
       defending: 33,
       physical: 71
     },
@@ -4984,17 +4984,17 @@ export const playersData: Player[] = [
   {
     id: 321,
     name: "Neymar Jr",
-    overall: 88,
+    overall: 90,
     position: "CAM",
     secondaryPositions: ["LW"],
     nationality: "Brazil",
     displayFullName: true,
     isWCCard: true,
     stats: {
-      pace: 72,
-      shooting: 85,
-      passing: 88,
-      dribbling: 92,
+      pace: 79,
+      shooting: 87,
+      passing: 90,
+      dribbling: 94,
       defending: 37,
       physical: 64
     },
@@ -5003,16 +5003,16 @@ export const playersData: Player[] = [
   {
     id: 322,
     name: "Rúben Dias",
-    overall: 91,
+    overall: 90,
     position: "CB",
     nationality: "Portugal",
     isWCCard: true,
     stats: {
-      pace: 71,
+      pace: 76,
       shooting: 43,
       passing: 70,
       dribbling: 70,
-      defending: 93,
+      defending: 91,
       physical: 91
     },
     height: 187,

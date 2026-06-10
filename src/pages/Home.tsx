@@ -13,11 +13,26 @@ import { useFavorites } from "../hooks/useFavorite";
 import { useCustomPlayers } from "../hooks/useCustomPlayers";
 import { useToast } from "../hooks/useToast";
 import ToastContainer from "../components/toast/ToastContainer";
+import { activeThemeClass } from "../styles/activeTheme";
 import type { FilterState } from "../types/FilterTypes";
 import type { Player } from "../types/PlayerTypes";
 import "./Home.css";
 
 const PAGE_SIZE = 15;
+const WORLD_CUP_THEME_CLASS = "theme-world-cup";
+
+function hasActiveHomeFilters(filters: FilterState, search: string): boolean {
+  return (
+    search.trim().length > 0 ||
+    filters.onlyFavorites ||
+    filters.positions.length > 0 ||
+    filters.nationalities.length > 0 ||
+    filters.tiers.length > 0 ||
+    filters.overallMin !== defaultFilters.overallMin ||
+    filters.overallMax !== defaultFilters.overallMax ||
+    (filters.sortBy ?? defaultFilters.sortBy) !== defaultFilters.sortBy
+  );
+}
 
 export default function Home() {
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
@@ -36,6 +51,10 @@ export default function Home() {
   const allPlayers = useMemo(() => [...customPlayers, ...playersData], [customPlayers]);
 
   const filteredPlayers = useMemo(() => {
+    const shouldPrioritizeWorldCupCards =
+      activeThemeClass === WORLD_CUP_THEME_CLASS &&
+      !hasActiveHomeFilters(filters, search);
+
     const result = allPlayers.filter(player => {
       if (filters.onlyFavorites && !favorites.includes(player.id)) {
         return false;
@@ -67,6 +86,13 @@ export default function Home() {
     });
 
     return result.sort((a, b) => {
+      if (shouldPrioritizeWorldCupCards) {
+        const worldCupDelta = Number(Boolean(b.isWCCard)) - Number(Boolean(a.isWCCard));
+        if (worldCupDelta !== 0) return worldCupDelta;
+
+        return b.overall - a.overall;
+      }
+
       const order = filters.sortBy ?? "desc";
       return order === "desc" ? b.overall - a.overall : a.overall - b.overall;
     });
