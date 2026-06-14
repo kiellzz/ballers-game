@@ -4,6 +4,8 @@
 
 # ⚽ Ballers • Interactive Football Experience
 
+> ✨ **[NEW] World Cup Event** — Exclusive **World Cup player cards** with themed design now available in packs. Fresh **World Cup-inspired theme** with updated visual style transforms the entire interface experience.
+
 <p align="center">
   A browser-based football game combining **squad building**, **dynamic pack opening**, and a **custom-built interactive match engine** where you control every moment.
 </p>
