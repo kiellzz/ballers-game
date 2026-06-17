@@ -298,3 +298,288 @@ background-image:
   75%  { transform: translate(-12px, -180px) scale(1.01); }
   100% { transform: translate(8px, -240px) scale(1); }
 }
+
+/* ================= RESPONSIVE LINEUP LAYOUT ================= */
+
+@media (max-width: 1100px) {
+  .lineup {
+    height: auto;
+    min-height: 100svh;
+    align-items: center;
+    gap: 12px;
+    overflow-y: auto;
+    padding: 118px 16px 24px;
+  }
+
+  .lineup__pitch {
+    order: 1;
+    flex: 0 0 auto;
+    width: min(100%, 760px);
+    height: clamp(560px, 72svh, 700px);
+    margin: 0 auto;
+    padding-top: 0;
+  }
+
+  .lineup__watermark {
+    width: min(260px, 52vw);
+    opacity: 0.2;
+  }
+
+  .lineup__actions-sidebar {
+    order: 2;
+    position: relative;
+    top: auto;
+    right: auto;
+    transform: none;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    align-items: stretch;
+    gap: 10px;
+    width: min(100%, 760px);
+    z-index: 60;
+  }
+
+  .lineup__actions-sidebar .feature-button {
+    width: 100%;
+    min-height: 56px;
+    justify-content: flex-start;
+    border-radius: 16px;
+    padding: 0;
+  }
+
+  .lineup__actions-sidebar .feature-button:hover {
+    transform: translateY(-2px);
+  }
+
+  .lineup__actions-sidebar .feature-button__icon-wrap {
+    width: 54px;
+    min-width: 54px;
+  }
+
+  .lineup__actions-sidebar .feature-button__icon-circle {
+    width: 44px;
+    height: 44px;
+  }
+
+  .lineup__actions-sidebar .feature-button__icon-circle svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  .lineup__actions-sidebar .feature-button__label {
+    min-width: 0;
+    padding-right: 8px;
+    font-size: clamp(0.78rem, 1.6vw, 1rem);
+    letter-spacing: 0.04em;
+    line-height: 0.95;
+    overflow-wrap: anywhere;
+  }
+
+  .bench {
+    order: 3;
+    width: min(100%, 760px);
+    border-radius: 18px;
+    padding: 10px 12px 14px;
+  }
+
+  .bench__slots {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    justify-items: center;
+    gap: 10px;
+    width: 100%;
+  }
+
+  .bench-slot {
+    width: min(100%, 72px);
+    height: auto;
+  }
+}
+
+@media (max-width: 640px) {
+  .lineup {
+    gap: 10px;
+    padding: 104px 10px 18px;
+  }
+
+  .lineup .pack-header,
+  .lineup .pack-header__art {
+    height: 104px;
+  }
+
+  .lineup .pack-header__content {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    align-items: start;
+    gap: 8px;
+    padding: 10px 12px;
+  }
+
+  .lineup .pack-header__back {
+    justify-self: start;
+    gap: 6px;
+    margin-top: 34px;
+    padding: 8px 12px;
+    font-size: 0.86rem;
+  }
+
+  .lineup .pack-header__back svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .lineup .pack-header__logo {
+    width: 110px;
+  }
+
+  .lineup .formation-selector {
+    justify-self: end;
+  }
+
+  .lineup .formation-selector__select {
+    min-width: 104px;
+    padding: 8px 30px 8px 14px;
+    font-size: 0.86rem;
+  }
+
+  .lineup .formation-selector__icon {
+    right: 11px;
+  }
+
+  .lineup__pitch {
+    width: min(100%, 430px);
+    height: clamp(500px, 122vw, 560px);
+    border-width: 2px;
+  }
+
+  .player-slot {
+    width: clamp(56px, 15.8vw, 68px);
+  }
+
+  .player-slot:hover {
+    transform: translate(-50%, -50%) scale(1.04);
+  }
+
+  .lineup__actions-sidebar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    width: min(100%, 430px);
+  }
+
+  .lineup__actions-sidebar .feature-button {
+    min-height: 50px;
+    border-radius: 14px;
+  }
+
+  .lineup__actions-sidebar .feature-button__icon-wrap {
+    width: 48px;
+    min-width: 48px;
+  }
+
+  .lineup__actions-sidebar .feature-button__icon-circle {
+    width: 38px;
+    height: 38px;
+  }
+
+  .lineup__actions-sidebar .feature-button__icon-circle svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  .lineup__actions-sidebar .feature-button__label {
+    padding-right: 6px;
+    font-size: clamp(0.74rem, 3.4vw, 0.95rem);
+    letter-spacing: 0.03em;
+  }
+
+  .bench {
+    width: min(100%, 430px);
+    border-radius: 14px;
+    padding: 8px 6px 12px;
+  }
+
+  .bench__title {
+    font-size: 11px;
+  }
+
+  .bench__title::after {
+    width: 86px;
+    margin-top: 4px;
+  }
+
+  .bench__slots {
+    gap: clamp(4px, 1.8vw, 8px);
+  }
+
+  .bench-slot {
+    width: min(100%, 64px);
+  }
+
+  .lineup-card__info-bar,
+  .bench-slot__info-bar {
+    bottom: 9%;
+    height: clamp(12px, 3.2vw, 15px);
+    padding: 0 2px;
+  }
+
+  .lineup-card__overall,
+  .bench-slot__overall {
+    font-size: 0.82rem;
+  }
+
+  .lineup-card__position,
+  .bench-slot__position {
+    font-size: 0.68rem;
+  }
+
+  .lineup-card__flag,
+  .bench-slot__flag {
+    width: 12px;
+    height: 8px;
+  }
+
+  .lineup-card__remove-btn,
+  .bench-slot__remove-btn {
+    top: -7px;
+    right: -7px;
+    width: 22px;
+    height: 22px;
+    font-size: 1rem;
+    border-width: 2px;
+  }
+
+  .slot-pos-label,
+  .bench-slot__empty-label {
+    font-size: 0.75rem;
+  }
+
+  body.theme-world-cup .lineup.lineup::after {
+    top: 50%;
+    right: auto;
+    left: 50%;
+    width: min(72vw, 280px);
+    transform: translate(-50%, -50%);
+  }
+}
+
+@media (max-width: 380px) {
+  .lineup {
+    padding-inline: 8px;
+  }
+
+  .lineup__pitch {
+    height: clamp(480px, 126vw, 520px);
+  }
+
+  .player-slot {
+    width: clamp(52px, 15.2vw, 58px);
+  }
+
+  .bench-slot {
+    width: min(100%, 58px);
+  }
+
+  .lineup__actions-sidebar .feature-button__label {
+    font-size: 0.72rem;
+  }
+}

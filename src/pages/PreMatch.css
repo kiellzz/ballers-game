@@ -899,3 +899,288 @@
 .prematch-sidebar::-webkit-scrollbar {
   width: 0;
 }
+
+/* ================= RESPONSIVE PREMATCH LAYOUT ================= */
+
+@media (max-width: 900px) {
+  .prematch-container {
+    flex-direction: column;
+    align-items: center;
+    height: auto;
+    min-height: 100svh;
+    width: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+    padding: 120px 16px 28px;
+    gap: 14px;
+  }
+
+  .prematch-container.prematch-container .prematch-sidebar,
+  .prematch-container.prematch-container .prematch-main {
+    width: min(100%, 560px);
+    flex: 0 0 auto;
+  }
+
+  .prematch-container.prematch-container .prematch-sidebar {
+    border-right: 0;
+    border-radius: 22px;
+    padding: 22px;
+    overflow: visible;
+  }
+
+  .prematch-sidebar__glow {
+    opacity: 0.55;
+  }
+
+  .prematch-squad-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .prematch-squad-list .squad-list-item:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+    justify-self: center;
+    width: calc((100% - 6px) / 2);
+  }
+
+  .squad-list-item {
+    min-width: 0;
+    padding: 8px 10px;
+  }
+
+  .prematch-team-rating {
+    margin-top: 1rem;
+    align-self: stretch;
+    justify-content: center;
+  }
+
+  .prematch-container.prematch-container .prematch-main {
+    min-height: 620px;
+    border-radius: 22px;
+  }
+
+  .prematch-main__vignette {
+    display: none;
+  }
+
+  .prematch-main__content {
+    width: 100%;
+    padding: 42px 20px 36px;
+  }
+
+  .prematch-header-wrapper {
+    margin-bottom: 2rem;
+  }
+
+  .prematch-header {
+    font-size: clamp(3rem, 9vw, 4rem);
+    letter-spacing: 0;
+  }
+
+  .prematch-header--accent {
+    font-size: clamp(3.25rem, 10vw, 4.35rem);
+    letter-spacing: 0;
+  }
+
+  .prematch-reroll-wrapper,
+  .opponent-list {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 640px) {
+  .prematch-container {
+    padding: 104px 10px 20px;
+    gap: 10px;
+  }
+
+  .prematch-container.prematch-container .prematch-sidebar {
+    border-radius: 18px;
+    padding: 16px 12px 14px;
+  }
+
+  .prematch-sidebar__header {
+    margin-bottom: 0.5rem;
+    padding-bottom: 0.75rem;
+  }
+
+  .prematch-sidebar__title {
+    font-size: clamp(1.1rem, 5.8vw, 1.45rem);
+    letter-spacing: 0.16em;
+  }
+
+  .prematch-sidebar__formation {
+    padding: 5px 11px;
+    font-size: 0.76rem;
+  }
+
+  .prematch-squad-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 5px;
+    margin-top: 0.35rem;
+  }
+
+  .prematch-squad-list .squad-list-item:last-child:nth-child(odd) {
+    width: calc((100% - 5px) / 2);
+  }
+
+  .squad-list-item {
+    padding: 6px 7px;
+    font-size: 0.72rem;
+    border-radius: 7px;
+  }
+
+  .squad-list-pos {
+    width: 26px;
+    font-size: 0.6rem;
+  }
+
+  .squad-list-name {
+    padding-right: 5px;
+  }
+
+  .squad-list-stats {
+    gap: 5px;
+  }
+
+  .squad-list-ovr {
+    width: 21px;
+    font-size: 0.74rem;
+  }
+
+  .squad-list-flag {
+    width: 17px;
+    height: 12px;
+  }
+
+  .prematch-team-rating {
+    margin-top: 0.7rem;
+    width: min(100%, 194px);
+    align-self: center;
+    padding: 10px 16px;
+    border-radius: 13px;
+    font-size: 1.18rem;
+    gap: 9px;
+  }
+
+  .rating-star-prematch {
+    width: 21px;
+    height: 21px;
+  }
+
+  .prematch-container.prematch-container .prematch-main {
+    min-height: 560px;
+    border-radius: 18px;
+  }
+
+  .prematch-main__content {
+    justify-content: center;
+    min-height: 560px;
+    padding: 28px 14px 30px;
+  }
+
+  .prematch-eyebrow {
+    gap: 8px;
+    margin-bottom: 0.65rem;
+    font-size: 0.68rem;
+    letter-spacing: 0.32em;
+  }
+
+  .prematch-header-wrapper {
+    margin-bottom: 1.45rem;
+  }
+
+  .prematch-header {
+    font-size: clamp(2.55rem, 13vw, 3.45rem);
+    line-height: 1;
+    gap: 4px;
+  }
+
+  .prematch-header--accent {
+    font-size: clamp(2.65rem, 13.5vw, 3.65rem);
+  }
+
+  .btn-reroll {
+    padding: 0.78rem 1rem;
+    border-radius: 13px;
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+  }
+
+  .opponent-list {
+    gap: 0.7rem;
+  }
+
+  .btn-opponent {
+    min-height: 58px;
+    padding: 0.9rem 1rem;
+    border-radius: 13px;
+    font-size: 0.84rem;
+    letter-spacing: 0.1em;
+  }
+
+  .btn-opponent__left {
+    min-width: 0;
+    gap: 10px;
+  }
+
+  .btn-opponent__name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.84rem;
+    letter-spacing: 0.1em;
+  }
+
+  .btn-opponent:hover,
+  .btn-opponent--selected,
+  .btn-opponent:active {
+    transform: none;
+  }
+
+  .prematch-container.prematch-container .prematch-main::before {
+    top: 50%;
+    left: 50%;
+    width: min(76vw, 300px);
+    opacity: 0.12;
+    transform: translate(-50%, -50%);
+  }
+}
+
+@media (max-width: 380px) {
+  .prematch-container {
+    padding-inline: 8px;
+  }
+
+  .prematch-sidebar__title {
+    font-size: 0.98rem;
+  }
+
+  .squad-list-item {
+    padding-inline: 6px;
+    font-size: 0.68rem;
+  }
+
+  .squad-list-pos {
+    width: 24px;
+  }
+
+  .squad-list-flag {
+    width: 15px;
+    height: 11px;
+  }
+
+  .prematch-header {
+    font-size: 2.35rem;
+  }
+
+  .prematch-header--accent {
+    font-size: 2.5rem;
+  }
+
+  .btn-opponent__name {
+    font-size: 0.78rem;
+  }
+}
