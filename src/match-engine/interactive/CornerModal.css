@@ -180,6 +180,11 @@
   transform: perspective(800px);
 }
 
+.corner-ball-img {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
 /* ---------- Banner ---------- */
 .corner-banner {
   position: absolute;
@@ -395,21 +400,192 @@
 }
 
 @media (max-width: 600px) {
+  .corner-modal.match-modal {
+    width: min(352px, 92vw);
+    max-height: min(86svh, 680px);
+    overflow: hidden;
+  }
+
+  .corner-modal .match-modal__header {
+    padding: 18px 18px 8px;
+    gap: 10px;
+  }
+
+  .corner-modal .match-modal__title {
+    font-size: clamp(1.3rem, 6vw, 1.55rem);
+    line-height: 1.05;
+  }
+
+  .corner-modal .match-modal__subtitle {
+    margin-top: 8px;
+    font-size: 0.82rem;
+    line-height: 1.3;
+    min-height: 0;
+  }
+
+  .corner-modal .match-modal__header-content {
+    margin-top: 10px;
+  }
+
+  .corner-modal__body {
+    overflow: hidden;
+  }
+
+  .corner-modal__footer {
+    padding: 12px 18px 16px;
+    min-height: 58px;
+    gap: 8px;
+  }
+
+  .corner-modal__footer .match-modal__hint {
+    max-width: 54%;
+    font-size: 0.72rem;
+    line-height: 1.25;
+  }
+
+  .corner-modal__footer .match-modal__btn {
+    min-width: 96px;
+    min-height: 38px;
+    padding: 9px 14px;
+  }
+
+  .corner-layout {
+    gap: 12px;
+  }
+
   .corner-stage {
-    margin: 8px 10px 0;
+    margin: 8px 12px 0;
+    border-radius: 10px;
   }
 
   .corner-banner {
     font-size: 12px;
     padding: 6px 14px;
+    max-width: calc(100% - 24px);
+    text-align: center;
+  }
+
+  .corner-goalkeeper-card-wrap {
+    left: 32%;
+    top: 51%;
   }
 
   .corner-goalkeeper-card {
-    transform: scale(0.24);
+    transform: scale(0.14);
+  }
+
+  .corner-goalkeeper-card-wrap--preview {
+    transform: translate(-50%, -50%) scale(1.01);
+  }
+
+  .corner-goalkeeper-card-wrap--react-goal {
+    transform: translate(-60%, -50%) rotate(-8deg);
+  }
+
+  .corner-goalkeeper-card-wrap--react-miss {
+    transform: translate(-42%, -50%) rotate(4deg);
+  }
+
+  .corner-short-receiver-wrap {
+    left: 14%;
+    top: 72%;
   }
 
   .corner-short-receiver-card {
-    transform: scale(0.28);
+    transform: scale(0.2);
+  }
+
+  .corner-ball-img {
+    transform: scale(1.18);
+    filter:
+      drop-shadow(0 0 7px rgba(255, 255, 255, 0.72))
+      drop-shadow(0 0 12px rgba(96, 165, 250, 0.45))
+      drop-shadow(0 3px 5px rgba(0, 0, 0, 0.72));
+  }
+
+  .corner-short-receiver-wrap--success {
+    transform: translate(-50%, -56%) scale(1.04);
+  }
+
+  .corner-options-panel {
+    gap: 10px;
+    padding: 0 12px 2px;
+  }
+
+  .corner-option-item {
+    gap: 5px;
+  }
+
+  .corner-option-item .opt-btn {
+    min-width: 118px;
+    min-height: 38px;
+    padding: 9px 14px;
+    border-radius: 14px;
+    font-size: 0.78rem;
+  }
+
+  .corner-option-sublabel {
+    font-size: 9px;
+    min-height: 14px;
+  }
+
+  .corner-shooter-row {
+    margin-top: 8px;
+    gap: 9px;
+    flex-wrap: wrap;
+  }
+
+  .corner-shooter-label {
+    font-size: 10px;
+    letter-spacing: 0.07em;
+  }
+
+  .corner-shooter-card-mini {
+    gap: 8px;
+    padding: 5px 8px;
+    border-radius: 9px;
+  }
+
+  .corner-shooter-img {
+    width: 30px;
+    height: 30px;
+  }
+
+  .corner-shooter-name {
+    font-size: 11px;
+  }
+
+  .corner-shooter-ovr,
+  .corner-shooter-pos {
+    font-size: 9px;
+  }
+}
+
+@media (max-width: 380px) {
+  .corner-modal.match-modal {
+    width: min(342px, 92vw);
+  }
+
+  .corner-stage {
+    margin-inline: 10px;
+  }
+
+  .corner-goalkeeper-card {
+    transform: scale(0.12);
+  }
+
+  .corner-short-receiver-card {
+    transform: scale(0.18);
+  }
+
+  .corner-ball-img {
+    transform: scale(1.22);
+  }
+
+  .corner-option-item .opt-btn {
+    min-width: 110px;
+    padding-inline: 12px;
+    font-size: 0.72rem;
   }
 }
 

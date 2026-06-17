@@ -161,6 +161,7 @@ export default function OppPenModal({
       eyebrow="MATCH EVENT"
       title="Penalty Against You!"
       subtitle={subtitle}
+      className="pen-modal"
       headerContent={headerContent}
       hint={hint}
       primaryAction={primaryAction}

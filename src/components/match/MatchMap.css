@@ -160,3 +160,55 @@
   text-transform: uppercase;
   text-shadow: 0 0 6px rgba(0, 0, 0, 0.85);
 }
+
+@media (max-width: 640px) {
+  .map-overlay-container {
+    top: 146px;
+    right: 14px;
+    width: 78px;
+    height: 122px;
+    z-index: 36;
+  }
+
+  .map-relative-box {
+    height: 102px;
+    border-width: 2px;
+    border-radius: 5px;
+  }
+
+  .map-ball-sprite {
+    width: 10px;
+    height: 10px;
+  }
+
+  .map-caption {
+    margin-top: 4px;
+    font-size: 10px;
+    line-height: 1;
+    letter-spacing: 0.04em;
+  }
+
+  body.theme-world-cup .match-main-content .map-overlay-container {
+    top: 146px;
+    right: 14px;
+    z-index: 36;
+  }
+}
+
+@media (max-width: 380px) {
+  .map-overlay-container {
+    top: 140px;
+    right: 12px;
+    width: 72px;
+    height: 114px;
+  }
+
+  .map-relative-box {
+    height: 96px;
+  }
+
+  body.theme-world-cup .match-main-content .map-overlay-container {
+    top: 140px;
+    right: 12px;
+  }
+}

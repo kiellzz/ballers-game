@@ -438,17 +438,167 @@
 
 /* Responsive */
 @media (max-width: 600px) {
+  .pen-modal.match-modal {
+    width: min(352px, 92vw);
+    max-height: min(86svh, 660px);
+    overflow: hidden;
+  }
+
+  .pen-modal .match-modal__header {
+    padding: 18px 18px 8px;
+    gap: 10px;
+  }
+
+  .pen-modal .match-modal__title {
+    font-size: clamp(1.3rem, 6vw, 1.55rem);
+    line-height: 1.05;
+  }
+
+  .pen-modal .match-modal__subtitle {
+    margin-top: 8px;
+    font-size: 0.82rem;
+    line-height: 1.3;
+    min-height: 0;
+  }
+
+  .pen-modal .match-modal__header-content {
+    margin-top: 10px;
+  }
+
+  .pen-modal__body {
+    overflow: hidden;
+  }
+
+  .pen-modal__footer {
+    padding: 12px 18px 16px;
+    min-height: 58px;
+    gap: 8px;
+  }
+
+  .pen-modal__footer .match-modal__hint {
+    max-width: 52%;
+    font-size: 0.72rem;
+    line-height: 1.25;
+  }
+
+  .pen-modal__footer .match-modal__btn {
+    min-width: 96px;
+    min-height: 38px;
+    padding: 9px 14px;
+  }
+
   .pen-stage {
-    margin: 8px 18px 0;
+    margin: 8px 16px 0;
+    overflow: hidden;
+    border-radius: 10px;
   }
 
   .pen-zone {
     font-size: 11px;
+    border-width: 1.5px;
   }
 
   .pen-banner {
     font-size: 13px;
     padding: 6px 16px;
+    top: 12px;
+    max-width: calc(100% - 28px);
+    white-space: nowrap;
+    text-align: center;
+  }
+
+  .pen-ball {
+    width: 22px;
+    height: 22px;
+  }
+
+  .pen-keeper-badge {
+    top: -4px;
+    right: 4px;
+    min-width: 12px;
+    min-height: 12px;
+    padding: 2px 5px;
+    border-width: 1px;
+  }
+
+  .pen-shooter-row {
+    margin-top: 8px;
+    gap: 9px;
+    flex-wrap: wrap;
+  }
+
+  .pen-shooter-label {
+    font-size: 10px;
+    letter-spacing: 0.07em;
+  }
+
+  .pen-shooter-card-mini {
+    gap: 8px;
+    padding: 5px 8px;
+    border-radius: 9px;
+  }
+
+  .pen-shooter-card-mini .corner-shooter-img,
+  .pen-shooter-img {
+    width: 30px;
+    height: 30px;
+  }
+
+  .pen-shooter-name {
+    font-size: 11px;
+  }
+
+  .pen-shooter-ovr,
+  .pen-shooter-pos {
+    font-size: 9px;
+  }
+
+  .pen-goalkeeper-card-wrap {
+    top: 52%;
+    transition-duration: 520ms;
+  }
+
+  .pen-goalkeeper-card {
+    transform: scale(0.28);
+  }
+
+  .pen-goalkeeper-card-wrap--diving.pen-goalkeeper-card-wrap--top_left {
+    transform: translate(-82%, -68%) rotate(-7deg);
+  }
+
+  .pen-goalkeeper-card-wrap--diving.pen-goalkeeper-card-wrap--bottom_left {
+    transform: translate(-82%, -34%) rotate(-6deg);
+  }
+
+  .pen-goalkeeper-card-wrap--diving.pen-goalkeeper-card-wrap--center {
+    transform: translate(-50%, -55%) scale(1.02);
+  }
+
+  .pen-goalkeeper-card-wrap--diving.pen-goalkeeper-card-wrap--top_right {
+    transform: translate(-18%, -68%) rotate(7deg);
+  }
+
+  .pen-goalkeeper-card-wrap--diving.pen-goalkeeper-card-wrap--bottom_right {
+    transform: translate(-18%, -34%) rotate(6deg);
+  }
+}
+
+@media (max-width: 380px) {
+  .pen-modal.match-modal {
+    width: min(342px, 92vw);
+  }
+
+  .pen-stage {
+    margin-inline: 14px;
+  }
+
+  .pen-goalkeeper-card {
+    transform: scale(0.25);
+  }
+
+  .pen-ball {
+    width: 20px;
+    height: 20px;
   }
 }
 

@@ -26,7 +26,7 @@ export default function WelcomePage({ onStart }: WelcomePageProps) {
           <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
           <path d="M12 8v4m0 4h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
         </svg>
-        Best experienced on desktop — mobile is not supported
+        Best experienced on desktop — mobile responsiveness can be inconsistent
       </div>
 
       <div className="welcome-content">

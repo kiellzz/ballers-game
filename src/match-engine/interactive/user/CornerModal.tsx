@@ -454,6 +454,7 @@ export default function CornerModal({
       eyebrow="MATCH EVENT"
       title="Corner Kick!"
       subtitle={subtitle}
+      className="corner-modal"
       headerContent={headerContent}
       hint={hint}
       primaryAction={primaryAction}
@@ -570,6 +571,7 @@ export default function CornerModal({
                   />
                   <image
                     href="/images/ball.png"
+                    className="corner-ball-img"
                     width={ballSize}
                     height={ballSize}
                     x={ballOffset}

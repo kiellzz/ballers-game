@@ -153,6 +153,7 @@ export default function PenModal({
       eyebrow="MATCH EVENT"
       title="Penalty!"
       subtitle={subtitle}
+      className="pen-modal"
       headerContent={headerContent}
       hint={hint}
       primaryAction={primaryAction}

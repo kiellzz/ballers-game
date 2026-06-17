@@ -199,6 +199,7 @@ export default function OppFkModal({
       eyebrow="MATCH EVENT"
       title="Free Kick Against You!"
       subtitle={subtitle}
+      className="fk-modal"
       headerContent={headerContent}
       hint={hint}
       primaryAction={primaryAction}

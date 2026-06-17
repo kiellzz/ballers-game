@@ -164,6 +164,7 @@ function isGoalkeeperMatchPlayer(
 }
 
 function buildSubstitutionEventLogEntry(params: {
+  side: PossessionSide;
   outPlayer: Player;
   inPlayer: Player;
   minute: number;
@@ -172,6 +173,7 @@ function buildSubstitutionEventLogEntry(params: {
   index: number;
 }): EventLogEntry {
   const {
+    side,
     outPlayer,
     inPlayer,
     minute,
@@ -184,6 +186,7 @@ function buildSubstitutionEventLogEntry(params: {
     id: `substitution-${index}-${outPlayer.id}-${inPlayer.id}`,
     kind: "substitution",
     minute,
+    side,
     outPlayer,
     inPlayer,
     outPlayerPosition,
@@ -197,6 +200,17 @@ export default function Match({ isMuted, onMatchFinished }: MatchProps) {
   const navigate = useNavigate();
 
   const routeState = location.state as MatchLocationState;
+  const [mobileLineupPanel, setMobileLineupPanel] = useState<
+    "user" | "opponent" | null
+  >(null);
+
+  useEffect(() => {
+    document.body.classList.add("is-match-page");
+
+    return () => {
+      document.body.classList.remove("is-match-page");
+    };
+  }, []);
 
   useEffect(() => {
     if (!routeState?.opponent || !routeState?.userSquad) {
@@ -663,6 +677,7 @@ export default function Match({ isMuted, onMatchFinished }: MatchProps) {
 
         return [
           buildSubstitutionEventLogEntry({
+            side: "user",
             outPlayer,
             inPlayer,
             minute:
@@ -701,6 +716,7 @@ export default function Match({ isMuted, onMatchFinished }: MatchProps) {
 
         return [
           buildSubstitutionEventLogEntry({
+            side: "opponent",
             outPlayer,
             inPlayer,
             minute:
@@ -1077,30 +1093,45 @@ export default function Match({ isMuted, onMatchFinished }: MatchProps) {
 
   return (
     <div className="match-screen">
-      <MatchLineup
-        title="Your lineup"
-        players={displayedUserLineupPlayers}
-        positions={displayedUserLineupPositions}
-        starterMatchPlayers={displayedUserStarters}
-        benchPlayers={displayedUserBenchPlayers}
-        playerMatchStats={matchState.playerMatchStats}
-        disciplinaryState={matchState.disciplinaryState}
-        subsUsed={userSubstitutionsUsed}
-        maxSubs={matchState.substitutionState.maxUserSubstitutions}
-        substitutedOutIds={substitutedOutUserPlayerIds}
-        substitutedInIds={substitutedInUserPlayerIds}
-        completedSubstitutions={
-          matchState.substitutionState.completedUserSubstitutions
-        }
-        subbedOffPlayers={userSubbedOffPlayers}
-        pendingInIds={pendingUserSubstitutionInIds}
-        isMatchFinished={matchState.isFinished}
-        finalMinute={matchState.minute}
-        finalTeamGoalsConceded={score.opponent}
-        mvpPlayerId={userMvpPlayerId}
-        canSubstitute={phase === "playing"}
-        onSubstitute={queueUserSubstitution}
-      />
+      <div
+        className={`match-lineup-drawer match-lineup-drawer--user${
+          mobileLineupPanel === "user" ? " is-open" : ""
+        }`}
+      >
+        <button
+          type="button"
+          className="match-lineup-drawer__close"
+          onClick={() => setMobileLineupPanel(null)}
+          aria-label="Close your lineup"
+        >
+          <span aria-hidden="true">X</span>
+        </button>
+
+        <MatchLineup
+          title="Your lineup"
+          players={displayedUserLineupPlayers}
+          positions={displayedUserLineupPositions}
+          starterMatchPlayers={displayedUserStarters}
+          benchPlayers={displayedUserBenchPlayers}
+          playerMatchStats={matchState.playerMatchStats}
+          disciplinaryState={matchState.disciplinaryState}
+          subsUsed={userSubstitutionsUsed}
+          maxSubs={matchState.substitutionState.maxUserSubstitutions}
+          substitutedOutIds={substitutedOutUserPlayerIds}
+          substitutedInIds={substitutedInUserPlayerIds}
+          completedSubstitutions={
+            matchState.substitutionState.completedUserSubstitutions
+          }
+          subbedOffPlayers={userSubbedOffPlayers}
+          pendingInIds={pendingUserSubstitutionInIds}
+          isMatchFinished={matchState.isFinished}
+          finalMinute={matchState.minute}
+          finalTeamGoalsConceded={score.opponent}
+          mvpPlayerId={userMvpPlayerId}
+          canSubstitute={phase === "playing"}
+          onSubstitute={queueUserSubstitution}
+        />
+      </div>
 
       <main className="match-main-content">
         {matchState.isFinished && !showSummary && (
@@ -1130,6 +1161,36 @@ export default function Match({ isMuted, onMatchFinished }: MatchProps) {
           gameTime={phase === "finished" ? "FT" : `${matchState.minute}'`}
         />
 
+        <div className="match-mobile-lineup-tabs" aria-label="Match lineups">
+          <button
+            type="button"
+            className="match-mobile-lineup-tab"
+            onClick={() => setMobileLineupPanel("user")}
+          >
+            <img
+              src="/images/field.png"
+              alt=""
+              className="match-mobile-lineup-tab__icon"
+              aria-hidden="true"
+            />
+            <span>Your Lineup</span>
+          </button>
+
+          <button
+            type="button"
+            className="match-mobile-lineup-tab"
+            onClick={() => setMobileLineupPanel("opponent")}
+          >
+            <img
+              src="/images/field.png"
+              alt=""
+              className="match-mobile-lineup-tab__icon"
+              aria-hidden="true"
+            />
+            <span>Opp. Lineup</span>
+          </button>
+        </div>
+
         <MatchField
           situation={fieldHeaderText}
           userPlayer={userFrontPlayer}
@@ -1146,27 +1207,51 @@ export default function Match({ isMuted, onMatchFinished }: MatchProps) {
         <EventLog events={events} />
       </main>
 
-      <MatchLineup
-        title="Opp. Lineup"
-        players={displayedOpponentLineupPlayers}
-        positions={displayedOpponentLineupPositions}
-        isOpponent={true}
-        starterMatchPlayers={displayedOpponentStarters}
-        playerMatchStats={matchState.playerMatchStats}
-        disciplinaryState={matchState.disciplinaryState}
-        subsUsed={opponentSubstitutionsUsed}
-        maxSubs={matchState.substitutionState.maxOpponentSubstitutions}
-        substitutedOutIds={substitutedOutOpponentPlayerIds}
-        substitutedInIds={substitutedInOpponentPlayerIds}
-        completedSubstitutions={
-          matchState.substitutionState.completedOpponentSubstitutions
-        }
-        subbedOffPlayers={opponentSubbedOffPlayers}
-        isMatchFinished={matchState.isFinished}
-        finalMinute={matchState.minute}
-        finalTeamGoalsConceded={score.user}
-        mvpPlayerId={opponentMvpPlayerId}
-      />
+      <div
+        className={`match-lineup-drawer match-lineup-drawer--opponent${
+          mobileLineupPanel === "opponent" ? " is-open" : ""
+        }`}
+      >
+        <button
+          type="button"
+          className="match-lineup-drawer__close"
+          onClick={() => setMobileLineupPanel(null)}
+          aria-label="Close opponent lineup"
+        >
+          <span aria-hidden="true">X</span>
+        </button>
+
+        <MatchLineup
+          title="Opp. Lineup"
+          players={displayedOpponentLineupPlayers}
+          positions={displayedOpponentLineupPositions}
+          isOpponent={true}
+          starterMatchPlayers={displayedOpponentStarters}
+          playerMatchStats={matchState.playerMatchStats}
+          disciplinaryState={matchState.disciplinaryState}
+          subsUsed={opponentSubstitutionsUsed}
+          maxSubs={matchState.substitutionState.maxOpponentSubstitutions}
+          substitutedOutIds={substitutedOutOpponentPlayerIds}
+          substitutedInIds={substitutedInOpponentPlayerIds}
+          completedSubstitutions={
+            matchState.substitutionState.completedOpponentSubstitutions
+          }
+          subbedOffPlayers={opponentSubbedOffPlayers}
+          isMatchFinished={matchState.isFinished}
+          finalMinute={matchState.minute}
+          finalTeamGoalsConceded={score.user}
+          mvpPlayerId={opponentMvpPlayerId}
+        />
+      </div>
+
+      {mobileLineupPanel ? (
+        <button
+          type="button"
+          className="match-lineup-backdrop"
+          onClick={() => setMobileLineupPanel(null)}
+          aria-label="Close lineup drawer"
+        />
+      ) : null}
 
       <PreInteractiveModal
         isOpen={isPreModalOpen}

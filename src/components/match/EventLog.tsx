@@ -27,8 +27,18 @@ export const EventLog = ({ events }: EventLogProps) => {
     return event.kind === "duel" && event.outcome === "Goal";
   }
 
+  function getPlayerNameClass(side: "user" | "opponent"): string {
+    return `event-log-name${
+      side === "opponent" ? " event-log-name--opponent" : ""
+    }`;
+  }
+
   return (
-    <section className="match-events">
+    <section
+      className={`match-events${
+        isEventLogVisible ? " match-events--open" : ""
+      }`}
+    >
       <div className="match-events__header">
         <h3>Match events</h3>
         <button
@@ -69,7 +79,7 @@ export const EventLog = ({ events }: EventLogProps) => {
                         assignedPosition={event.outPlayerPosition}
                       />
                       <span
-                        className="event-log-name"
+                        className={getPlayerNameClass(event.side)}
                         title={event.outPlayer.name}
                       >
                         {outPlayerName}
@@ -83,7 +93,10 @@ export const EventLog = ({ events }: EventLogProps) => {
                         player={event.inPlayer}
                         assignedPosition={event.inPlayerPosition}
                       />
-                      <span className="event-log-name" title={event.inPlayer.name}>
+                      <span
+                        className={getPlayerNameClass(event.side)}
+                        title={event.inPlayer.name}
+                      >
                         {inPlayerName}
                       </span>
                     </div>
@@ -114,7 +127,10 @@ export const EventLog = ({ events }: EventLogProps) => {
                         player={event.player}
                         assignedPosition={event.playerPosition}
                       />
-                      <span className="event-log-name" title={event.player.name}>
+                      <span
+                        className={getPlayerNameClass(event.playerSide)}
+                        title={event.player.name}
+                      >
                         {playerName}
                       </span>
                     </div>
@@ -146,7 +162,7 @@ export const EventLog = ({ events }: EventLogProps) => {
               return (
                 <div
                   key={event.id}
-                  className={`event-log-item${
+                  className={`event-log-item event-log-item--duel${
                     goalEvent ? " event-log-item--goal" : ""
                   }`}
                 >
@@ -157,7 +173,10 @@ export const EventLog = ({ events }: EventLogProps) => {
                       player={event.attacker}
                       assignedPosition={event.attackerPosition}
                     />
-                    <span className="event-log-name" title={event.attacker.name}>
+                    <span
+                      className={getPlayerNameClass(event.attackerSide)}
+                      title={event.attacker.name}
+                    >
                       {attackerName}
                     </span>
                   </div>
@@ -169,7 +188,10 @@ export const EventLog = ({ events }: EventLogProps) => {
                       player={event.defender}
                       assignedPosition={event.defenderPosition}
                     />
-                    <span className="event-log-name" title={event.defender.name}>
+                    <span
+                      className={getPlayerNameClass(event.defenderSide)}
+                      title={event.defender.name}
+                    >
                       {defenderName}
                     </span>
                   </div>

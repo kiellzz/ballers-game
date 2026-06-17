@@ -464,3 +464,171 @@
   margin: 0 0 10px;
   z-index: 10;
 }
+
+@media (max-width: 640px) {
+  .match-visual-area {
+    justify-content: flex-start;
+    gap: 8px;
+    padding: 120px 10px 24px;
+    min-height: 600px;
+  }
+
+  .situation-box {
+    order: 2;
+    max-width: min(92%, 340px);
+    margin-top: -2px;
+    margin-bottom: 2px;
+    padding: 8px 12px;
+    font-size: 0.86rem;
+    line-height: 1.25;
+  }
+
+  .versus-display {
+    order: 1;
+    flex: 0 0 auto;
+    width: 100%;
+    min-height: 228px;
+    gap: 22px;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .side-stack {
+    width: clamp(100px, 28vw, 122px);
+    height: 222px;
+  }
+
+  .card-container {
+    transform-origin: center center;
+  }
+
+  .versus-display.is-active .main-card,
+  .versus-display.is-active .back-card {
+    animation: none;
+  }
+
+  .match-visual-area .player-card:hover {
+    transform: none;
+    box-shadow: none;
+  }
+
+  .side-stack.mode-main .main-card {
+    transform: translateY(2px) scale(0.52);
+  }
+
+  .side-stack.mode-main .back-card {
+    display: none;
+  }
+
+  .side-stack.mode-gk-protagonist .main-card {
+    transform: translateY(2px) scale(0.52);
+  }
+
+  .side-stack.left-side.mode-gk-protagonist .main-card {
+    transform: translateY(2px) translateX(1px) scale(0.52);
+  }
+
+  .side-stack.right-side.mode-gk-protagonist .main-card {
+    transform: translateY(2px) translateX(-1px) scale(0.52);
+  }
+
+  .side-stack.mode-gk-protagonist .back-card {
+    display: none;
+  }
+
+  .side-stack.left-side.mode-gk-protagonist .back-card {
+    transform: translateY(2px) translateX(-8px) scale(0.52);
+  }
+
+  .side-stack.right-side.mode-gk-protagonist .back-card {
+    transform: translateY(2px) translateX(8px) scale(0.52);
+  }
+
+  .versus-display.is-idle .main-card {
+    transform: translateY(2px) scale(0.46);
+  }
+
+  .versus-display.is-idle .back-card {
+    transform: scale(0.48);
+  }
+
+  .versus-display.is-transitioning .main-card-left {
+    transform: translateX(-8px) translateY(2px) scale(0.46);
+  }
+
+  .versus-display.is-transitioning .main-card-right {
+    transform: translateX(8px) translateY(2px) scale(0.46);
+  }
+
+  .versus-display.is-transitioning .back-card-left {
+    transform: translateX(-16px) translateY(0) scale(0.48);
+  }
+
+  .versus-display.is-transitioning .back-card-right {
+    transform: translateX(16px) translateY(0) scale(0.48);
+  }
+
+  .back-card-left {
+    left: -18px;
+  }
+
+  .back-card-right {
+    right: -18px;
+  }
+
+  .vs-logo-wrapper {
+    padding: 0 2px;
+    margin: 0;
+  }
+
+  .vs-logo {
+    font-size: clamp(1.8rem, 7vw, 2.3rem);
+    -webkit-text-stroke-width: 1px;
+  }
+
+  .possession-triangle {
+    top: -24px;
+    border-left-width: 10px;
+    border-right-width: 10px;
+    border-top-width: 16px;
+  }
+
+  .duel-hint {
+    order: 3;
+    margin: 0 0 2px;
+  }
+
+  .action-options {
+    order: 4;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+}
+
+@media (max-width: 380px) {
+  .match-visual-area {
+    padding-top: 112px;
+    min-height: 590px;
+  }
+
+  .side-stack {
+    width: clamp(92px, 27vw, 108px);
+  }
+
+  .side-stack.mode-main .main-card,
+  .side-stack.mode-gk-protagonist .main-card {
+    transform: translateY(2px) scale(0.47);
+  }
+
+  .side-stack.left-side.mode-gk-protagonist .main-card {
+    transform: translateY(2px) translateX(1px) scale(0.47);
+  }
+
+  .side-stack.right-side.mode-gk-protagonist .main-card {
+    transform: translateY(2px) translateX(-1px) scale(0.47);
+  }
+
+  .vs-logo-wrapper {
+    margin: 0 -12px;
+  }
+}

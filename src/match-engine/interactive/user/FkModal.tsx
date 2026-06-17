@@ -195,6 +195,7 @@ export default function FkModal({
       eyebrow="MATCH EVENT"
       title="Free Kick!"
       subtitle={subtitle}
+      className="fk-modal"
       headerContent={headerContent}
       hint={hint}
       primaryAction={primaryAction}

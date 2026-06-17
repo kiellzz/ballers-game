@@ -1,6 +1,7 @@
 import type {
   ActionType,
   CardType,
+  PossessionSide,
   ShotResult,
 } from "../matchTypes";
 import {
@@ -17,6 +18,8 @@ export interface DuelEventLogEntry {
   minute: number;
   attacker: Player;
   defender: Player;
+  attackerSide: PossessionSide;
+  defenderSide: PossessionSide;
   attackerPosition?: string;
   defenderPosition?: string;
   action: string;
@@ -28,6 +31,7 @@ export interface CardEventLogEntry {
   kind: "card";
   minute: number;
   player: Player;
+  playerSide: PossessionSide;
   playerPosition?: string;
   action: string;
   outcome: string;
@@ -38,6 +42,7 @@ export interface SubstitutionEventLogEntry {
   id: string;
   kind: "substitution";
   minute: number;
+  side: PossessionSide;
   outPlayer: Player;
   inPlayer: Player;
   outPlayerPosition?: string;
@@ -130,6 +135,8 @@ function buildHistoryDuelEventLogEntry(
       minute: entry.minute,
       attacker: userAttacker,
       defender: opponentDefender,
+      attackerSide: "user",
+      defenderSide: "opponent",
       attackerPosition: userAssignedPositions.get(userAttacker.name),
       defenderPosition: opponentAssignedPositions.get(opponentDefender.name),
       action: getMatchActionLabel(entry.actionType),
@@ -147,6 +154,8 @@ function buildHistoryDuelEventLogEntry(
       minute: entry.minute,
       attacker: opponentAttacker,
       defender: userDefender,
+      attackerSide: "opponent",
+      defenderSide: "user",
       attackerPosition: opponentAssignedPositions.get(opponentAttacker.name),
       defenderPosition: userAssignedPositions.get(userDefender.name),
       action: getMatchActionLabel(entry.actionType),
@@ -195,6 +204,7 @@ function buildHistoryCardEventLogEntry(
     kind: "card",
     minute: entry.minute,
     player,
+    playerSide: entry.cardedPlayerSide,
     playerPosition: positionMap.get(player.name),
     action: getMatchActionLabel(entry.actionType),
     outcome: getCardOutcomeLabel(entry.cardType, entry.dismissalType),

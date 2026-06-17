@@ -599,8 +599,60 @@
 
 /* ---------- Responsive ---------- */
 @media (max-width: 600px) {
+  .fk-modal.match-modal {
+    width: min(352px, 92vw);
+    max-height: min(86svh, 660px);
+    overflow: hidden;
+  }
+
+  .fk-modal .match-modal__header {
+    padding: 18px 18px 8px;
+    gap: 10px;
+  }
+
+  .fk-modal .match-modal__title {
+    font-size: clamp(1.3rem, 6vw, 1.55rem);
+    line-height: 1.05;
+  }
+
+  .fk-modal .match-modal__subtitle {
+    margin-top: 8px;
+    font-size: 0.82rem;
+    line-height: 1.3;
+    min-height: 0;
+  }
+
+  .fk-modal .match-modal__header-content {
+    margin-top: 10px;
+  }
+
+  .fk-modal__body {
+    overflow: hidden;
+  }
+
+  .fk-modal__footer {
+    padding: 12px 18px 16px;
+    min-height: 58px;
+    gap: 8px;
+  }
+
+  .fk-modal__footer .match-modal__hint {
+    max-width: 52%;
+    font-size: 0.72rem;
+    line-height: 1.25;
+  }
+
+  .fk-modal__footer .match-modal__btn {
+    min-width: 96px;
+    min-height: 38px;
+    padding: 9px 14px;
+  }
+
   .fk-stage {
-    margin: 0 18px;
+    margin: 0 16px;
+    overflow: hidden;
+    border-radius: 10px;
+    aspect-ratio: 16 / 10;
   }
 
   .fk-distance-bar {
@@ -631,6 +683,74 @@
   .fk-banner {
     font-size: 13px;
     padding: 6px 16px;
+  }
+
+  .fk-shooter-row {
+    margin-top: 8px;
+    gap: 9px;
+    flex-wrap: wrap;
+  }
+
+  .fk-shooter-label {
+    font-size: 10px;
+    letter-spacing: 0.07em;
+  }
+
+  .fk-shooter-card-mini {
+    gap: 8px;
+    padding: 5px 8px;
+    border-radius: 9px;
+  }
+
+  .fk-shooter-card-mini .corner-shooter-img,
+  .fk-shooter-img {
+    width: 30px;
+    height: 30px;
+  }
+
+  .fk-shooter-name {
+    font-size: 11px;
+  }
+
+  .fk-shooter-ovr,
+  .fk-shooter-pos {
+    font-size: 9px;
+  }
+
+  .fk-ball {
+    width: 21px;
+    height: 21px;
+  }
+
+  .fk-goalkeeper-card-wrap {
+    top: 51%;
+    left: 55%;
+    transition-duration: 520ms;
+    transition-delay: 80ms;
+  }
+
+  .fk-goalkeeper-card-wrap--short .fk-goalkeeper-card {
+    transform: scale(0.15) translateY(12px);
+  }
+
+  .fk-goalkeeper-card-wrap--mid .fk-goalkeeper-card {
+    transform: scale(0.145) translateY(15px);
+  }
+
+  .fk-goalkeeper-card-wrap--long .fk-goalkeeper-card {
+    transform: scale(0.14) translateY(18px);
+  }
+
+  .fk-goalkeeper-card-wrap--diving.fk-goalkeeper-card-wrap--left {
+    transform: translate(-70%, -54%) rotate(-5deg);
+  }
+
+  .fk-goalkeeper-card-wrap--diving.fk-goalkeeper-card-wrap--right {
+    transform: translate(-30%, -54%) rotate(5deg);
+  }
+
+  .fk-goalkeeper-card-wrap--diving.fk-goalkeeper-card-wrap--center {
+    transform: translate(-50%, -54%) scale(1.02);
   }
 }
 
@@ -773,4 +893,66 @@
 
 .fk-banner {
   color: #ffffff !important;
+}
+
+@media (max-width: 600px) {
+  .fk-zone {
+    min-width: 28px;
+    min-height: 28px;
+    border-width: 1.5px;
+    padding: 0;
+  }
+
+  .fk-barrier {
+    bottom: 22%;
+    left: 34%;
+    width: 68px;
+    height: 68px;
+  }
+
+  .fk-barrier--jumping {
+    animation-name: fkBarrierJumpMobile;
+  }
+
+  .fk-banner {
+    top: 12px;
+    max-width: calc(100% - 28px);
+    white-space: nowrap;
+    text-align: center;
+  }
+}
+
+@media (max-width: 380px) {
+  .fk-modal.match-modal {
+    width: min(342px, 92vw);
+  }
+
+  .fk-stage {
+    margin-inline: 14px;
+  }
+
+  .fk-barrier {
+    width: 62px;
+    height: 62px;
+  }
+
+  .fk-goalkeeper-card-wrap--short .fk-goalkeeper-card {
+    transform: scale(0.14) translateY(10px);
+  }
+
+  .fk-goalkeeper-card-wrap--mid .fk-goalkeeper-card {
+    transform: scale(0.135) translateY(13px);
+  }
+
+  .fk-goalkeeper-card-wrap--long .fk-goalkeeper-card {
+    transform: scale(0.13) translateY(16px);
+  }
+}
+
+@keyframes fkBarrierJumpMobile {
+  0%   { transform: translateX(-50%) translateY(0); }
+  18%  { transform: translateX(-50%) translateY(-22px); }
+  42%  { transform: translateX(-50%) translateY(-18px); }
+  72%  { transform: translateX(-50%) translateY(-10px); }
+  100% { transform: translateX(-50%) translateY(0); }
 }

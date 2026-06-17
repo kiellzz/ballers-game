@@ -432,6 +432,7 @@ export default function OppCornerModal({
       eyebrow="MATCH EVENT"
       title="Corner Against You!"
       subtitle={subtitle}
+      className="corner-modal"
       headerContent={headerContent}
       primaryAction={primaryAction}
       bodyClassName="corner-modal__body"
@@ -547,6 +548,7 @@ export default function OppCornerModal({
                   />
                   <image
                     href="/images/ball.png"
+                    className="corner-ball-img"
                     width={ballSize}
                     height={ballSize}
                     x={ballOffset}
