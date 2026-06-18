@@ -232,22 +232,61 @@
 
 /* Isolated Responsiveness */
 @media (max-width: 768px) {
+  .lineup-card-modal__overlay {
+    align-items: flex-end;
+    padding-top: env(safe-area-inset-top);
+  }
+
   .lineup-card-modal__dialog {
     min-width: auto;
-    width: 92%;
-    border-radius: 20px;
+    width: 100%;
+    max-height: calc(100dvh - env(safe-area-inset-top));
+    overflow-y: auto;
+    border-right: 0;
+    border-bottom: 0;
+    border-left: 0;
+    border-radius: 24px 24px 0 0;
+    padding-bottom: env(safe-area-inset-bottom);
   }
 
   .lineup-card-modal__header {
-    padding: 20px 15px;
+    padding: 18px 52px 14px 16px;
     flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
     text-align: center;
+  }
+
+  .lineup-card-modal__header-name {
+    font-size: 1.15rem;
+    text-align: left;
+  }
+
+  .lineup-card-modal__header-positions {
+    gap: 5px;
+  }
+
+  .lineup-card-modal__position-badge {
+    padding: 3px 9px;
+    font-size: 0.68rem;
+  }
+
+  .lineup-card-modal__close {
+    top: 14px;
+    right: 14px;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    display: grid;
+    place-items: center;
+    color: rgba(255, 255, 255, 0.78);
+    background: rgba(255, 255, 255, 0.07);
   }
 
   .lineup-card-modal__content {
     flex-direction: column;
-    padding: 20px 15px 30px;
-    gap: 25px;
+    padding: 16px 14px 18px;
+    gap: 16px;
   }
 
   .lineup-card-modal__center {
@@ -256,10 +295,31 @@
 
   .lineup-card-modal__actions {
     width: 100%;
+    gap: 10px;
+  }
+
+  .lineup-card-modal__left .player-card {
+    width: 233px;
+    height: 355px;
+    transform: scale(0.56);
+    transform-origin: top left;
+    margin-right: -103px;
+    margin-bottom: -156px;
+  }
+
+  .lineup-card-modal__field-info {
+    flex-direction: row;
+    gap: 8px;
+    margin-bottom: 2px;
   }
 
   .lineup-card-modal__btn {
     min-width: 100%;
     width: 100%;
+    min-height: 50px;
+    padding: 12px 18px;
+    border-radius: 14px;
+    font-size: 0.96rem;
+    touch-action: manipulation;
   }
 }

@@ -10,6 +10,7 @@ import { Scoreboard } from "../components/match/Scoreboard";
 import type { BallMovementType } from "../components/match/MatchBall";
 import {
   useMatchEngine,
+  type MatchHistoryEntry,
 } from "../match-engine/ui_ux/useMatchEngine";
 import { getCurrentPhaseText } from "../match-engine/ui_ux/narrator";
 import PreInteractiveModal, {
@@ -77,6 +78,39 @@ interface GoalVisualLock {
 interface MatchProps {
   isMuted: boolean;
   onMatchFinished?: () => void;
+}
+
+interface EventLogBuildContext {
+  opponentAssignedPositions: Map<string, string>;
+  opponentPlayers: Player[];
+  userAssignedPositions: Map<string, string>;
+  userPlayers: Player[];
+}
+
+const historyEventLogCache = new WeakMap<
+  MatchHistoryEntry,
+  { context: EventLogBuildContext; entries: EventLogEntry[] }
+>();
+
+function getHistoryEventLogEntries(
+  entry: MatchHistoryEntry,
+  context: EventLogBuildContext
+): EventLogEntry[] {
+  const cached = historyEventLogCache.get(entry);
+  if (cached?.context === context) {
+    return cached.entries;
+  }
+
+  const entries = buildHistoryEventLogEntries({
+    entry,
+    userPlayers: context.userPlayers,
+    opponentPlayers: context.opponentPlayers,
+    userAssignedPositions: context.userAssignedPositions,
+    opponentAssignedPositions: context.opponentAssignedPositions,
+  });
+
+  historyEventLogCache.set(entry, { context, entries });
+  return entries;
 }
 
 const GOAL_VISUAL_LOCK_DEFAULT: GoalVisualLock = {
@@ -425,12 +459,6 @@ export default function Match({ isMuted, onMatchFinished }: MatchProps) {
   const latestGoalModalIdRef = useRef<string | null>(null);
 
   useEffect(() => {
-    if (interactiveSetPiece?.stage !== "modal") {
-      setPendingSetPieceResolution(null);
-    }
-  }, [interactiveSetPiece]);
-
-  useEffect(() => {
     return () => {
       if (goalVisualTimeoutRef.current !== null) {
         window.clearTimeout(goalVisualTimeoutRef.current);
@@ -462,12 +490,6 @@ export default function Match({ isMuted, onMatchFinished }: MatchProps) {
 
   useLayoutEffect(() => {
     if (!latestGoal) {
-      if (goalVisualTimeoutRef.current !== null) {
-        window.clearTimeout(goalVisualTimeoutRef.current);
-        goalVisualTimeoutRef.current = null;
-      }
-
-      setGoalVisualLock(GOAL_VISUAL_LOCK_DEFAULT);
       return;
     }
 
@@ -481,6 +503,8 @@ export default function Match({ isMuted, onMatchFinished }: MatchProps) {
       window.clearTimeout(goalVisualTimeoutRef.current);
     }
 
+    // The visual lock must be committed before the goal-frame paint.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setGoalVisualLock({
       active: true,
       scoredBy: latestGoal.scorerSide,
@@ -503,12 +527,15 @@ export default function Match({ isMuted, onMatchFinished }: MatchProps) {
         goalModalTimeoutRef.current = null;
       }
 
-      setGoalModalState({
-        isOpen: false,
-        scorer: null,
-        assistPlayer: null,
-        scorerSide: null,
-      });
+      goalModalTimeoutRef.current = window.setTimeout(() => {
+        setGoalModalState({
+          isOpen: false,
+          scorer: null,
+          assistPlayer: null,
+          scorerSide: null,
+        });
+        goalModalTimeoutRef.current = null;
+      }, 0);
 
       return;
     }
@@ -546,19 +573,16 @@ export default function Match({ isMuted, onMatchFinished }: MatchProps) {
     }, 700);
   }, [allOpponentPlayers, allUserPlayers, latestGoal]);
 
-  if (!routeState || !userSquad || !opponent) {
-    return null;
-  }
-
-  const userFormation =
-    FORMATIONS[userSquad.formation as keyof typeof FORMATIONS];
+  const userFormation = userSquad
+    ? FORMATIONS[userSquad.formation as keyof typeof FORMATIONS]
+    : undefined;
 
   const oppPositions = displayedOpponentLineupPositions;
 
   const userAssignedPositions = useMemo(() => {
     const positions = new Map<string, string>();
 
-    userSquad.pitch.forEach((player, index) => {
+    userSquad?.pitch.forEach((player, index) => {
       if (!player) return;
 
       positions.set(
@@ -585,7 +609,7 @@ export default function Match({ isMuted, onMatchFinished }: MatchProps) {
     matchState.substitutionState.completedUserSubstitutions,
     matchState.substitutionState.pendingUserSubstitutions,
     userFormation,
-    userSquad.pitch,
+    userSquad?.pitch,
   ]);
 
   const opponentAssignedPositions = useMemo(() => {
@@ -622,6 +646,10 @@ export default function Match({ isMuted, onMatchFinished }: MatchProps) {
   );
 
   const matchMvp = useMemo(() => {
+    if (!matchState.isFinished) {
+      return null;
+    }
+
     const playersWithRatings = buildPlayersWithRatings(
       summaryUserParticipants.map(({ player }) => player),
       allOpponentPlayers,
@@ -633,6 +661,7 @@ export default function Match({ isMuted, onMatchFinished }: MatchProps) {
     return getMatchMVP(playersWithRatings, getResult(score.user, score.opponent));
   }, [
     allOpponentPlayers,
+    matchState.isFinished,
     matchState.playerMatchStats,
     oppPositions,
     score.opponent,
@@ -647,23 +676,26 @@ export default function Match({ isMuted, onMatchFinished }: MatchProps) {
 
   const phase = matchState.isFinished ? "finished" : "playing";
 
+  const eventLogBuildContext = useMemo<EventLogBuildContext>(
+    () => ({
+      opponentAssignedPositions,
+      opponentPlayers: allOpponentPlayers,
+      userAssignedPositions,
+      userPlayers: allUserPlayers,
+    }),
+    [
+      allOpponentPlayers,
+      allUserPlayers,
+      opponentAssignedPositions,
+      userAssignedPositions,
+    ]
+  );
+
   const legacyEvents = useMemo<EventLogEntry[]>(() => {
-    return history.flatMap((entry) => {
-      return buildHistoryEventLogEntries({
-        entry,
-        userPlayers: allUserPlayers,
-        opponentPlayers: allOpponentPlayers,
-        userAssignedPositions,
-        opponentAssignedPositions,
-      });
-    });
-  }, [
-    allUserPlayers,
-    history,
-    opponentAssignedPositions,
-    allOpponentPlayers,
-    userAssignedPositions,
-  ]);
+    return history.flatMap((entry) =>
+      getHistoryEventLogEntries(entry, eventLogBuildContext)
+    );
+  }, [eventLogBuildContext, history]);
 
   const userSubstitutionEvents = useMemo<EventLogEntry[]>(() => {
     return matchState.substitutionState.completedUserSubstitutions.flatMap(
@@ -747,6 +779,16 @@ export default function Match({ isMuted, onMatchFinished }: MatchProps) {
       ...opponentSubstitutionEvents,
     ],
     [legacyEvents, opponentSubstitutionEvents, userSubstitutionEvents]
+  );
+
+  const summaryUserPlayers = useMemo(
+    () => summaryUserParticipants.map(({ player }) => player),
+    [summaryUserParticipants]
+  );
+
+  const summaryUserPositions = useMemo(
+    () => summaryUserParticipants.map(({ position }) => position),
+    [summaryUserParticipants]
   );
 
   const displayPossession = matchState.possession;
@@ -889,6 +931,7 @@ export default function Match({ isMuted, onMatchFinished }: MatchProps) {
       : null;
 
   function handleContinueInteractiveSetPiece() {
+    setPendingSetPieceResolution(null);
     continueInteractiveSetPiece();
   }
 
@@ -896,6 +939,7 @@ export default function Match({ isMuted, onMatchFinished }: MatchProps) {
     if (!pendingSetPieceResolution || !interactiveSetPiece) return;
 
     resolveInteractiveSetPieceChoice(pendingSetPieceResolution);
+    setPendingSetPieceResolution(null);
   }
 
   function handleUserPenaltyPick(choice: PenaltyChoice) {
@@ -1082,6 +1126,10 @@ export default function Match({ isMuted, onMatchFinished }: MatchProps) {
         },
       }),
     });
+  }
+
+  if (!routeState || !userSquad || !opponent) {
+    return null;
   }
 
   const mapZone = goalVisualLock.active
@@ -1362,20 +1410,22 @@ export default function Match({ isMuted, onMatchFinished }: MatchProps) {
         }
       />
 
-      <MatchSummaryModal
-        isOpen={showSummary && matchState.isFinished}
-        onViewDetails={() => setShowSummary(false)}
-        userScore={score.user}
-        opponentScore={score.opponent}
-        opponentName={opponent.name}
-        playerMatchStats={matchState.playerMatchStats}
-        userPlayers={summaryUserParticipants.map(({ player }) => player)}
-        opponentPlayers={allOpponentPlayers}
-        history={history}
-        onOpen={() => onMatchFinished?.()}
-        userPositions={summaryUserParticipants.map(({ position }) => position)}
-        opponentPositions={oppPositions}
-      />
+      {matchState.isFinished ? (
+        <MatchSummaryModal
+          isOpen={showSummary}
+          onViewDetails={() => setShowSummary(false)}
+          userScore={score.user}
+          opponentScore={score.opponent}
+          opponentName={opponent.name}
+          playerMatchStats={matchState.playerMatchStats}
+          userPlayers={summaryUserPlayers}
+          opponentPlayers={allOpponentPlayers}
+          history={history}
+          onOpen={() => onMatchFinished?.()}
+          userPositions={summaryUserPositions}
+          opponentPositions={oppPositions}
+        />
+      ) : null}
     </div>
   );
 }

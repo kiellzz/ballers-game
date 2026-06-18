@@ -18,6 +18,11 @@
   width: 100%;
 }
 
+.player-grid > .player-card {
+  content-visibility: auto;
+  contain-intrinsic-size: 233px 355px;
+}
+
 .player-grid>* {
   animation: card-enter 0.4s ease both;
 }

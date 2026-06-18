@@ -22,6 +22,7 @@
   overflow: hidden;
   background: rgba(0, 0, 0, 0.5);
   transition: border-color 0.25s ease, box-shadow 0.25s ease;
+  contain: layout paint;
 }
 
 /* Imagem do campo */
@@ -85,6 +86,7 @@
   pointer-events: none;
   z-index: 1000;
   animation: dangerPulse 1s infinite alternate;
+  will-change: opacity;
 }
 
 /* Animação de perigo */
@@ -102,25 +104,11 @@
 /* ================================== */
 
 .map-overlay-container.opponent-possession.danger-zone .map-relative-box {
-  animation: dangerMapPulse 0.75s infinite alternate;
-}
-
-@keyframes dangerMapPulse {
-  from {
-    border-color: #ef4444;
-    box-shadow:
-      0 0 0 1px rgba(239, 68, 68, 0.25),
-      0 0 18px rgba(239, 68, 68, 0.45),
-      inset 0 0 14px rgba(239, 68, 68, 0.14);
-  }
-
-  to {
-    border-color: #ff1f1f;
-    box-shadow:
-      0 0 0 1px rgba(255, 31, 31, 0.45),
-      0 0 30px rgba(255, 31, 31, 0.8),
-      inset 0 0 24px rgba(255, 31, 31, 0.28);
-  }
+  border-color: #ff1f1f;
+  box-shadow:
+    0 0 0 1px rgba(255, 31, 31, 0.4),
+    0 0 24px rgba(255, 31, 31, 0.65),
+    inset 0 0 18px rgba(255, 31, 31, 0.22);
 }
 
 /* Container flutuante no canto */
@@ -148,6 +136,7 @@
   overflow: hidden;
   background: rgba(0, 0, 0, 0.5);
   transition: border-color 0.25s ease, box-shadow 0.25s ease;
+  contain: layout paint;
 }
 
 /* Texto abaixo do mapa */

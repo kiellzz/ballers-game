@@ -64,6 +64,7 @@ export const MatchBall: React.FC<MatchBallProps> = ({
   const [isMoving, setIsMoving] = useState(false);
   const transitionTimeoutRef = useRef<number | null>(null);
   const movingTimeoutRef = useRef<number | null>(null);
+  const animationFrameRef = useRef<number | null>(null);
   const visualPosRef = useRef<BallPosition>({
     x: leftPosition,
     y: topPosition,
@@ -78,10 +79,22 @@ export const MatchBall: React.FC<MatchBallProps> = ({
       if (movingTimeoutRef.current !== null) {
         window.clearTimeout(movingTimeoutRef.current);
       }
+
+      if (animationFrameRef.current !== null) {
+        window.cancelAnimationFrame(animationFrameRef.current);
+      }
     };
   }, []);
 
   useEffect(() => {
+    const nextPos = { x: leftPosition, y: topPosition };
+    const hasPositionChanged =
+      visualPosRef.current.x !== nextPos.x || visualPosRef.current.y !== nextPos.y;
+
+    if (!hasPositionChanged) {
+      return;
+    }
+
     if (transitionTimeoutRef.current !== null) {
       window.clearTimeout(transitionTimeoutRef.current);
       transitionTimeoutRef.current = null;
@@ -94,50 +107,53 @@ export const MatchBall: React.FC<MatchBallProps> = ({
 
     const prevLane = getLaneFromLeft(visualPosRef.current.x);
     const nextLane = getLaneFromLeft(leftPosition);
-    const nextPos = { x: leftPosition, y: topPosition };
     const movementDuration = getMovementDuration(movementType);
     const stepDelay = getStepDelay(movementType);
-    const hasPositionChanged =
-      visualPosRef.current.x !== nextPos.x || visualPosRef.current.y !== nextPos.y;
 
-    if (!hasPositionChanged) {
-      setIsMoving(false);
-      return;
-    }
+    animationFrameRef.current = window.requestAnimationFrame(() => {
+      animationFrameRef.current = null;
 
-    if (
-      prevLane !== nextLane &&
-      prevLane !== "center" &&
-      nextLane !== "center"
-    ) {
-      const centerPos = { x: "50%", y: topPosition };
+      if (
+        prevLane !== nextLane &&
+        prevLane !== "center" &&
+        nextLane !== "center"
+      ) {
+        const centerPos = { x: "50%", y: topPosition };
+
+        setIsMoving(true);
+        visualPosRef.current = centerPos;
+        setCurrentPos(centerPos);
+
+        movingTimeoutRef.current = window.setTimeout(() => {
+          setIsMoving(false);
+          movingTimeoutRef.current = null;
+        }, stepDelay + movementDuration);
+
+        transitionTimeoutRef.current = window.setTimeout(() => {
+          visualPosRef.current = nextPos;
+          setCurrentPos(nextPos);
+          transitionTimeoutRef.current = null;
+        }, stepDelay);
+
+        return;
+      }
 
       setIsMoving(true);
-      visualPosRef.current = centerPos;
-      setCurrentPos(centerPos);
-
       movingTimeoutRef.current = window.setTimeout(() => {
         setIsMoving(false);
         movingTimeoutRef.current = null;
-      }, stepDelay + movementDuration);
+      }, movementDuration);
 
-      transitionTimeoutRef.current = window.setTimeout(() => {
-        visualPosRef.current = nextPos;
-        setCurrentPos(nextPos);
-        transitionTimeoutRef.current = null;
-      }, stepDelay);
+      visualPosRef.current = nextPos;
+      setCurrentPos(nextPos);
+    });
 
-      return;
-    }
-
-    setIsMoving(true);
-    movingTimeoutRef.current = window.setTimeout(() => {
-      setIsMoving(false);
-      movingTimeoutRef.current = null;
-    }, movementDuration);
-
-    visualPosRef.current = nextPos;
-    setCurrentPos(nextPos);
+    return () => {
+      if (animationFrameRef.current !== null) {
+        window.cancelAnimationFrame(animationFrameRef.current);
+        animationFrameRef.current = null;
+      }
+    };
   }, [leftPosition, topPosition, movementType]);
 
   return (

@@ -452,3 +452,55 @@
 .filter-modal__overall-input input[type=number] {
   -moz-appearance: textfield;
 }
+
+@media (max-width: 640px) {
+  .filter-modal__overlay {
+    align-items: flex-end;
+    padding: env(safe-area-inset-top) 0 0;
+  }
+
+  .filter-modal {
+    max-width: none;
+    max-height: calc(92dvh - env(safe-area-inset-top));
+    padding: 18px 14px calc(18px + env(safe-area-inset-bottom));
+    gap: 18px;
+    border-right: 0;
+    border-bottom: 0;
+    border-left: 0;
+    border-radius: 22px 22px 0 0;
+    overscroll-behavior: contain;
+  }
+
+  .filter-modal__title {
+    font-size: 1.45rem;
+  }
+
+  .filter-modal__header-actions {
+    gap: 8px;
+  }
+
+  .filter-modal__action-btn,
+  .filter-modal__close {
+    width: 38px;
+    height: 38px;
+  }
+
+  .filter-modal__overall-row {
+    gap: 10px;
+  }
+
+  .filter-modal__overall-input input {
+    width: 72px;
+    font-size: 16px;
+  }
+
+  .filter-modal__chip {
+    min-height: 40px;
+    padding: 8px 14px;
+    touch-action: manipulation;
+  }
+
+  .filter-modal__search-input {
+    font-size: 16px;
+  }
+}

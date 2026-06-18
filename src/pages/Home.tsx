@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useCallback, useDeferredValue, useMemo, useState } from "react";
 import Header from "../components/home/Header";
 import PlayerGrid from "../components/home/PlayerGrid";
 import FeatureButton from "../components/feature-button/FeatureButton";
@@ -20,6 +20,17 @@ import "./Home.css";
 
 const PAGE_SIZE = 15;
 const WORLD_CUP_THEME_CLASS = "theme-world-cup";
+const RESERVED_PLAYER_NAMES = playersData.map((player) => player.name);
+const normalizedPlayerNames = new WeakMap<Player, string>();
+
+function getNormalizedPlayerName(player: Player): string {
+  const cachedName = normalizedPlayerNames.get(player);
+  if (cachedName) return cachedName;
+
+  const normalizedName = player.name.toLocaleLowerCase();
+  normalizedPlayerNames.set(player, normalizedName);
+  return normalizedName;
+}
 
 function hasActiveHomeFilters(filters: FilterState, search: string): boolean {
   return (
@@ -46,36 +57,47 @@ export default function Home() {
   const { favorites, toggleFavorite } = useFavorites();
   const { customPlayers, addCustomPlayer, removeCustomPlayer } = useCustomPlayers();
   const { toasts, addToast, removeToast } = useToast();
+  const deferredSearch = useDeferredValue(search);
 
   // Merge: custom players aparecem primeiro
   const allPlayers = useMemo(() => [...customPlayers, ...playersData], [customPlayers]);
+  const favoriteIds = useMemo(() => new Set(favorites), [favorites]);
 
   const filteredPlayers = useMemo(() => {
+    const normalizedSearch = deferredSearch.trim().toLocaleLowerCase();
+    const selectedPositions = new Set(filters.positions);
+    const selectedNationalities = new Set(filters.nationalities);
+    const selectedTiers = new Set(filters.tiers);
     const shouldPrioritizeWorldCupCards =
       activeThemeClass === WORLD_CUP_THEME_CLASS &&
-      !hasActiveHomeFilters(filters, search);
+      !hasActiveHomeFilters(filters, deferredSearch);
 
     const result = allPlayers.filter(player => {
-      if (filters.onlyFavorites && !favorites.includes(player.id)) {
+      if (filters.onlyFavorites && !favoriteIds.has(player.id)) {
         return false;
       }
 
-      if (search) {
-        const q = search.toLowerCase();
-        if (!player.name.toLowerCase().includes(q)) return false;
-      }
-
-      if (filters.positions.length > 0 && !filters.positions.includes(player.position)) {
+      if (
+        normalizedSearch &&
+        !getNormalizedPlayerName(player).includes(normalizedSearch)
+      ) {
         return false;
       }
 
-      if (filters.nationalities.length > 0 && !filters.nationalities.includes(player.nationality)) {
+      if (selectedPositions.size > 0 && !selectedPositions.has(player.position)) {
         return false;
       }
 
-      if (filters.tiers.length > 0) {
+      if (
+        selectedNationalities.size > 0 &&
+        !selectedNationalities.has(player.nationality)
+      ) {
+        return false;
+      }
+
+      if (selectedTiers.size > 0) {
         const tier = getCardTier(player.overall, player.isLegend);
-        if (!filters.tiers.includes(tier)) return false;
+        if (!selectedTiers.has(tier)) return false;
       }
 
       if (player.overall < filters.overallMin || player.overall > filters.overallMax) {
@@ -96,45 +118,72 @@ export default function Home() {
       const order = filters.sortBy ?? "desc";
       return order === "desc" ? b.overall - a.overall : a.overall - b.overall;
     });
-  }, [search, filters, favorites, allPlayers]);
+  }, [allPlayers, deferredSearch, favoriteIds, filters]);
 
-  const visiblePlayers = filteredPlayers.slice(0, visibleCount);
+  const visiblePlayers = useMemo(
+    () => filteredPlayers.slice(0, visibleCount),
+    [filteredPlayers, visibleCount]
+  );
   const hasMore = visibleCount < filteredPlayers.length;
   const hasLess = visibleCount > PAGE_SIZE;
 
-  function handleSearchChange(value: string) {
+  const handleSearchChange = useCallback((value: string) => {
     setSearch(value);
     setVisibleCount(PAGE_SIZE);
-  }
+  }, []);
 
-  function handleFiltersChange(newFilters: FilterState) {
+  const handleFiltersChange = useCallback((newFilters: FilterState) => {
     setFilters(newFilters);
     setVisibleCount(PAGE_SIZE);
-  }
+  }, []);
 
-  function handleClearFilters() {
+  const handleClearFilters = useCallback(() => {
     setSearch("");
     setFilters(defaultFilters);
     setVisibleCount(PAGE_SIZE);
-  }
+  }, []);
 
-  function handleShowMore() {
+  const handleShowMore = useCallback(() => {
     setVisibleCount(prev => Math.min(prev + PAGE_SIZE, filteredPlayers.length));
-  }
+  }, [filteredPlayers.length]);
 
-  function handleShowLess() {
+  const handleShowLess = useCallback(() => {
     setVisibleCount(PAGE_SIZE);
     window.scrollTo({ top: 0, behavior: "smooth" });
-  }
+  }, []);
 
-  function handleRemovePlayer() {
+  const handleRemovePlayer = useCallback(() => {
     if (selectedPlayer && customPlayers.some(p => p.id === selectedPlayer.id)) {
       const name = selectedPlayer.name;
       removeCustomPlayer(selectedPlayer.id);
       addToast(name, "__deleted__", "success");
     }
     setSelectedPlayer(null);
-  }
+  }, [addToast, customPlayers, removeCustomPlayer, selectedPlayer]);
+
+  const handleCardClick = useCallback((player: Player) => {
+    setSelectedPlayer(player);
+  }, []);
+
+  const handleClosePlayer = useCallback(() => setSelectedPlayer(null), []);
+  const handleOpenFilters = useCallback(() => setIsFilterModalOpen(true), []);
+  const handleCloseFilters = useCallback(() => setIsFilterModalOpen(false), []);
+  const handleOpenCreatePlayer = useCallback(() => setIsCreatePlayerOpen(true), []);
+  const handleCloseCreatePlayer = useCallback(() => setIsCreatePlayerOpen(false), []);
+  const handleOpenComingSoon = useCallback(() => setIsComingSoonOpen(true), []);
+  const handleCloseComingSoon = useCallback(() => setIsComingSoonOpen(false), []);
+
+  const handleSaveCustomPlayer = useCallback(
+    (player: Player) => {
+      addCustomPlayer(player);
+      addToast(player.name, "__created__", "success");
+    },
+    [addCustomPlayer, addToast]
+  );
+
+  const handleToggleSelectedFavorite = useCallback(() => {
+    if (selectedPlayer) toggleFavorite(selectedPlayer.id);
+  }, [selectedPlayer, toggleFavorite]);
 
   return (
     <div className="home">
@@ -153,9 +202,9 @@ export default function Home() {
             search={search}
             filters={filters}
             onSearchChange={handleSearchChange}
-            onOpenFilters={() => setIsFilterModalOpen(true)}
+            onOpenFilters={handleOpenFilters}
             onClearFilters={handleClearFilters}
-            onCreatePlayer={() => setIsCreatePlayerOpen(true)}
+            onCreatePlayer={handleOpenCreatePlayer}
           />
 
           {filteredPlayers.length === 0 ? (
@@ -163,8 +212,8 @@ export default function Home() {
           ) : (
             <PlayerGrid
               players={visiblePlayers}
-              favorites={favorites}
-              onCardClick={(player) => setSelectedPlayer(player)}
+              favoriteIds={favoriteIds}
+              onCardClick={handleCardClick}
             />
           )}
 
@@ -181,7 +230,7 @@ export default function Home() {
             )}
             <FeatureButton
               label="DRAFT MODE"
-              onClick={() => setIsComingSoonOpen(true)}
+              onClick={handleOpenComingSoon}
             />
           </div>
         </div>
@@ -189,7 +238,7 @@ export default function Home() {
 
       <FilterModal
         isOpen={isFilterModalOpen}
-        onClose={() => setIsFilterModalOpen(false)}
+        onClose={handleCloseFilters}
         filters={filters}
         onChange={handleFiltersChange}
       />
@@ -197,25 +246,22 @@ export default function Home() {
       {selectedPlayer && (
         <PlayerCardModal
           player={selectedPlayer}
-          isFavorite={favorites.includes(selectedPlayer.id)}
-          onClose={() => setSelectedPlayer(null)}
+          isFavorite={favoriteIds.has(selectedPlayer.id)}
+          onClose={handleClosePlayer}
           onRemove={handleRemovePlayer}
-          onToggleFavorite={() => toggleFavorite(selectedPlayer.id)}
+          onToggleFavorite={handleToggleSelectedFavorite}
         />
       )}
 
       {isComingSoonOpen && (
-        <ComingSoon onClose={() => setIsComingSoonOpen(false)} />
+        <ComingSoon onClose={handleCloseComingSoon} />
       )}
 
       {isCreatePlayerOpen && (
         <CreatePlayerModal
-          onClose={() => setIsCreatePlayerOpen(false)}
-          onSave={(player) => {
-            addCustomPlayer(player);
-            addToast(player.name, "__created__", "success");
-          }}
-          reservedNames={playersData.map(p => p.name)}
+          onClose={handleCloseCreatePlayer}
+          onSave={handleSaveCustomPlayer}
+          reservedNames={RESERVED_PLAYER_NAMES}
         />
       )}
 

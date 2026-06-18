@@ -19,20 +19,8 @@
   background-image:
     radial-gradient(circle at 20% 30%, rgba(124, 58, 237, 0.15) 0%, transparent 50%),
     radial-gradient(circle at 80% 70%, rgba(168, 85, 247, 0.1) 0%, transparent 50%);
-  animation: ambient-glow 8s ease-in-out infinite alternate;
+  opacity: 0.45;
   pointer-events: none;
-}
-
-@keyframes ambient-glow {
-  0% {
-    opacity: 0.3;
-    transform: scale(1);
-  }
-
-  100% {
-    opacity: 0.6;
-    transform: scale(1.1);
-  }
 }
 
 /* ─── SIDEBAR ─── */
@@ -75,19 +63,7 @@
   transform: translate(-50%, -50%);
   background: radial-gradient(circle, rgba(124, 58, 237, 0.15) 0%, transparent 70%);
   pointer-events: none;
-  animation: prematch-sidebar-glow 4s ease-in-out infinite;
-}
-
-@keyframes prematch-sidebar-glow {
-
-  0%,
-  100% {
-    opacity: 0.3;
-  }
-
-  50% {
-    opacity: 0.6;
-  }
+  opacity: 0.45;
 }
 
 .prematch-sidebar__header {
@@ -274,6 +250,7 @@
   height: 100%;
   background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
   animation: premium-shine 4s infinite;
+  will-change: transform;
 }
 
 .rating-icon-wrapper {
@@ -392,19 +369,6 @@
     0 0 30px rgba(168, 85, 247, 1),
     0 0 60px rgba(168, 85, 247, 0.6),
     0 2px 10px rgba(0, 0, 0, 0.9);
-  animation: glow-pulse 2s ease-in-out infinite;
-}
-
-@keyframes glow-pulse {
-
-  0%,
-  100% {
-    text-shadow: 0 0 30px rgba(168, 85, 247, 1), 0 0 60px rgba(168, 85, 247, 0.6), 0 2px 10px rgba(0, 0, 0, 0.9);
-  }
-
-  50% {
-    text-shadow: 0 0 40px rgba(168, 85, 247, 1), 0 0 80px rgba(168, 85, 247, 0.8), 0 2px 10px rgba(0, 0, 0, 0.9);
-  }
 }
 
 .eyebrow-dot {
@@ -464,20 +428,8 @@
   font-size: 5rem;
   letter-spacing: -4px;
   background-size: 300% 300%;
-  animation: gradient-shift 5s ease infinite;
+  background-position: 50% 50%;
   filter: drop-shadow(0 0 40px rgba(168, 85, 247, 1)) drop-shadow(0 0 80px rgba(168, 85, 247, 0.8)) drop-shadow(0 10px 30px rgba(0, 0, 0, 1));
-}
-
-@keyframes gradient-shift {
-
-  0%,
-  100% {
-    background-position: 0% 50%;
-  }
-
-  50% {
-    background-position: 100% 50%;
-  }
 }
 
 /* ─── REROLL BUTTON ─── */
@@ -538,8 +490,9 @@
   width: 100%;
   height: 100%;
   background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent);
-  transition: left 0.6s ease;
+  transition: transform 0.6s ease;
   pointer-events: none;
+  will-change: transform;
 }
 
 .btn-reroll:hover {
@@ -559,7 +512,7 @@
 }
 
 .btn-reroll:hover::after {
-  left: 100%;
+  transform: translate3d(200%, 0, 0);
 }
 
 .btn-reroll:active {
@@ -635,15 +588,10 @@
   0% {
     opacity: 0;
     transform: translateX(-32px) scaleY(0.85);
-    filter: brightness(2) blur(4px);
-  }
-  60% {
-    filter: brightness(1.3) blur(0px);
   }
   100% {
     opacity: 1;
     transform: translateX(0) scaleY(1);
-    filter: brightness(1) blur(0px);
   }
 }
 
@@ -678,8 +626,9 @@
   width: 100%;
   height: 100%;
   background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
-  transition: left 0.6s ease;
+  transition: transform 0.6s ease;
   pointer-events: none;
+  will-change: transform;
 }
 
 .btn-opponent:hover {
@@ -699,7 +648,7 @@
 }
 
 .btn-opponent:hover .btn-opponent__shine {
-  left: 100%;
+  transform: translate3d(200%, 0, 0);
 }
 
 .btn-opponent--selected {
@@ -858,12 +807,12 @@
 
 @keyframes premium-shine {
   0% {
-    left: -100%;
+    transform: translate3d(0, 0, 0);
   }
 
   60%,
   100% {
-    left: 150%;
+    transform: translate3d(417%, 0, 0);
   }
 }
 
@@ -872,12 +821,10 @@
   0%,
   100% {
     transform: scale(1);
-    filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.8));
   }
 
   50% {
     transform: scale(1.2);
-    filter: drop-shadow(0 0 15px rgba(255, 255, 255, 1));
   }
 }
 
@@ -919,6 +866,15 @@
   .prematch-container.prematch-container .prematch-main {
     width: min(100%, 560px);
     flex: 0 0 auto;
+  }
+
+  /* On smaller screens the choice is the primary action. */
+  .prematch-container.prematch-container .prematch-main {
+    order: 1;
+  }
+
+  .prematch-container.prematch-container .prematch-sidebar {
+    order: 2;
   }
 
   .prematch-container.prematch-container .prematch-sidebar {
@@ -991,18 +947,21 @@
 
 @media (max-width: 640px) {
   .prematch-container {
-    padding: 104px 10px 20px;
-    gap: 10px;
+    padding:
+      calc(94px + env(safe-area-inset-top))
+      8px
+      calc(18px + env(safe-area-inset-bottom));
+    gap: 8px;
   }
 
   .prematch-container.prematch-container .prematch-sidebar {
-    border-radius: 18px;
-    padding: 16px 12px 14px;
+    border-radius: 16px;
+    padding: 14px 10px 12px;
   }
 
   .prematch-sidebar__header {
-    margin-bottom: 0.5rem;
-    padding-bottom: 0.75rem;
+    margin-bottom: 0.35rem;
+    padding-bottom: 0.65rem;
   }
 
   .prematch-sidebar__title {
@@ -1018,7 +977,7 @@
   .prematch-squad-list {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 5px;
-    margin-top: 0.35rem;
+    margin-top: 0.25rem;
   }
 
   .prematch-squad-list .squad-list-item:last-child:nth-child(odd) {
@@ -1026,7 +985,8 @@
   }
 
   .squad-list-item {
-    padding: 6px 7px;
+    min-height: 31px;
+    padding: 5px 7px;
     font-size: 0.72rem;
     border-radius: 7px;
   }
@@ -1055,10 +1015,10 @@
   }
 
   .prematch-team-rating {
-    margin-top: 0.7rem;
-    width: min(100%, 194px);
+    margin-top: 0.6rem;
+    width: min(100%, 184px);
     align-self: center;
-    padding: 10px 16px;
+    padding: 9px 14px;
     border-radius: 13px;
     font-size: 1.18rem;
     gap: 9px;
@@ -1070,52 +1030,67 @@
   }
 
   .prematch-container.prematch-container .prematch-main {
-    min-height: 560px;
-    border-radius: 18px;
+    min-height: 448px;
+    border-radius: 16px;
   }
 
   .prematch-main__content {
-    justify-content: center;
-    min-height: 560px;
-    padding: 28px 14px 30px;
+    justify-content: flex-start;
+    min-height: 448px;
+    padding: 18px 12px 20px;
   }
 
   .prematch-eyebrow {
-    gap: 8px;
-    margin-bottom: 0.65rem;
-    font-size: 0.68rem;
-    letter-spacing: 0.32em;
+    gap: 7px;
+    margin-bottom: 0.45rem;
+    font-size: 0.62rem;
+    letter-spacing: 0.26em;
   }
 
   .prematch-header-wrapper {
-    margin-bottom: 1.45rem;
+    margin-bottom: 0.9rem;
   }
 
   .prematch-header {
-    font-size: clamp(2.55rem, 13vw, 3.45rem);
-    line-height: 1;
-    gap: 4px;
+    display: block;
+    font-size: clamp(1.85rem, 8.8vw, 2.35rem);
+    line-height: 1.02;
+    letter-spacing: 0.02em;
+  }
+
+  .prematch-header br {
+    display: none;
   }
 
   .prematch-header--accent {
-    font-size: clamp(2.65rem, 13.5vw, 3.65rem);
+    margin-left: 0.22em;
+    font-size: clamp(1.95rem, 9.2vw, 2.5rem);
+    letter-spacing: 0.01em;
+    filter:
+      drop-shadow(0 0 18px rgba(168, 85, 247, 0.72))
+      drop-shadow(0 8px 18px rgba(0, 0, 0, 0.7));
+  }
+
+  .prematch-reroll-wrapper {
+    margin-bottom: 0.65rem;
   }
 
   .btn-reroll {
-    padding: 0.78rem 1rem;
-    border-radius: 13px;
+    min-height: 44px;
+    padding: 0.65rem 1rem;
+    border-radius: 12px;
     font-size: 0.72rem;
     letter-spacing: 0.14em;
   }
 
   .opponent-list {
-    gap: 0.7rem;
+    gap: 0.5rem;
   }
 
   .btn-opponent {
-    min-height: 58px;
-    padding: 0.9rem 1rem;
-    border-radius: 13px;
+    min-height: 52px;
+    padding: 0.72rem 0.9rem;
+    border-radius: 12px;
     font-size: 0.84rem;
     letter-spacing: 0.1em;
   }
@@ -1147,6 +1122,19 @@
     opacity: 0.12;
     transform: translate(-50%, -50%);
   }
+
+  .prematch-sidebar__glow,
+  .prematch-main__overlay {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  .rating-star-prematch,
+  .rating-star-glow-prematch,
+  .prematch-team-rating::after,
+  .indicator-pulse {
+    animation: none;
+  }
 }
 
 @media (max-width: 380px) {
@@ -1173,14 +1161,40 @@
   }
 
   .prematch-header {
-    font-size: 2.35rem;
+    font-size: 1.72rem;
   }
 
   .prematch-header--accent {
-    font-size: 2.5rem;
+    font-size: 1.82rem;
   }
 
   .btn-opponent__name {
     font-size: 0.78rem;
+  }
+
+  .prematch-container.prematch-container .prematch-main,
+  .prematch-main__content {
+    min-height: 436px;
+  }
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .btn-reroll:hover,
+  .btn-opponent:hover,
+  .btn-opponent:active,
+  .squad-list-item:hover {
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .prematch-header-wrapper,
+  .btn-opponent.reroll-enter,
+  .btn-reroll.is-spinning svg,
+  .rating-star-prematch,
+  .rating-star-glow-prematch,
+  .prematch-team-rating::after,
+  .indicator-pulse {
+    animation: none;
   }
 }

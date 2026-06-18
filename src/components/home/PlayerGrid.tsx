@@ -1,24 +1,51 @@
+import { memo, useCallback } from "react";
 import PlayerCard from "../player-card/PlayerCard";
 import type { Player } from "../../types/PlayerTypes";
 import "./PlayerGrid.css";
 
 type PlayerGridProps = {
   players: Player[];
-  favorites?: number[];
+  favoriteIds: ReadonlySet<number>;
   onCardClick?: (player: Player) => void;
 };
 
-export default function PlayerGrid({ players, favorites = [], onCardClick }: PlayerGridProps) {
+interface PlayerGridCardProps {
+  player: Player;
+  isFavorite: boolean;
+  onCardClick?: (player: Player) => void;
+}
+
+const PlayerGridCard = memo(function PlayerGridCard({
+  player,
+  isFavorite,
+  onCardClick,
+}: PlayerGridCardProps) {
+  const handleClick = useCallback(() => {
+    onCardClick?.(player);
+  }, [onCardClick, player]);
+
+  return (
+    <PlayerCard
+      player={player}
+      isFavorite={isFavorite}
+      onCardClick={onCardClick ? handleClick : undefined}
+    />
+  );
+});
+
+function PlayerGrid({ players, favoriteIds, onCardClick }: PlayerGridProps) {
   return (
     <section className="player-grid">
       {players.map((player) => (
-        <PlayerCard
+        <PlayerGridCard
           key={player.id}
           player={player}
-          isFavorite={favorites.includes(player.id)}
-          onCardClick={onCardClick ? () => onCardClick(player) : undefined}
+          isFavorite={favoriteIds.has(player.id)}
+          onCardClick={onCardClick}
         />
       ))}
     </section>
   );
 }
+
+export default memo(PlayerGrid);

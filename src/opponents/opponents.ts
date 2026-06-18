@@ -1,7 +1,10 @@
 import type { Player, Position } from "../types/PlayerTypes";
 import { FORMATIONS, type FormationKey } from "../utils/formations";
 import { playersData } from "../data/PlayersData";
-import { canPlayerPlayInPosition, isPlayerAlreadySelected } from "../utils/playerValidation";
+import {
+  canPlayerPlayInPosition,
+  normalizePlayerName,
+} from "../utils/playerValidation";
 
 export interface OpponentTeam {
   id: string;
@@ -26,6 +29,68 @@ const shuffle = <T>(arr: T[]): T[] => {
 
 const pickRandom = <T>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
 
+const playersByPosition = new Map<Position, Player[]>();
+const normalizedPlayerNames = new WeakMap<Player, string>();
+
+function getNormalizedPlayerName(player: Player): string {
+  const cachedName = normalizedPlayerNames.get(player);
+  if (cachedName) return cachedName;
+
+  const normalizedName = normalizePlayerName(player.name);
+  normalizedPlayerNames.set(player, normalizedName);
+  return normalizedName;
+}
+
+function getPlayersForPosition(position: Position): Player[] {
+  const cachedPlayers = playersByPosition.get(position);
+  if (cachedPlayers) return cachedPlayers;
+
+  const eligiblePlayers = playersData.filter((player) =>
+    canPlayerPlayInPosition(player, position)
+  );
+  playersByPosition.set(position, eligiblePlayers);
+  return eligiblePlayers;
+}
+
+function addSelectedPlayer(
+  player: Player,
+  selectedIds: Set<number>,
+  selectedNames: Set<string>
+): void {
+  selectedIds.add(player.id);
+  selectedNames.add(getNormalizedPlayerName(player));
+}
+
+function isSelectedPlayer(
+  player: Player,
+  selectedIds: Set<number>,
+  selectedNames: Set<string>
+): boolean {
+  return (
+    selectedIds.has(player.id) ||
+    selectedNames.has(getNormalizedPlayerName(player))
+  );
+}
+
+function pickRandomAvailable(
+  candidates: Player[],
+  selectedIds: Set<number>,
+  selectedNames: Set<string>
+): Player | undefined {
+  if (candidates.length === 0) return undefined;
+
+  const startIndex = Math.floor(Math.random() * candidates.length);
+
+  for (let offset = 0; offset < candidates.length; offset++) {
+    const candidate = candidates[(startIndex + offset) % candidates.length];
+    if (!isSelectedPlayer(candidate, selectedIds, selectedNames)) {
+      return candidate;
+    }
+  }
+
+  return undefined;
+}
+
 function buildOpponentBench(params: {
   formationPositions: Position[];
   usedPlayers: Player[];
@@ -33,11 +98,15 @@ function buildOpponentBench(params: {
   poolMax: number;
 }): Player[] {
   const { formationPositions, usedPlayers, poolMin, poolMax } = params;
-  const selectedPlayers = [...usedPlayers];
+  const selectedIds = new Set<number>();
+  const selectedNames = new Set<string>();
+  usedPlayers.forEach((player) =>
+    addSelectedPlayer(player, selectedIds, selectedNames)
+  );
+
   const pool = shuffle(
     playersData.filter(
       (player) =>
-        !isPlayerAlreadySelected(player, selectedPlayers) &&
         player.overall >= poolMin &&
         player.overall <= poolMax
     )
@@ -46,25 +115,24 @@ function buildOpponentBench(params: {
   const benchTargets = buildOpponentBenchTargets(formationPositions);
 
   for (const targetPosition of benchTargets) {
+    const preferredCandidates = getPlayersForPosition(targetPosition).filter(
+      (player) => player.overall >= poolMin && player.overall <= poolMax
+    );
     const nextPlayer =
-      pool.find(
-        (player) =>
-          !isPlayerAlreadySelected(player, selectedPlayers) &&
-          canPlayerPlayInPosition(player, targetPosition)
+      pickRandomAvailable(preferredCandidates, selectedIds, selectedNames) ??
+      pickRandomAvailable(
+        getPlayersForPosition(targetPosition),
+        selectedIds,
+        selectedNames
       ) ??
-      shuffle(playersData).find(
-        (player) =>
-          !isPlayerAlreadySelected(player, selectedPlayers) &&
-          canPlayerPlayInPosition(player, targetPosition)
-      ) ??
-      playersData.find((player) => !isPlayerAlreadySelected(player, selectedPlayers));
+      pickRandomAvailable(playersData, selectedIds, selectedNames);
 
     if (!nextPlayer) {
       continue;
     }
 
     bench.push(nextPlayer);
-    selectedPlayers.push(nextPlayer);
+    addSelectedPlayer(nextPlayer, selectedIds, selectedNames);
 
     if (bench.length >= OPPONENT_BENCH_SIZE) {
       return bench;
@@ -76,12 +144,12 @@ function buildOpponentBench(params: {
   }
 
   for (const player of pool) {
-    if (isPlayerAlreadySelected(player, selectedPlayers)) {
+    if (isSelectedPlayer(player, selectedIds, selectedNames)) {
       continue;
     }
 
     bench.push(player);
-    selectedPlayers.push(player);
+    addSelectedPlayer(player, selectedIds, selectedNames);
 
     if (bench.length >= OPPONENT_BENCH_SIZE) {
       break;
@@ -177,40 +245,47 @@ const createRandomTeam = (
   let bestAttempt: Player[] = [];
   let bestDelta = Infinity;
   const targetMid = (minOvrTarget + maxOvrTarget) / 2;
-  const MAX_ATTEMPTS = 80;
+  const MAX_ATTEMPTS = 48;
+  const preferredPlayersByPosition = new Map<Position, Player[]>();
+
+  formation.positions.forEach((position) => {
+    if (preferredPlayersByPosition.has(position)) return;
+
+    preferredPlayersByPosition.set(
+      position,
+      getPlayersForPosition(position).filter(
+        (player) => player.overall >= poolMin && player.overall <= poolMax
+      )
+    );
+  });
 
   for (let attempts = 0; attempts < MAX_ATTEMPTS; attempts++) {
     const currentTeam: Player[] = [];
-    const selectedPlayers: Player[] = [];
-
-    // Pool embaralhado a cada tentativa — principal fix da repetição
-    const poolShuffled = shuffle(
-      playersData.filter((p) => p.overall >= poolMin && p.overall <= poolMax)
-    );
+    const selectedIds = new Set<number>();
+    const selectedNames = new Set<string>();
 
     for (const targetPos of formation.positions) {
-      // Filtra do pool embaralhado os elegíveis para essa posição
-      let candidates = poolShuffled.filter(
-        (p) => !isPlayerAlreadySelected(p, selectedPlayers) && canPlayerPlayInPosition(p, targetPos)
-      );
+      const chosen =
+        pickRandomAvailable(
+          preferredPlayersByPosition.get(targetPos) ?? [],
+          selectedIds,
+          selectedNames
+        ) ??
+        pickRandomAvailable(
+          getPlayersForPosition(targetPos),
+          selectedIds,
+          selectedNames
+        ) ??
+        pickRandomAvailable(playersData, selectedIds, selectedNames);
 
-      // Fallback 1: qualquer jogador dentro do OVR geral, sem restrição de pool
-      if (candidates.length === 0) {
-        candidates = shuffle(playersData).filter(
-          (p) => !isPlayerAlreadySelected(p, selectedPlayers) && canPlayerPlayInPosition(p, targetPos)
-        );
-      }
+      if (!chosen) break;
 
-      // Fallback 2: qualquer jogador disponível
-      if (candidates.length === 0) {
-        candidates = playersData.filter((p) => !isPlayerAlreadySelected(p, selectedPlayers));
-      }
-
-      const chosen = candidates[0];
       const opponentPlayer = { ...chosen, position: targetPos };
       currentTeam.push(opponentPlayer);
-      selectedPlayers.push(opponentPlayer);
+      addSelectedPlayer(opponentPlayer, selectedIds, selectedNames);
     }
+
+    if (currentTeam.length !== formation.positions.length) continue;
 
     const avg =
       currentTeam.reduce((acc, p) => acc + p.overall, 0) / currentTeam.length;

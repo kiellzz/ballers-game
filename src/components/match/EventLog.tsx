@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { memo, useMemo, useState } from "react";
 import { getDisplayName } from "../../utils/getDisplayName";
 import MatchEventPlayerCard from "./MatchEventPlayerCard";
 import type { EventLogEntry } from "../../match-engine/ui_ux/eventLogEntries";
@@ -10,18 +10,24 @@ interface EventLogProps {
   events: EventLogEntry[];
 }
 
-export const EventLog = ({ events }: EventLogProps) => {
+export const EventLog = memo(function EventLog({ events }: EventLogProps) {
   const [isEventLogVisible, setIsEventLogVisible] = useState(false);
-  const orderedEvents = events
-    .map((event, index) => ({ event, index }))
-    .sort((left, right) => {
-      if (right.event.minute !== left.event.minute) {
-        return right.event.minute - left.event.minute;
-      }
+  const orderedEvents = useMemo(() => {
+    if (!isEventLogVisible) {
+      return [];
+    }
 
-      return right.index - left.index;
-    })
-    .map(({ event }) => event);
+    return events
+      .map((event, index) => ({ event, index }))
+      .sort((left, right) => {
+        if (right.event.minute !== left.event.minute) {
+          return right.event.minute - left.event.minute;
+        }
+
+        return right.index - left.index;
+      })
+      .map(({ event }) => event);
+  }, [events, isEventLogVisible]);
 
   function isGoalEvent(event: EventLogEntry): boolean {
     return event.kind === "duel" && event.outcome === "Goal";
@@ -57,7 +63,7 @@ export const EventLog = ({ events }: EventLogProps) => {
         }`}
         aria-hidden={!isEventLogVisible}
       >
-        <div className="event-log">
+        {isEventLogVisible ? <div className="event-log">
           {orderedEvents.length === 0 ? (
             <p className="event-log__empty">No match events yet.</p>
           ) : (
@@ -213,8 +219,8 @@ export const EventLog = ({ events }: EventLogProps) => {
               )
             })
           )}
-        </div>
+        </div> : null}
       </div>
     </section>
   );
-};
+});

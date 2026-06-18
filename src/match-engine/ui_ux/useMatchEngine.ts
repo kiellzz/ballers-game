@@ -25,8 +25,6 @@ import type {
   Zone,
 } from "../matchTypes";
 import {
-  getDisplayedOpponentStarters,
-  getDisplayedUserStarters,
   getOpponentMatchParticipants,
   getOpponentSubstitutionsUsed,
   getSubstitutedInOpponentPlayerIds,
@@ -384,28 +382,28 @@ export function useMatchEngine({ userSquad, opponent }: UseMatchEngineParams) {
 
   const [history, setHistory] = useState<MatchHistoryEntry[]>([]);
 
-  const chooseAction = useCallback(
-  (action: ActionType) => {
-    if (matchState.context.phase === "finished") {
-      return;
-    }
+  const chooseAction = useCallback((action: ActionType) => {
+    setMatchState((previousState: MatchState) => {
+      if (previousState.context.phase === "finished") {
+        return previousState;
+      }
 
-    const nextState = runMatchStep({
-      state: matchState,
-      action,
+      const nextState = runMatchStep({
+        state: previousState,
+        action,
+      });
+
+      setHistory((previousHistory) =>
+        appendHistoryEntryIfNew({
+          previousState,
+          nextState,
+          previousHistory,
+        })
+      );
+
+      return nextState;
     });
-
-    const nextHistory = appendHistoryEntryIfNew({
-      previousState: matchState,
-      nextState,
-      previousHistory: history,
-    });
-
-    setMatchState(nextState);
-    setHistory(nextHistory);
-  },
-  [matchState, history]
-);
+  }, []);
 
   const continueInteractiveSetPiece = useCallback(() => {
     setMatchState((prev: MatchState) => {
@@ -571,18 +569,29 @@ export function useMatchEngine({ userSquad, opponent }: UseMatchEngineParams) {
   const nextActors = currentActors;
 
   const availableActions = matchState.currentSituation.availableActions;
-  const displayedUserStarters = useMemo(
-    () => getDisplayedUserStarters(matchState),
-    [matchState]
-  );
-  const displayedOpponentStarters = useMemo(
-    () => getDisplayedOpponentStarters(matchState),
-    [matchState]
-  );
-  const userMatchParticipants = useMemo(
-    () => getUserMatchParticipants(matchState),
-    [matchState]
-  );
+  const displayedUserStarters = matchState.userTeam.starters;
+  const displayedOpponentStarters = matchState.opponentTeam.starters;
+  const completedUserSubstitutions =
+    matchState.substitutionState.completedUserSubstitutions;
+  const userMatchParticipants = useMemo(() => {
+    const seenPlayerIds = new Set<number>();
+    const participants = [
+      ...displayedUserStarters,
+      ...completedUserSubstitutions.flatMap(({ outPlayer, inPlayer }) => [
+        outPlayer,
+        inPlayer,
+      ]),
+    ];
+
+    return participants.filter((player) => {
+      if (seenPlayerIds.has(player.id)) {
+        return false;
+      }
+
+      seenPlayerIds.add(player.id);
+      return true;
+    });
+  }, [completedUserSubstitutions, displayedUserStarters]);
   const userSubstitutionsUsed = useMemo(
     () => getUserSubstitutionsUsed(matchState.substitutionState),
     [matchState.substitutionState]

@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { ChevronRight, ChevronLeft } from "lucide-react";
 import { playButton, playConfirm } from "../../utils/sound";
 import "./FeatureButton.css";
@@ -10,7 +11,7 @@ type FeatureButtonProps = {
   animated?: boolean;
 };
 
-export default function FeatureButton({
+function FeatureButton({
   label,
   onClick,
   variant = "default",
@@ -54,3 +55,5 @@ export default function FeatureButton({
     </button>
   );
 }
+
+export default memo(FeatureButton);

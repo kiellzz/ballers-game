@@ -1,3 +1,4 @@
+import { memo } from "react";
 import type { Player } from "../../types/PlayerTypes";
 import { isGKStats } from "../../types/PlayerTypes";
 import { getCardTier } from "../../utils/getCardTier";
@@ -15,7 +16,7 @@ type PlayerCardProps = {
   onCardClick?: () => void;
 };
 
-export default function PlayerCard({
+function PlayerCard({
   player,
   className = "",
   isFavorite = false,
@@ -44,12 +45,16 @@ export default function PlayerCard({
           src="/images/badge.png"
           alt="Ballers logo"
           className="player-card__badge"
+          loading="lazy"
+          decoding="async"
         />
 
         <img
           src={getFlagUrl(player.nationality)}
           alt={player.nationality}
           className="player-card__flag"
+          loading="lazy"
+          decoding="async"
         />
       </div>
 
@@ -58,6 +63,8 @@ export default function PlayerCard({
           src={player.customImage ?? getPlayerImage(player.name, player.isWCCard)}
           alt={player.name}
           className="player-card__image"
+          loading="lazy"
+          decoding="async"
           onError={(event) => {
             event.currentTarget.src = "/images/players/default.webp";
           }}
@@ -122,3 +129,5 @@ export default function PlayerCard({
     </article>
   );
 }
+
+export default memo(PlayerCard);

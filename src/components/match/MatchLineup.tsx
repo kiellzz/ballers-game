@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   emptyStatLine,
   type MatchDisciplinaryState,
@@ -84,14 +84,13 @@ export const MatchLineup: React.FC<MatchLineupProps> = ({
   } | null>(null);
   const side = isOpponent ? "opponent" : "user";
 
-  const initialPlayers = useRef(players);
   const teamRating = useMemo(() => {
-    const starters = initialPlayers.current.filter(Boolean) as Player[];
+    const starters = players.filter(Boolean) as Player[];
     if (starters.length === 0) return null;
 
     const total = starters.reduce((acc, player) => acc + (player.overall || 0), 0);
     return Math.floor(total / starters.length);
-  }, []);
+  }, [players]);
 
   const sentOffIds = useMemo(
     () =>

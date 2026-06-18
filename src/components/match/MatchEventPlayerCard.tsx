@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { memo, useCallback } from "react";
 import type { Player } from "../../types/PlayerTypes";
 import { getCardTier } from "../../utils/getCardTier";
 import { getCardBackgroundImage } from "../../utils/getCardImage";
@@ -13,7 +13,7 @@ type MatchEventPlayerCardProps = {
   className?: string;
 };
 
-export default function MatchEventPlayerCard({
+function MatchEventPlayerCard({
   player,
   assignedPosition,
   className = "",
@@ -58,3 +58,5 @@ export default function MatchEventPlayerCard({
     </article>
   );
 }
+
+export default memo(MatchEventPlayerCard);

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import type { OpponentTeam } from '../../opponents/opponents';
 import { getFlagUrl } from '../../utils/getFlagUrl';
 import { playStartMatch } from '../../utils/sound';
@@ -19,7 +19,7 @@ function getPosGroup(position: string): PosGroup {
   return 'att';
 }
 
-export const OpponentLineup: React.FC<OpponentLineupProps> = ({
+export const OpponentLineup: React.FC<OpponentLineupProps> = memo(({
   opponent,
   onStart,
   onClose,
@@ -122,4 +122,4 @@ export const OpponentLineup: React.FC<OpponentLineupProps> = ({
       </div>
     </div>
   );
-};
+});

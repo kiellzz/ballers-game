@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { Player } from '../types/PlayerTypes';
 import { FORMATIONS } from '../utils/formations';
@@ -17,9 +17,21 @@ interface SavedSquad {
   formation: FormationKey;
 }
 
+function readSavedSquad(): SavedSquad | null {
+  const saved = localStorage.getItem('ballers_active_squad');
+  if (!saved) return null;
+
+  try {
+    return JSON.parse(saved) as SavedSquad;
+  } catch (error) {
+    console.error('Erro ao carregar squad:', error);
+    return null;
+  }
+}
+
 export default function PreMatch() {
   const navigate = useNavigate();
-  const [mySquad, setMySquad] = useState<SavedSquad | null>(null);
+  const [mySquad] = useState<SavedSquad | null>(readSavedSquad);
   const [opponents, setOpponents] = useState<OpponentTeam[]>(MOCK_OPPONENTS);
   const [selectedOpponent, setSelectedOpponent] = useState<OpponentTeam | null>(null);
   const [rerollKey, setRerollKey] = useState(0);
@@ -27,18 +39,10 @@ export default function PreMatch() {
   const spinTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    const saved = localStorage.getItem('ballers_active_squad');
-    if (saved) {
-      try {
-        setMySquad(JSON.parse(saved));
-      } catch (e) {
-        console.error('Erro ao carregar squad:', e);
-        navigate('/lineup');
-      }
-    } else {
+    if (!mySquad) {
       navigate('/lineup');
     }
-  }, [navigate]);
+  }, [mySquad, navigate]);
 
   useEffect(() => {
     return () => {
@@ -55,16 +59,20 @@ export default function PreMatch() {
     return Math.floor(total / 11);
   }, [mySquad]);
 
-  const handleReroll = () => {
+  const handleReroll = useCallback(() => {
+    if (spinTimeoutRef.current) {
+      clearTimeout(spinTimeoutRef.current);
+    }
+
     setIsSpinning(true);
     setSelectedOpponent(null);
     setOpponents(generateOpponents());
     setRerollKey((k) => k + 1);
 
     spinTimeoutRef.current = setTimeout(() => setIsSpinning(false), 600);
-  };
+  }, []);
 
-  const handleStartMatch = () => {
+  const handleStartMatch = useCallback(() => {
     if (!selectedOpponent || !mySquad) return;
 
     navigate('/match', {
@@ -73,7 +81,16 @@ export default function PreMatch() {
         userSquad: mySquad,
       },
     });
-  };
+  }, [mySquad, navigate, selectedOpponent]);
+
+  const handleCloseOpponent = useCallback(() => {
+    setSelectedOpponent(null);
+  }, []);
+
+  const handleSelectOpponent = useCallback((opponent: OpponentTeam) => {
+    void playConfirm();
+    setSelectedOpponent(opponent);
+  }, []);
 
   if (!mySquad) return <div className="prematch-loading">Loading squad...</div>;
 
@@ -196,10 +213,7 @@ export default function PreMatch() {
                     isSelected ? ' btn-opponent--selected' : ''
                   }`}
                   onMouseEnter={() => playButton()}
-                  onClick={() => {
-                    void playConfirm();
-                    setSelectedOpponent(opp);
-                  }}
+                  onClick={() => handleSelectOpponent(opp)}
                   data-testid={`opponent-button-${idx}`}
                   style={{ '--animation-delay': `${idx * 0.08}s` } as React.CSSProperties}
                 >
@@ -242,7 +256,7 @@ export default function PreMatch() {
       {selectedOpponent && (
         <OpponentLineup
           opponent={selectedOpponent}
-          onClose={() => setSelectedOpponent(null)}
+          onClose={handleCloseOpponent}
           onStart={handleStartMatch}
         />
       )}

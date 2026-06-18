@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { MatchOption } from "./MatchOption";
 import PlayerCard from "../player-card/PlayerCard";
 import type { Player } from "../../types/PlayerTypes";
@@ -93,28 +93,9 @@ export const MatchField = ({
   isUserAttacking = true,
   zone,
 }: MatchFieldProps) => {
-  const [animationSeed, setAnimationSeed] = useState(0);
-  const [isTransitioning, setIsTransitioning] = useState(false);
-
   const hasSituation = Boolean(
     userPlayer || opponentPlayer || userGK || opponentGK
   );
-
-  useEffect(() => {
-    if (!hasSituation) {
-      setIsTransitioning(false);
-      return;
-    }
-
-    setIsTransitioning(true);
-
-    const timeout = window.setTimeout(() => {
-      setAnimationSeed((prev) => prev + 1);
-      setIsTransitioning(false);
-    }, 80);
-
-    return () => window.clearTimeout(timeout);
-  }, [userPlayer?.id, opponentPlayer?.id, zone, hasSituation]);
 
   const situationTone = useMemo(
     () => getSituationTone(zone, isUserAttacking),
@@ -185,20 +166,18 @@ export const MatchField = ({
       </div>
 
       <div
-        className={`versus-display ${!hasSituation ? "is-idle" : ""} ${
-          isTransitioning ? "is-transitioning" : "is-active"
+        className={`versus-display ${
+          hasSituation ? "is-active" : "is-idle"
         }`}
       >
         <div className={`side-stack left-side mode-${leftMode}`}>
           <div
-            key={`left-back-${leftBackPlayer?.id ?? "none"}-${animationSeed}`}
             className="card-container back-card back-card-left"
           >
             {leftBackPlayer && <PlayerCard player={leftBackPlayer} />}
           </div>
 
           <div
-            key={`left-main-${leftFrontPlayer?.id ?? "none"}-${animationSeed}`}
             className={`card-container main-card main-card-left user-side${showBallOnLeft ? " has-ball" : ""}`}
           >
             {showBallOnLeft && (
@@ -223,14 +202,12 @@ export const MatchField = ({
 
         <div className={`side-stack right-side mode-${rightMode}`}>
           <div
-            key={`right-back-${rightBackPlayer?.id ?? "none"}-${animationSeed}`}
             className="card-container back-card back-card-right"
           >
             {rightBackPlayer && <PlayerCard player={rightBackPlayer} />}
           </div>
 
           <div
-            key={`right-main-${rightFrontPlayer?.id ?? "none"}-${animationSeed}`}
             className={`card-container main-card main-card-right opponent-side${showBallOnRight ? " has-ball" : ""}`}
           >
             {showBallOnRight && (

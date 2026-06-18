@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import LineupHeader from '../components/lineup/LineupHeader';
 import LineupCard from '../components/lineup/LineupCard';
@@ -39,11 +39,42 @@ type ActiveSlot =
   | { zone: 'bench'; index: number }
   | null;
 
+type SavedLineup = {
+  formation?: FormationKey;
+  pitch?: (Player | null)[];
+  bench?: (Player | null)[];
+};
+
+const loadSavedLineup = (): SavedLineup => {
+  try {
+    const savedData = localStorage.getItem('ballers_saved_progress');
+    if (!savedData) return {};
+
+    const parsed = JSON.parse(savedData) as SavedLineup;
+    return {
+      formation: parsed.formation && parsed.formation in FORMATIONS
+        ? parsed.formation
+        : undefined,
+      pitch: Array.isArray(parsed.pitch) ? parsed.pitch : undefined,
+      bench: Array.isArray(parsed.bench) ? parsed.bench : undefined,
+    };
+  } catch {
+    return {};
+  }
+};
+
 export default function Lineup() {
   const navigate = useNavigate();
-  const [currentFormation, setCurrentFormation] = useState<FormationKey>(DEFAULT_FORMATION);
-  const [pitchPlayers, setPitchPlayers] = useState<(Player | null)[]>(Array(11).fill(null));
-  const [benchPlayers, setBenchPlayers] = useState<(Player | null)[]>(Array(BENCH_SIZE).fill(null));
+  const [savedLineup] = useState(loadSavedLineup);
+  const [currentFormation, setCurrentFormation] = useState<FormationKey>(
+    savedLineup.formation ?? DEFAULT_FORMATION
+  );
+  const [pitchPlayers, setPitchPlayers] = useState<(Player | null)[]>(
+    savedLineup.pitch ?? Array(11).fill(null)
+  );
+  const [benchPlayers, setBenchPlayers] = useState<(Player | null)[]>(
+    savedLineup.bench ?? Array(BENCH_SIZE).fill(null)
+  );
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLineupModalOpen, setIsLineupModalOpen] = useState(false);
@@ -54,19 +85,6 @@ export default function Lineup() {
   const { toasts, addToast, removeToast } = useToast();
   const { dragSource, onDragStart, onDragEnd } = useDragDrop();
   const { customPlayers } = useCustomPlayers();
-
-  useEffect(() => {
-    const savedData = localStorage.getItem('ballers_saved_progress');
-    if (savedData) {
-      try {
-        const parsed = JSON.parse(savedData);
-        if (parsed.pitch) setPitchPlayers(parsed.pitch);
-        if (parsed.bench) setBenchPlayers(parsed.bench);
-        if (parsed.formation) setCurrentFormation(parsed.formation);
-      } catch (err) {
-      }
-    }
-  }, []);
 
   const { isTeamComplete, saveProgress, saveAndPlay } = useSquad(pitchPlayers, benchPlayers);
 
@@ -84,6 +102,8 @@ export default function Lineup() {
   ];
 
   const occupiedPlayers = occupiedSlots.map(slot => slot.player);
+  const pitchPlayerCount = pitchPlayers.filter(Boolean).length;
+  const benchPlayerCount = benchPlayers.filter(Boolean).length;
   const duplicatePlayer = findDuplicatePlayer(occupiedPlayers);
   const blockedPlayersForActiveSlot = occupiedSlots
     .filter(slot => !activeSlot || slot.zone !== activeSlot.zone || slot.index !== activeSlot.index)
@@ -343,7 +363,18 @@ export default function Lineup() {
         <img src="/images/ballerstransparent.png" alt="Ballers Logo" />
       </div>
 
-      <div className="lineup__pitch">
+      <section className="lineup__mobile-summary" aria-label="Squad progress">
+        <div className="lineup__mobile-summary-copy">
+          <span className="lineup__mobile-summary-kicker">Your squad</span>
+          <span className="lineup__mobile-summary-hint">Tap a slot to add or change a player</span>
+        </div>
+        <div className="lineup__mobile-summary-counts" aria-live="polite">
+          <span><strong>{pitchPlayerCount}</strong>/11 XI</span>
+          <span><strong>{benchPlayerCount}</strong>/{BENCH_SIZE} SUB</span>
+        </div>
+      </section>
+
+      <div className="lineup__pitch" aria-label={`${pitchPlayerCount} of 11 starting players selected`}>
         {pitchPlayers.map((player, index) => (
           <div
             key={`pitch-slot-${index}`}

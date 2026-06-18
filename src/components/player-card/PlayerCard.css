@@ -13,7 +13,6 @@
   /* Transição suave para escala e profundidade */
   transition: transform 0.2s ease, filter 0.2s ease, box-shadow 0.2s ease;
   cursor: pointer;
-  will-change: transform, filter, box-shadow;
 }
 
 .player-card:hover {
@@ -181,7 +180,7 @@
   width: 50%;
   height: 100%;
   background: linear-gradient(120deg, transparent 0%, rgba(255, 255, 255, 0.15) 50%, transparent 100%);
-  transform: skewX(-15deg);
+  transform: translate3d(0, 0, 0) skewX(-15deg);
   z-index: 11;
   pointer-events: none;
   opacity: 0;
@@ -193,12 +192,12 @@
 
 @keyframes card-shine {
   0% {
-    left: -75%;
+    transform: translate3d(0, 0, 0) skewX(-15deg);
     opacity: 1;
   }
 
   100% {
-    left: 130%;
+    transform: translate3d(410%, 0, 0) skewX(-15deg);
     opacity: 1;
   }
 }
@@ -276,13 +275,11 @@
   100% {
     transform: scale(1);
     opacity: 0.4;
-    filter: blur(0px);
   }
 
   50% {
     transform: scale(1.15);
     opacity: 0;
-    filter: blur(4px);
   }
 }
 

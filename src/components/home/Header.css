@@ -111,23 +111,11 @@
   color: rgba(255, 255, 255, 0.35);
 }
 
-@keyframes pulse-glow {
-
-  0%,
-  100% {
-    filter: drop-shadow(0 0 8px rgba(217, 150, 255, 0.45));
-  }
-
-  50% {
-    filter: drop-shadow(0 0 22px rgba(217, 150, 255, 1)) drop-shadow(0 0 40px rgba(179, 107, 221, 0.6));
-  }
-}
-
 .header__logo {
   width: 280px;
   object-fit: contain;
   user-select: none;
-  animation: pulse-glow 2.8s ease-in-out infinite;
+  filter: drop-shadow(0 0 14px rgba(217, 150, 255, 0.7));
   margin-top: 70px;
 }
 
@@ -254,9 +242,10 @@
       transparent 0%,
       rgba(255, 255, 255, 0.15) 50%,
       transparent 100%);
-  transform: skewX(-15deg);
+  transform: translate3d(0, 0, 0) skewX(-15deg);
   pointer-events: none;
   animation: pack-btn-shine 9s ease-in-out infinite;
+  will-change: transform, opacity;
 }
 
 @keyframes pack-btn-shine {
@@ -264,7 +253,7 @@
   0%,
   8%,
   100% {
-    left: -75%;
+    transform: translate3d(0, 0, 0) skewX(-15deg);
     opacity: 0;
   }
 
@@ -273,7 +262,7 @@
   }
 
   6% {
-    left: 130%;
+    transform: translate3d(410%, 0, 0) skewX(-15deg);
     opacity: 1;
   }
 
@@ -354,9 +343,10 @@
       transparent 0%,
       rgba(255, 255, 255, 0.15) 50%,
       transparent 100%);
-  transform: skewX(-15deg);
+  transform: translate3d(0, 0, 0) skewX(-15deg);
   pointer-events: none;
   animation: pack-btn-shine 9s ease-in-out infinite 4.5s;
+  will-change: transform, opacity;
 }
 
 /* ── Filter dot & active state ── */

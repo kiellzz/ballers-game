@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { memo, useState } from "react";
 import { List, Search, Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import type { FilterState } from "../../types/FilterTypes";
@@ -34,7 +34,7 @@ function isLineupReady(): boolean {
   }
 }
 
-export default function Header({ filters, search, onSearchChange, onOpenFilters, onCreatePlayer }: HeaderProps) {
+function Header({ filters, search, onSearchChange, onOpenFilters, onCreatePlayer }: HeaderProps) {
   const navigate = useNavigate();
   const [showPlayMatchModal, setShowPlayMatchModal] = useState(false);
 
@@ -135,3 +135,5 @@ export default function Header({ filters, search, onSearchChange, onOpenFilters,
     </header>
   );
 }
+
+export default memo(Header);

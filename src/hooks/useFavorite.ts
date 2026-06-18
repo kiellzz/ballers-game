@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 export function useFavorites() {
   const [favorites, setFavorites] = useState<number[]>(() => {
@@ -10,11 +10,11 @@ export function useFavorites() {
     localStorage.setItem("ballers_favorites", JSON.stringify(favorites));
   }, [favorites]);
 
-  const toggleFavorite = (id: number) => {
+  const toggleFavorite = useCallback((id: number) => {
     setFavorites(prev =>
       prev.includes(id) ? prev.filter(favId => favId !== id) : [...prev, id]
     );
-  };
+  }, []);
 
   return { favorites, toggleFavorite };
 }

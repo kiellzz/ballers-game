@@ -1,10 +1,10 @@
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useCallback } from "react";
+import { memo, useCallback } from "react";
 import { playButton, playConfirm } from "../../utils/sound";
 import "./PreMatchHeader.css";
 
-export default function PreMatchHeader() {
+function PreMatchHeader() {
   const navigate = useNavigate();
 
   const handleBack = useCallback(() => {
@@ -48,3 +48,5 @@ export default function PreMatchHeader() {
     </header>
   );
 }
+
+export default memo(PreMatchHeader);
