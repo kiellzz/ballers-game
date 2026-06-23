@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 
 import type { OpponentTeam } from "../../opponents/opponents";
 import type { Player } from "../../types/PlayerTypes";
@@ -381,153 +381,136 @@ export function useMatchEngine({ userSquad, opponent }: UseMatchEngineParams) {
   );
 
   const [history, setHistory] = useState<MatchHistoryEntry[]>([]);
+  const matchStateRef = useRef(matchState);
+  const historyRef = useRef(history);
 
-  const chooseAction = useCallback((action: ActionType) => {
-    setMatchState((previousState: MatchState) => {
-      if (previousState.context.phase === "finished") {
-        return previousState;
-      }
-
-      const nextState = runMatchStep({
-        state: previousState,
-        action,
+  const commitMatchStep = useCallback(
+    (previousState: MatchState, nextState: MatchState) => {
+      const nextHistory = appendHistoryEntryIfNew({
+        previousState,
+        nextState,
+        previousHistory: historyRef.current,
       });
 
-      setHistory((previousHistory) =>
-        appendHistoryEntryIfNew({
-          previousState,
-          nextState,
-          previousHistory,
-        })
-      );
-
-      return nextState;
-    });
-  }, []);
-
-  const continueInteractiveSetPiece = useCallback(() => {
-    setMatchState((prev: MatchState) => {
-      const nextState = runInteractiveSetPieceStep({
-        state: prev,
-      });
-
-      setHistory((prevHistory) => {
-        return appendHistoryEntryIfNew({
-          previousState: prev,
-          nextState,
-          previousHistory: prevHistory,
-        });
-      });
-
-      return nextState;
-    });
-  }, []);
-
-  const resolveInteractiveSetPieceChoice = useCallback(
-    (input: InteractiveSetPieceResolutionInput) => {
-      setMatchState((prev: MatchState) => {
-        const nextState = runInteractiveSetPieceStep({
-          state: prev,
-          input,
-        });
-
-        setHistory((prevHistory) => {
-          return appendHistoryEntryIfNew({
-            previousState: prev,
-            nextState,
-            previousHistory: prevHistory,
-          });
-        });
-
-        return nextState;
-      });
+      matchStateRef.current = nextState;
+      historyRef.current = nextHistory;
+      setMatchState(nextState);
+      setHistory(nextHistory);
     },
     []
   );
 
-  const resetMatch = useCallback(() => {
-    setMatchState(
-      createInitialMatchState({
-        userTeam: teams.userTeam,
-        userBench: teams.userBench,
-        opponentBench: teams.opponentBench,
-        opponentTeam: teams.opponentTeam,
-      })
-    );
+  const chooseAction = useCallback((action: ActionType) => {
+    const previousState = matchStateRef.current;
 
+    if (previousState.context.phase === "finished") {
+      return;
+    }
+
+    const nextState = runMatchStep({
+      state: previousState,
+      action,
+    });
+
+    commitMatchStep(previousState, nextState);
+  }, [commitMatchStep]);
+
+  const continueInteractiveSetPiece = useCallback(() => {
+    const previousState = matchStateRef.current;
+    const nextState = runInteractiveSetPieceStep({
+      state: previousState,
+    });
+
+    commitMatchStep(previousState, nextState);
+  }, [commitMatchStep]);
+
+  const resolveInteractiveSetPieceChoice = useCallback(
+    (input: InteractiveSetPieceResolutionInput) => {
+      const previousState = matchStateRef.current;
+      const nextState = runInteractiveSetPieceStep({
+        state: previousState,
+        input,
+      });
+
+      commitMatchStep(previousState, nextState);
+    },
+    [commitMatchStep]
+  );
+
+  const resetMatch = useCallback(() => {
+    const nextState = createInitialMatchState({
+      userTeam: teams.userTeam,
+      userBench: teams.userBench,
+      opponentBench: teams.opponentBench,
+      opponentTeam: teams.opponentTeam,
+    });
+
+    matchStateRef.current = nextState;
+    historyRef.current = [];
+    setMatchState(nextState);
     setHistory([]);
   }, [teams]);
 
   const queueUserSubstitution = useCallback(
     (outPlayerId: number, inPlayerId: number) => {
-      let result:
-        | {
-            state: MatchState;
-            ok: boolean;
-            error: string | null;
-          }
-        | null = null;
-
-      setMatchState((prev: MatchState) => {
-        result = requestUserSubstitution({
-          state: prev,
-          outPlayerId,
-          inPlayerId,
-        });
-
-        return result.ok ? result.state : prev;
+      const previousState = matchStateRef.current;
+      const result = requestUserSubstitution({
+        state: previousState,
+        outPlayerId,
+        inPlayerId,
       });
 
-      return result ?? {
-        state: matchState,
-        ok: false,
-        error: "Unable to queue the substitution.",
-      };
+      if (result.ok) {
+        matchStateRef.current = result.state;
+        setMatchState(result.state);
+      }
+
+      return result;
     },
-    [matchState]
+    []
   );
 
   const playUntilEnd = useCallback(() => {
-    setMatchState((prev: MatchState) => {
-      if (prev.context.phase === "finished") {
-        return prev;
+    const previousState = matchStateRef.current;
+
+    if (previousState.context.phase === "finished") {
+      return;
+    }
+
+    let current = previousState;
+    let nextHistory = historyRef.current;
+
+    while (current.context.phase !== "finished") {
+      if (current.interactiveSetPiece) {
+        break;
       }
 
-      let current = prev;
-      const nextEntries: MatchHistoryEntry[] = [];
+      const actions = current.currentSituation.availableActions;
 
-      while (current.context.phase !== "finished") {
-        if (current.interactiveSetPiece) {
-          break;
-        }
-
-        const actions = current.currentSituation.availableActions;
-
-        if (actions.length === 0) {
-          break;
-        }
-
-        const randomIndex = Math.floor(Math.random() * actions.length);
-        const chosenAction = actions[randomIndex];
-
-        current = runMatchStep({
-          state: current,
-          action: chosenAction,
-        });
-
-        const entry = buildHistoryEntry(current, nextEntries.length);
-
-        if (entry) {
-          nextEntries.push(entry);
-        }
+      if (actions.length === 0) {
+        break;
       }
 
-      if (nextEntries.length > 0) {
-        setHistory((prevHistory) => [...prevHistory, ...nextEntries]);
-      }
+      const randomIndex = Math.floor(Math.random() * actions.length);
+      const chosenAction = actions[randomIndex];
+      const stateBeforeStep = current;
 
-      return current;
-    });
+      current = runMatchStep({
+        state: stateBeforeStep,
+        action: chosenAction,
+      });
+
+      nextHistory = appendHistoryEntryIfNew({
+        previousState: stateBeforeStep,
+        nextState: current,
+        previousHistory: nextHistory,
+      });
+    }
+
+    matchStateRef.current = current;
+    historyRef.current = nextHistory;
+    setMatchState(current);
+    setHistory(nextHistory);
   }, []);
 
   const interactiveSetPiece = matchState.interactiveSetPiece;

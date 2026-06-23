@@ -5,6 +5,8 @@ import { getPlayerImage } from "../../../utils/getPlayerImage";
 import { getFlagUrl } from "../../../utils/getFlagUrl";
 import type { Player } from "../../../types/PlayerTypes";
 import PlayerCard from "../../../components/player-card/PlayerCard";
+import type { PenaltyShootoutState } from "../../penaltyShootout";
+import PenaltyShootoutScoreboard from "../PenaltyShootoutScoreboard";
 
 export type PenaltyChoice =
   | "top_left"
@@ -29,6 +31,7 @@ interface PenModalProps {
   goalkeeper?: Player;
   shooterName?: string;
   shooter?: Player;
+  shootoutState?: PenaltyShootoutState | null;
 }
 
 const ZONES = [
@@ -46,6 +49,7 @@ export default function PenModal({
   resolution,
   goalkeeper,
   shooter,
+  shootoutState,
 }: PenModalProps) {
   const [phase, setPhase] = useState<"picking" | "kicking" | "result">("picking");
   const [shooterChoice, setShooterChoice] = useState<PenaltyChoice | null>(null);
@@ -150,16 +154,28 @@ export default function PenModal({
   return (
     <MatchModal
       isOpen={isOpen}
-      eyebrow="MATCH EVENT"
-      title="Penalty!"
+      eyebrow={shootoutState ? "PENALTY SHOOTOUT" : "MATCH EVENT"}
+      title={shootoutState ? "Your Penalty" : "Penalty!"}
       subtitle={subtitle}
-      className="pen-modal"
+      className={`pen-modal${shootoutState ? " pen-modal--shootout" : ""}`}
       headerContent={headerContent}
       hint={hint}
       primaryAction={primaryAction}
       bodyClassName="pen-modal__body"
       footerClassName="pen-modal__footer"
     >
+      {shootoutState && shooter ? (
+        <div className="pen-shootout-taker pen-shootout-taker--user">
+          <span>Your kick</span>
+          <strong>{shooter.name}</strong>
+          <small>Taking the penalty</small>
+        </div>
+      ) : null}
+
+      {shootoutState ? (
+        <PenaltyShootoutScoreboard state={shootoutState} />
+      ) : null}
+
       <div className="pen-stage">
         <img
           src="/images/penaltymodal.png"

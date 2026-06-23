@@ -1,3 +1,3 @@
 module.exports = {
-  worldCup: true,
+  worldCup: false,
 };

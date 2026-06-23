@@ -1,6 +1,6 @@
 // APP.TSX ORIGINAL 
 
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation, useNavigate } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
 import Home from "./pages/Home";
 import PackOpeningPage from "./pages/PackOpeningPage";
@@ -11,8 +11,22 @@ import MusicPlayer from "./components/music-player/MusicPlayer";
 import Settings from "./components/settings/Settings";
 import { setSoundMuted } from "./utils/sound";
 import Match from "./pages/Match";
+import DraftLineup from "./pages/DraftLineup";
+import DraftPrematch from "./pages/DraftPrematch";
+import DraftChampion from "./pages/DraftChampion";
+import DraftSummary from "./pages/DraftSummary";
+import type { GameMode } from "./pages/WelcomePage";
+import { resetDraftProgress } from "./features/draft/draftUtils";
 
-function AppRoutes({ onMatchFinished, isMuted }: { onMatchFinished: () => void; isMuted: boolean }) {
+function AppRoutes({
+  onMatchFinished,
+  onReturnToModeSelect,
+  isMuted,
+}: {
+  onMatchFinished: () => void;
+  onReturnToModeSelect: () => void;
+  isMuted: boolean;
+}) {
   const location = useLocation();
   
   // Reseta matchFinished quando sai da rota /match
@@ -27,14 +41,49 @@ function AppRoutes({ onMatchFinished, isMuted }: { onMatchFinished: () => void; 
       <Route path="/" element={<Home />} />
       <Route path="/pack-opening" element={<PackOpeningPage />} />
       <Route path="/lineup" element={<Lineup />} />
+      <Route path="/draft-lineup" element={<DraftLineup onReturnToModeSelect={onReturnToModeSelect} />} />
+      <Route path="/draft-prematch" element={<DraftPrematch />} />
+      <Route
+        path="/draft-summary"
+        element={
+          <DraftSummary
+            onContinue={() => {
+              resetDraftProgress();
+              onReturnToModeSelect();
+            }}
+          />
+        }
+      />
+      <Route
+        path="/draft-champion"
+        element={
+          <DraftChampion
+            onContinue={() => {
+              resetDraftProgress();
+              onReturnToModeSelect();
+            }}
+          />
+        }
+      />
       <Route path="/PreMatch" element={<PreMatch />} />
-      <Route path="/Match" element={<Match isMuted={isMuted} onMatchFinished={() => {}} />} />
+      <Route
+        path="/Match"
+        element={
+          <Match
+            isMuted={isMuted}
+            onMatchFinished={() => {}}
+            onReturnToModeSelect={onReturnToModeSelect}
+          />
+        }
+      />
     </Routes>
   );
 }
 
-function App() {
+function AppContent() {
+  const navigate = useNavigate();
   const [hasStarted, setHasStarted] = useState(false);
+  const [openModeSelectOnWelcome, setOpenModeSelectOnWelcome] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [isSoundMuted, setIsSoundMuted] = useState(false);
   const [matchFinished, setMatchFinished] = useState(false);
@@ -47,8 +96,20 @@ function App() {
     setSoundMuted(next);
   }
 
+  function handleModeStart(mode: GameMode) {
+    setOpenModeSelectOnWelcome(false);
+    setHasStarted(true);
+    navigate(mode === "draft" ? "/draft-lineup" : "/");
+  }
+
+  function handleReturnToModeSelect() {
+    setOpenModeSelectOnWelcome(true);
+    setHasStarted(false);
+    navigate("/");
+  }
+
   return (
-    <BrowserRouter>
+    <>
       {hasStarted && <MusicPlayer ref={musicRef} isMuted={isMuted} matchFinished={matchFinished} />}
 
       {hasStarted && (
@@ -62,13 +123,25 @@ function App() {
       )}
 
       {!hasStarted ? (
-        <WelcomePage onStart={() => setHasStarted(true)} />
+        <WelcomePage
+          onStart={handleModeStart}
+          openModeSelectOnMount={openModeSelectOnWelcome}
+        />
       ) : (
         <AppRoutes 
           onMatchFinished={() => setMatchFinished(false)} 
+          onReturnToModeSelect={handleReturnToModeSelect}
           isMuted={isMuted} 
         />
       )}
+    </>
+  );
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <AppContent />
     </BrowserRouter>
   );
 }

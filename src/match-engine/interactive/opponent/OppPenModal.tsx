@@ -5,6 +5,8 @@ import { getPlayerImage } from "../../../utils/getPlayerImage";
 import { getFlagUrl } from "../../../utils/getFlagUrl";
 import type { Player } from "../../../types/PlayerTypes";
 import PlayerCard from "../../../components/player-card/PlayerCard";
+import type { PenaltyShootoutState } from "../../penaltyShootout";
+import PenaltyShootoutScoreboard from "../PenaltyShootoutScoreboard";
 
 export type PenaltyChoice =
   | "top_left"
@@ -26,6 +28,7 @@ interface OppPenModalProps {
   resolution?: PenaltyResolution | null;
   goalkeeper?: Player; // user
   shooter?: Player; // opponent
+  shootoutState?: PenaltyShootoutState | null;
 }
 
 const ZONES = [
@@ -56,6 +59,7 @@ export default function OppPenModal({
   resolution,
   goalkeeper,
   shooter,
+  shootoutState,
 }: OppPenModalProps) {
   const [phase, setPhase] = useState<"picking" | "kicking" | "result">("picking");
   const [keeperChoice, setKeeperChoice] = useState<PenaltyChoice | null>(null);
@@ -158,16 +162,28 @@ export default function OppPenModal({
   return (
     <MatchModal
       isOpen={isOpen}
-      eyebrow="MATCH EVENT"
-      title="Penalty Against You!"
+      eyebrow={shootoutState ? "PENALTY SHOOTOUT" : "MATCH EVENT"}
+      title={shootoutState ? "Opponent Penalty" : "Penalty Against You!"}
       subtitle={subtitle}
-      className="pen-modal"
+      className={`pen-modal${shootoutState ? " pen-modal--shootout" : ""}`}
       headerContent={headerContent}
       hint={hint}
       primaryAction={primaryAction}
       bodyClassName="pen-modal__body"
       footerClassName="pen-modal__footer"
     >
+      {shootoutState && shooter ? (
+        <div className="pen-shootout-taker pen-shootout-taker--opponent">
+          <span>Opponent kick</span>
+          <strong>{shooter.name}</strong>
+          <small>Taking the penalty</small>
+        </div>
+      ) : null}
+
+      {shootoutState ? (
+        <PenaltyShootoutScoreboard state={shootoutState} />
+      ) : null}
+
       <div className="pen-stage pen-stage--opponent">
         <img
           src="/images/penaltymodal.png"

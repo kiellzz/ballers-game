@@ -1,0 +1,40 @@
+.draft-prematch {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: #05020c url("/images/lineupbackground.jpg") center / cover no-repeat;
+}
+
+.draft-prematch__backdrop {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 50% 35%, rgba(109, 40, 217, 0.2), transparent 42%),
+    rgba(2, 0, 8, 0.72);
+}
+
+.draft-prematch__round {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.08);
+  font-family: "Bebas Neue", "Arial Narrow", sans-serif;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+.draft-prematch__round span {
+  font-family: "Rajdhani", sans-serif;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.5em;
+}
+
+.draft-prematch__round strong {
+  font-size: clamp(5rem, 14vw, 11rem);
+  font-weight: 400;
+  letter-spacing: 0.06em;
+}

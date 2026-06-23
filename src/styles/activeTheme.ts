@@ -1,1 +1,1 @@
-export const activeThemeClass = "theme-world-cup";
+export const activeThemeClass = "";

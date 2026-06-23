@@ -1,4 +1,11 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { EventLog, type EventLogEntry } from "../components/match/EventLog";
 import { buildHistoryEventLogEntries } from "../match-engine/ui_ux/eventLogEntries";
@@ -26,6 +33,7 @@ import MatchSummaryModal, {
   buildPlayersWithRatings,
   getMatchMVP,
   getResult,
+  type MatchResult,
 } from "../match-engine/ui_ux/MatchSummaryModal";
 import {
   resolveCorner,
@@ -39,13 +47,16 @@ import {
 import {
   resolvePen,
   type PenaltyChoice,
+  type ResolvePenOutput,
 } from "../match-engine/balancing/resolvePen";
 import type { InteractiveSetPieceResolutionInput } from "../match-engine/interactive/interactiveSetPieceFlow";
+import { emptyStatLine } from "../match-engine/matchTypes";
 import type {
   ActionType,
   EventOutcome,
   Lane,
   MatchPlayer,
+  MatchTeam,
   PossessionSide,
   ShotResult,
   Zone,
@@ -56,6 +67,28 @@ import { FORMATIONS } from "../utils/formations";
 import { matchSound } from "../match-engine/sounds/matchSound";
 import "./Match.css";
 import { MatchMapTip } from "../components/match/MatchMapTip";
+import {
+  loadDraftProgress,
+  saveDraftProgress,
+} from "../features/draft/draftUtils";
+import {
+  resolveDraftMatch,
+  type DraftRoundIndex,
+} from "../opponents/draftOpponents";
+import { getSentOffPlayerIds } from "../match-engine/fouls/disciplineState";
+import { pickBestPenaltyTaker } from "../match-engine/setpiece/setPieceSelector";
+import {
+  createPenaltyShootout,
+  getCurrentPenaltyTakerCycleIds,
+  getPenaltyShootoutScore,
+  recordPenaltyShootoutAttempt,
+  type PenaltyShootoutState,
+} from "../match-engine/penaltyShootout";
+import { calculatePlayerRating } from "../match-engine/playerRating";
+import {
+  completeDraftCampaign,
+  recordDraftMatch,
+} from "../features/draft/draftCampaign";
 
 interface SavedSquad {
   pitch: (Player | null)[];
@@ -66,6 +99,8 @@ interface SavedSquad {
 type MatchLocationState = {
   opponent: OpponentTeam;
   userSquad: SavedSquad;
+  gameMode?: "freestyle" | "draft";
+  draftRound?: DraftRoundIndex;
 } | null;
 
 interface GoalVisualLock {
@@ -78,6 +113,13 @@ interface GoalVisualLock {
 interface MatchProps {
   isMuted: boolean;
   onMatchFinished?: () => void;
+  onReturnToModeSelect?: () => void;
+}
+
+interface ShootoutKickResolution {
+  side: PossessionSide;
+  takerId: number;
+  resolution: ResolvePenOutput;
 }
 
 interface EventLogBuildContext {
@@ -229,7 +271,38 @@ function buildSubstitutionEventLogEntry(params: {
   };
 }
 
-export default function Match({ isMuted, onMatchFinished }: MatchProps) {
+function selectShootoutTaker(params: {
+  state: PenaltyShootoutState;
+  side: PossessionSide;
+  team: MatchTeam;
+  disciplinaryState: Parameters<typeof getSentOffPlayerIds>[0];
+}): MatchPlayer | null {
+  const { state, side, team, disciplinaryState } = params;
+  const sentOffPlayerIds = getSentOffPlayerIds(disciplinaryState, side);
+  const eligibleCount = team.starters.filter(
+    (player) => player.role === "outfield" && !sentOffPlayerIds.has(player.id)
+  ).length;
+
+  if (eligibleCount === 0) return null;
+
+  const usedInCurrentCycle = getCurrentPenaltyTakerCycleIds(
+    state,
+    side,
+    eligibleCount
+  );
+  const unavailablePlayerIds = new Set([
+    ...sentOffPlayerIds,
+    ...usedInCurrentCycle,
+  ]);
+
+  return pickBestPenaltyTaker(team, unavailablePlayerIds);
+}
+
+function getShootoutGoalkeeper(team: MatchTeam): MatchPlayer | null {
+  return team.starters.find((player) => player.role === "goalkeeper") ?? null;
+}
+
+export default function Match({ isMuted, onMatchFinished, onReturnToModeSelect }: MatchProps) {
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -254,6 +327,7 @@ export default function Match({ isMuted, onMatchFinished }: MatchProps) {
 
   const userSquad = routeState?.userSquad ?? null;
   const opponent = routeState?.opponent ?? null;
+  const isDraftMatch = routeState?.gameMode === "draft";
 
   const allUserPlayers = useMemo(
     () =>
@@ -449,14 +523,90 @@ export default function Match({ isMuted, onMatchFinished }: MatchProps) {
     scorerSide: null,
   });
 
+  const [penaltyShootout, setPenaltyShootout] =
+    useState<PenaltyShootoutState | null>(null);
+  const [shootoutKickResolution, setShootoutKickResolution] =
+    useState<ShootoutKickResolution | null>(null);
+  const [shootoutTakerId, setShootoutTakerId] = useState<number | null>(null);
+  const [isShootoutTestMode, setIsShootoutTestMode] = useState(false);
+  const [showShootoutIntro, setShowShootoutIntro] = useState(false);
   const [showSummary, setShowSummary] = useState(true);
+  const decidedShootoutResult: MatchResult | undefined = penaltyShootout?.winner
+    ? penaltyShootout.winner === "user"
+      ? "win"
+      : "loss"
+    : undefined;
 
+  const shootoutStartedRef = useRef(false);
+  const shootoutStartTimeoutRef = useRef<number | null>(null);
+  const shootoutIntroTimeoutRef = useRef<number | null>(null);
   const goalVisualTimeoutRef = useRef<number | null>(null);
   const goalModalTimeoutRef = useRef<number | null>(null);
   const summaryTimeoutRef = useRef<number | null>(null);
   const handledGoalEventIdRef = useRef<string | null>(null);
   const handledGoalModalIdRef = useRef<string | null>(null);
   const latestGoalModalIdRef = useRef<string | null>(null);
+
+  const startPenaltyShootout = useCallback(
+    (testMode = false) => {
+      if (!isDraftMatch || shootoutStartedRef.current) return;
+
+      const startingSide: PossessionSide =
+        Math.random() < 0.5 ? "user" : "opponent";
+      const shootout = createPenaltyShootout(startingSide);
+      const team =
+        startingSide === "user" ? matchState.userTeam : matchState.opponentTeam;
+      const taker = selectShootoutTaker({
+        state: shootout,
+        side: startingSide,
+        team,
+        disciplinaryState: matchState.disciplinaryState,
+      });
+
+      if (!taker) return;
+
+      shootoutStartedRef.current = true;
+      setIsShootoutTestMode(testMode);
+      setPenaltyShootout(shootout);
+      setShootoutTakerId(taker.id);
+      setShowSummary(false);
+      setShowShootoutIntro(true);
+    },
+    [
+      isDraftMatch,
+      matchState.disciplinaryState,
+      matchState.opponentTeam,
+      matchState.userTeam,
+      setIsShootoutTestMode,
+      setPenaltyShootout,
+      setShootoutTakerId,
+      setShowShootoutIntro,
+      setShowSummary,
+    ]
+  );
+
+  useEffect(() => {
+    if (!import.meta.env.DEV || !isDraftMatch) return;
+
+    function handleShootoutTestShortcut(event: KeyboardEvent) {
+      if (
+        event.repeat ||
+        !event.shiftKey ||
+        event.code !== "KeyP" ||
+        event.ctrlKey ||
+        event.altKey ||
+        event.metaKey
+      ) {
+        return;
+      }
+
+      event.preventDefault();
+      startPenaltyShootout(true);
+    }
+
+    window.addEventListener("keydown", handleShootoutTestShortcut);
+    return () => window.removeEventListener("keydown", handleShootoutTestShortcut);
+  }, [isDraftMatch, startPenaltyShootout]);
 
   useEffect(() => {
     return () => {
@@ -471,11 +621,36 @@ export default function Match({ isMuted, onMatchFinished }: MatchProps) {
       if (summaryTimeoutRef.current !== null) {
         window.clearTimeout(summaryTimeoutRef.current);
       }
+
+      if (shootoutStartTimeoutRef.current !== null) {
+        window.clearTimeout(shootoutStartTimeoutRef.current);
+      }
+
+      if (shootoutIntroTimeoutRef.current !== null) {
+        window.clearTimeout(shootoutIntroTimeoutRef.current);
+      }
     };
   }, []);
 
   useEffect(() => {
+    if (!showShootoutIntro || goalModalState.isOpen) return;
+
+    shootoutIntroTimeoutRef.current = window.setTimeout(() => {
+      setShowShootoutIntro(false);
+      shootoutIntroTimeoutRef.current = null;
+    }, 2600);
+
+    return () => {
+      if (shootoutIntroTimeoutRef.current !== null) {
+        window.clearTimeout(shootoutIntroTimeoutRef.current);
+        shootoutIntroTimeoutRef.current = null;
+      }
+    };
+  }, [goalModalState.isOpen, showShootoutIntro]);
+
+  useEffect(() => {
     if (!matchState.isFinished) return;
+    if (isDraftMatch && score.user === score.opponent) return;
 
     summaryTimeoutRef.current = window.setTimeout(() => {
       setShowSummary(true);
@@ -486,7 +661,39 @@ export default function Match({ isMuted, onMatchFinished }: MatchProps) {
         window.clearTimeout(summaryTimeoutRef.current);
       }
     };
-  }, [matchState.isFinished]);
+  }, [isDraftMatch, matchState.isFinished, score.opponent, score.user]);
+
+  useEffect(() => {
+    if (
+      !isDraftMatch ||
+      !matchState.isFinished ||
+      score.user !== score.opponent ||
+      shootoutStartedRef.current
+    ) {
+      return;
+    }
+
+    shootoutStartTimeoutRef.current = window.setTimeout(() => {
+      startPenaltyShootout(false);
+      shootoutStartTimeoutRef.current = null;
+    }, 2000);
+
+    return () => {
+      if (shootoutStartTimeoutRef.current !== null) {
+        window.clearTimeout(shootoutStartTimeoutRef.current);
+        shootoutStartTimeoutRef.current = null;
+      }
+    };
+  }, [
+    isDraftMatch,
+    matchState.disciplinaryState,
+    matchState.isFinished,
+    matchState.opponentTeam,
+    matchState.userTeam,
+    score.opponent,
+    score.user,
+    startPenaltyShootout,
+  ]);
 
   useLayoutEffect(() => {
     if (!latestGoal) {
@@ -646,7 +853,7 @@ export default function Match({ isMuted, onMatchFinished }: MatchProps) {
   );
 
   const matchMvp = useMemo(() => {
-    if (!matchState.isFinished) {
+    if (!matchState.isFinished && !isShootoutTestMode) {
       return null;
     }
 
@@ -658,9 +865,14 @@ export default function Match({ isMuted, onMatchFinished }: MatchProps) {
       oppPositions
     );
 
-    return getMatchMVP(playersWithRatings, getResult(score.user, score.opponent));
+    return getMatchMVP(
+      playersWithRatings,
+      decidedShootoutResult ?? getResult(score.user, score.opponent)
+    );
   }, [
     allOpponentPlayers,
+    decidedShootoutResult,
+    isShootoutTestMode,
     matchState.isFinished,
     matchState.playerMatchStats,
     oppPositions,
@@ -791,6 +1003,85 @@ export default function Match({ isMuted, onMatchFinished }: MatchProps) {
     [summaryUserParticipants]
   );
 
+  const handleSummaryContinue = (result: MatchResult) => {
+    if (isShootoutTestMode) {
+      navigate("/draft-prematch");
+      return;
+    }
+
+    if (!isDraftMatch) {
+      navigate("/PreMatch");
+      return;
+    }
+
+    const progress = loadDraftProgress();
+    if (!progress) {
+      onReturnToModeSelect?.();
+      return;
+    }
+
+    const campaign = recordDraftMatch({
+      campaign: progress.campaign,
+      round: progress.currentRound,
+      score: {
+        user: score.user,
+        opponent: score.opponent,
+      },
+      penaltyShootoutScore: penaltyShootout?.winner
+        ? getPenaltyShootoutScore(penaltyShootout)
+        : null,
+      performances: summaryUserParticipants.map(({ player, position }) => {
+        const stats =
+          matchState.playerMatchStats[`user:${player.id}`] ?? emptyStatLine();
+
+        return {
+          playerId: player.id,
+          playerName: player.name,
+          rating: calculatePlayerRating(stats, position),
+          goals: stats.goals,
+          assists: stats.assists,
+        };
+      }),
+    });
+    const progressWithCampaign = { ...progress, campaign };
+    const resolution = resolveDraftMatch(progress.currentRound, result);
+
+    if (resolution.kind === "eliminated") {
+      saveDraftProgress({
+        ...progressWithCampaign,
+        campaign: completeDraftCampaign(campaign, {
+          kind: "eliminated",
+          round: progress.currentRound,
+        }),
+      });
+      navigate("/draft-summary");
+      return;
+    }
+
+    if (resolution.kind === "repeat") {
+      navigate("/draft-prematch");
+      return;
+    }
+
+    if (resolution.kind === "champion") {
+      saveDraftProgress({
+        ...progressWithCampaign,
+        campaign: completeDraftCampaign(campaign, {
+          kind: "champion",
+          round: progress.currentRound,
+        }),
+      });
+      navigate("/draft-champion");
+      return;
+    }
+
+    saveDraftProgress({
+      ...progressWithCampaign,
+      currentRound: resolution.nextRound,
+    });
+    navigate("/draft-prematch");
+  };
+
   const displayPossession = matchState.possession;
   const displayZone = matchState.zone;
   const isUserAttacking = displayPossession === "user";
@@ -919,6 +1210,45 @@ export default function Match({ isMuted, onMatchFinished }: MatchProps) {
     pendingSetPieceResolution?.setPieceType === "penalty"
       ? pendingSetPieceResolution.resolution
       : null;
+
+  const shootoutActiveSide =
+    shootoutKickResolution?.side ?? penaltyShootout?.currentSide ?? null;
+  const shootoutAttackingTeam =
+    shootoutActiveSide === "user"
+      ? matchState.userTeam
+      : shootoutActiveSide === "opponent"
+        ? matchState.opponentTeam
+        : null;
+  const shootoutDefendingTeam =
+    shootoutActiveSide === "user"
+      ? matchState.opponentTeam
+      : shootoutActiveSide === "opponent"
+        ? matchState.userTeam
+        : null;
+  const shootoutMatchTaker =
+    shootoutAttackingTeam?.starters.find(
+      (player) => player.id === shootoutTakerId
+    ) ?? null;
+  const shootoutMatchGoalkeeper = shootoutDefendingTeam
+    ? getShootoutGoalkeeper(shootoutDefendingTeam)
+    : null;
+  const shootoutShooter = findPlayerByMatchPlayer(
+    shootoutActiveSide === "user" ? allUserPlayers : allOpponentPlayers,
+    shootoutMatchTaker
+  );
+  const shootoutGoalkeeper = findPlayerByMatchPlayer(
+    shootoutActiveSide === "user" ? allOpponentPlayers : allUserPlayers,
+    shootoutMatchGoalkeeper
+  );
+  const isShootoutModalOpen = Boolean(
+    penaltyShootout &&
+      !goalModalState.isOpen &&
+      !showShootoutIntro &&
+      shootoutActiveSide &&
+      shootoutMatchTaker &&
+      shootoutMatchGoalkeeper &&
+      (!penaltyShootout.winner || shootoutKickResolution)
+  );
 
   const freekickResolution =
     pendingSetPieceResolution?.setPieceType === "freekick"
@@ -1128,6 +1458,116 @@ export default function Match({ isMuted, onMatchFinished }: MatchProps) {
     });
   }
 
+  function handleShootoutUserPenaltyPick(choice: PenaltyChoice) {
+    if (
+      !penaltyShootout ||
+      shootoutKickResolution ||
+      shootoutActiveSide !== "user" ||
+      !shootoutMatchTaker ||
+      !isOutfieldMatchPlayer(shootoutMatchTaker) ||
+      !shootoutMatchGoalkeeper ||
+      !isGoalkeeperMatchPlayer(shootoutMatchGoalkeeper)
+    ) {
+      return;
+    }
+
+    const resolution = resolvePen({
+      shooterChoice: choice,
+      taker: {
+        finishing: shootoutMatchTaker.stats.shooting,
+        overall: shootoutMatchTaker.overall,
+      },
+      goalkeeper: {
+        reflexes: shootoutMatchGoalkeeper.stats.reflexes,
+        diving: shootoutMatchGoalkeeper.stats.diving,
+      },
+    });
+
+    setPenaltyShootout(
+      recordPenaltyShootoutAttempt({
+        state: penaltyShootout,
+        side: "user",
+        takerId: shootoutMatchTaker.id,
+        scored: resolution.result === "goal",
+      })
+    );
+    setShootoutKickResolution({
+      side: "user",
+      takerId: shootoutMatchTaker.id,
+      resolution,
+    });
+  }
+
+  function handleShootoutOpponentPenaltyPick(
+    shooterChoice: PenaltyChoice,
+    keeperChoice: PenaltyChoice
+  ) {
+    if (
+      !penaltyShootout ||
+      shootoutKickResolution ||
+      shootoutActiveSide !== "opponent" ||
+      !shootoutMatchTaker ||
+      !isOutfieldMatchPlayer(shootoutMatchTaker) ||
+      !shootoutMatchGoalkeeper ||
+      !isGoalkeeperMatchPlayer(shootoutMatchGoalkeeper)
+    ) {
+      return;
+    }
+
+    const resolution = resolvePen({
+      shooterChoice,
+      keeperChoice,
+      taker: {
+        finishing: shootoutMatchTaker.stats.shooting,
+        overall: shootoutMatchTaker.overall,
+      },
+      goalkeeper: {
+        reflexes: shootoutMatchGoalkeeper.stats.reflexes,
+        diving: shootoutMatchGoalkeeper.stats.diving,
+      },
+    });
+
+    setPenaltyShootout(
+      recordPenaltyShootoutAttempt({
+        state: penaltyShootout,
+        side: "opponent",
+        takerId: shootoutMatchTaker.id,
+        scored: resolution.result === "goal",
+      })
+    );
+    setShootoutKickResolution({
+      side: "opponent",
+      takerId: shootoutMatchTaker.id,
+      resolution,
+    });
+  }
+
+  function handleShootoutContinue() {
+    if (!penaltyShootout || !shootoutKickResolution) return;
+
+    if (penaltyShootout.winner) {
+      setShootoutKickResolution(null);
+      setShootoutTakerId(null);
+      setShowSummary(true);
+      return;
+    }
+
+    const nextSide = penaltyShootout.currentSide;
+    const nextTeam =
+      nextSide === "user" ? matchState.userTeam : matchState.opponentTeam;
+    const nextTaker = selectShootoutTaker({
+      state: penaltyShootout,
+      side: nextSide,
+      team: nextTeam,
+      disciplinaryState: matchState.disciplinaryState,
+    });
+
+    if (!nextTaker) return;
+
+    setShootoutTakerId(nextTaker.id);
+    setShootoutKickResolution(null);
+  }
+
   if (!routeState || !userSquad || !opponent) {
     return null;
   }
@@ -1310,6 +1750,14 @@ export default function Match({ isMuted, onMatchFinished }: MatchProps) {
         onContinue={handleContinueInteractiveSetPiece}
       />
 
+      {showShootoutIntro && !goalModalState.isOpen ? (
+        <div className="shootout-intro" role="status" aria-live="assertive">
+          <div className="shootout-intro__glow" />
+          <span className="shootout-intro__kicker">Knockout decider</span>
+          <strong>PENALTY SHOOTOUT!</strong>
+        </div>
+      ) : null}
+
       {isInteractiveModalOpen &&
         interactiveSetPiece?.side === "user" &&
         interactiveSetPiece.modalType === "corner" && (
@@ -1395,6 +1843,36 @@ export default function Match({ isMuted, onMatchFinished }: MatchProps) {
           />
         )}
 
+      {isShootoutModalOpen &&
+        shootoutActiveSide === "user" &&
+        penaltyShootout && (
+          <PenModal
+            key={`shootout-user-${shootoutTakerId}`}
+            isOpen={true}
+            shooter={shootoutShooter ?? undefined}
+            goalkeeper={shootoutGoalkeeper ?? undefined}
+            resolution={shootoutKickResolution?.resolution ?? null}
+            shootoutState={penaltyShootout}
+            onPick={handleShootoutUserPenaltyPick}
+            onContinue={handleShootoutContinue}
+          />
+        )}
+
+      {isShootoutModalOpen &&
+        shootoutActiveSide === "opponent" &&
+        penaltyShootout && (
+          <OppPenModal
+            key={`shootout-opponent-${shootoutTakerId}`}
+            isOpen={true}
+            shooter={shootoutShooter ?? undefined}
+            goalkeeper={shootoutGoalkeeper ?? undefined}
+            resolution={shootoutKickResolution?.resolution ?? null}
+            shootoutState={penaltyShootout}
+            onPick={handleShootoutOpponentPenaltyPick}
+            onContinue={handleShootoutContinue}
+          />
+        )}
+
       <GoalModal
         isOpen={goalModalState.isOpen}
         scorer={goalModalState.scorer}
@@ -1410,12 +1888,23 @@ export default function Match({ isMuted, onMatchFinished }: MatchProps) {
         }
       />
 
-      {matchState.isFinished ? (
+      {matchState.isFinished || isShootoutTestMode ? (
         <MatchSummaryModal
-          isOpen={showSummary}
+          isOpen={
+            showSummary &&
+            (!isDraftMatch ||
+              score.user !== score.opponent ||
+              Boolean(penaltyShootout?.winner && !shootoutKickResolution))
+          }
           onViewDetails={() => setShowSummary(false)}
           userScore={score.user}
           opponentScore={score.opponent}
+          decidedResult={decidedShootoutResult}
+          penaltyShootoutScore={
+            penaltyShootout?.winner
+              ? getPenaltyShootoutScore(penaltyShootout)
+              : undefined
+          }
           opponentName={opponent.name}
           playerMatchStats={matchState.playerMatchStats}
           userPlayers={summaryUserPlayers}
@@ -1424,6 +1913,7 @@ export default function Match({ isMuted, onMatchFinished }: MatchProps) {
           onOpen={() => onMatchFinished?.()}
           userPositions={summaryUserPositions}
           opponentPositions={oppPositions}
+          onContinue={handleSummaryContinue}
         />
       ) : null}
     </div>

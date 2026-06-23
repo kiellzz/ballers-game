@@ -10,7 +10,7 @@ interface Props {
   onDragEnd: () => void;
   onDropToBench: (targetBenchIndex: number) => void;
   onBenchSlotClick: (benchIndex: number) => void;
-  onRemoveBenchPlayer: (benchIndex: number) => void;
+  onRemoveBenchPlayer?: (benchIndex: number) => void;
 }
 
 export default function Bench({

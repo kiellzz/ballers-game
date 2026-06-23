@@ -1,22 +1,56 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { Layers3, Sparkles } from "lucide-react";
 import "./WelcomePage.css";
 import Demo from "../components/demo/Demo";
 
+export type GameMode = "draft" | "freestyle";
+
 interface WelcomePageProps {
-  onStart: () => void;
+  onStart: (mode: GameMode) => void;
+  openModeSelectOnMount?: boolean;
 }
 
-export default function WelcomePage({ onStart }: WelcomePageProps) {
+export default function WelcomePage({
+  onStart,
+  openModeSelectOnMount = false,
+}: WelcomePageProps) {
   const [isExiting, setIsExiting] = useState(false);
+  const [isModeSelectOpen, setIsModeSelectOpen] = useState(openModeSelectOnMount);
+  const freestyleButtonRef = useRef<HTMLButtonElement>(null);
 
   const handleStart = () => {
-    if (typeof onStart === "function") {
-      setIsExiting(true);
-      setTimeout(() => {
-        onStart();
-      }, 900);
-    }
+    setIsModeSelectOpen(true);
   };
+
+  const handleModeStart = (mode: GameMode) => {
+    if (typeof onStart !== "function" || isExiting) return;
+
+    setIsModeSelectOpen(false);
+    setIsExiting(true);
+    setTimeout(() => {
+      onStart(mode);
+    }, 900);
+  };
+
+  useEffect(() => {
+    if (!isModeSelectOpen) return;
+
+    const previousOverflow = document.body.style.overflow;
+    const previouslyFocused = document.activeElement as HTMLElement | null;
+    document.body.style.overflow = "hidden";
+    freestyleButtonRef.current?.focus();
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setIsModeSelectOpen(false);
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = previousOverflow;
+      previouslyFocused?.focus();
+    };
+  }, [isModeSelectOpen]);
 
   return (
     <div className={`welcome-container ${isExiting ? "exit-animation" : ""}`}>
@@ -53,6 +87,80 @@ export default function WelcomePage({ onStart }: WelcomePageProps) {
 
         <p className="btn-hint">——————————————————————</p>
       </div>
+
+      {isModeSelectOpen && (
+        <div
+          className="game-mode-modal__backdrop"
+          onMouseDown={() => setIsModeSelectOpen(false)}
+        >
+          <section
+            className="game-mode-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="game-mode-title"
+            onMouseDown={(event) => event.stopPropagation()}
+          >
+            <button
+              className="game-mode-modal__close"
+              type="button"
+              onClick={() => setIsModeSelectOpen(false)}
+              aria-label="Close game mode selection"
+            >
+              ×
+            </button>
+
+            <div className="game-mode-modal__heading">
+              <h2 id="game-mode-title">SELECT GAME MODE</h2>
+              <p>Choose how you want to build your team.</p>
+            </div>
+
+            <div className="game-mode-modal__options">
+              <button
+                className="game-mode-card game-mode-card--active"
+                type="button"
+                onClick={() => handleModeStart("draft")}
+                aria-describedby="draft-mode-description"
+              >
+                <span className="game-mode-card__badge game-mode-card__badge--active">AVAILABLE</span>
+                <span className="game-mode-card__icon" aria-hidden="true">
+                  <Layers3 size={32} strokeWidth={1.7} />
+                </span>
+                <span className="game-mode-card__title">DRAFT MODE</span>
+                <span id="draft-mode-description" className="game-mode-card__description">
+                  Pick from random player choices and create your best possible squad.
+                </span>
+                <span className="game-mode-card__action">
+                  START DRAFT
+                  <span aria-hidden="true">→</span>
+                </span>
+              </button>
+
+              <button
+                ref={freestyleButtonRef}
+                className="game-mode-card game-mode-card--active"
+                type="button"
+                onClick={() => handleModeStart("freestyle")}
+                aria-describedby="freestyle-mode-description"
+              >
+                <span className="game-mode-card__badge game-mode-card__badge--active">
+                  AVAILABLE
+                </span>
+                <span className="game-mode-card__icon" aria-hidden="true">
+                  <Sparkles size={32} strokeWidth={1.7} />
+                </span>
+                <span className="game-mode-card__title">FREESTYLE MODE</span>
+                <span id="freestyle-mode-description" className="game-mode-card__description">
+                  Browse every player, create custom cards and build your dream squad.
+                </span>
+                <span className="game-mode-card__action">
+                  PLAY NOW
+                  <span aria-hidden="true">→</span>
+                </span>
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
 
       <footer className="welcome-footer">
         <p className="welcome-disclaimer">

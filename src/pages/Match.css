@@ -256,3 +256,91 @@
     height: 16px;
   }
 }
+
+.shootout-intro {
+  position: fixed;
+  inset: 0;
+  z-index: 10030;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at center, rgba(88, 28, 135, 0.2), transparent 42%),
+    rgba(1, 0, 6, 0.97);
+  color: #fff;
+  isolation: isolate;
+  pointer-events: all;
+  animation: shootoutIntroFade 2.6s ease-in-out both;
+}
+
+.shootout-intro__glow {
+  position: absolute;
+  z-index: -1;
+  width: min(85vw, 920px);
+  aspect-ratio: 2.5;
+  border-radius: 50%;
+  background: rgba(147, 51, 234, 0.2);
+  filter: blur(70px);
+  animation: shootoutIntroGlow 2.6s ease-in-out both;
+}
+
+.shootout-intro__kicker {
+  margin-bottom: 10px;
+  color: #d8b4fe;
+  font-family: "Rajdhani", sans-serif;
+  font-size: clamp(0.72rem, 1.5vw, 1rem);
+  font-weight: 800;
+  letter-spacing: 0.48em;
+  text-transform: uppercase;
+  animation: shootoutIntroKicker 2.6s ease-in-out both;
+}
+
+.shootout-intro strong {
+  max-width: 94vw;
+  font-family: "Bebas Neue", "Arial Narrow", sans-serif;
+  font-size: clamp(4rem, 12vw, 10rem);
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  line-height: 0.92;
+  text-align: center;
+  text-shadow:
+    0 0 12px rgba(255, 255, 255, 0.2),
+    0 0 42px rgba(168, 85, 247, 0.55),
+    0 10px 35px rgba(0, 0, 0, 0.9);
+  animation: shootoutIntroTitle 2.6s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@keyframes shootoutIntroFade {
+  0% { opacity: 0; }
+  12%, 82% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@keyframes shootoutIntroTitle {
+  0% { opacity: 0; transform: scale(0.72); filter: blur(16px); }
+  18% { opacity: 1; transform: scale(1.04); filter: blur(0); }
+  32%, 78% { opacity: 1; transform: scale(1); filter: blur(0); }
+  100% { opacity: 0; transform: scale(1.08); filter: blur(7px); }
+}
+
+@keyframes shootoutIntroKicker {
+  0%, 8% { opacity: 0; transform: translateY(12px); }
+  24%, 78% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-8px); }
+}
+
+@keyframes shootoutIntroGlow {
+  0%, 100% { opacity: 0; transform: scale(0.65); }
+  35%, 75% { opacity: 1; transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shootout-intro,
+  .shootout-intro__glow,
+  .shootout-intro__kicker,
+  .shootout-intro strong {
+    animation-timing-function: linear;
+  }
+}

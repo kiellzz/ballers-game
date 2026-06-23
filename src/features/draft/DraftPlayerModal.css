@@ -1,0 +1,87 @@
+.draft-player-info-modal {
+  min-width: 680px;
+  max-width: 760px;
+}
+
+.draft-player-info-modal__content {
+  justify-content: center;
+  gap: 64px;
+}
+
+.draft-player-info-modal__card .player-card {
+  cursor: default;
+}
+
+.draft-player-info-modal__card .player-card:hover {
+  transform: none;
+  filter: none;
+  box-shadow: none;
+}
+
+.draft-player-info-modal__details {
+  min-width: 220px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 30px;
+}
+
+.draft-player-info-modal__meta {
+  width: 100%;
+  margin: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.draft-player-info-modal__meta > div {
+  padding: 14px 16px;
+  border: 1px solid rgba(192, 132, 252, 0.16);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.035);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.draft-player-info-modal__meta dt,
+.draft-player-info-modal__meta dd {
+  margin: 0;
+  font-family: "Rajdhani", sans-serif;
+}
+
+.draft-player-info-modal__meta dt {
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.draft-player-info-modal__meta dd {
+  color: #e9d5ff;
+  font-size: 0.92rem;
+  font-weight: 700;
+  text-align: right;
+}
+
+@media (max-width: 768px) {
+  .draft-player-info-modal {
+    min-width: auto;
+  }
+
+  .draft-player-info-modal__content {
+    gap: 20px !important;
+  }
+
+  .draft-player-info-modal__details {
+    width: 100%;
+    min-width: 0;
+    gap: 16px;
+  }
+
+  .draft-player-info-modal__details .card-modal__logo {
+    display: none;
+  }
+}
+

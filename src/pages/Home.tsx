@@ -4,7 +4,6 @@ import PlayerGrid from "../components/home/PlayerGrid";
 import FeatureButton from "../components/feature-button/FeatureButton";
 import FilterModal from "../components/filter-modal/FilterModal";
 import PlayerCardModal from "../components/player-card/PlayerCardModal";
-import ComingSoon from "../components/home/ComingSoon";
 import CreatePlayerModal from "../components/home/CreatePlayerModal";
 import { playersData } from "../data/PlayersData";
 import { getCardTier } from "../utils/getCardTier";
@@ -51,7 +50,6 @@ export default function Home() {
   const [filters, setFilters] = useState<FilterState>(defaultFilters);
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
-  const [isComingSoonOpen, setIsComingSoonOpen] = useState(false);
   const [isCreatePlayerOpen, setIsCreatePlayerOpen] = useState(false);
 
   const { favorites, toggleFavorite } = useFavorites();
@@ -69,7 +67,7 @@ export default function Home() {
     const selectedNationalities = new Set(filters.nationalities);
     const selectedTiers = new Set(filters.tiers);
     const shouldPrioritizeWorldCupCards =
-      activeThemeClass === WORLD_CUP_THEME_CLASS &&
+      String(activeThemeClass) === WORLD_CUP_THEME_CLASS &&
       !hasActiveHomeFilters(filters, deferredSearch);
 
     const result = allPlayers.filter(player => {
@@ -170,8 +168,6 @@ export default function Home() {
   const handleCloseFilters = useCallback(() => setIsFilterModalOpen(false), []);
   const handleOpenCreatePlayer = useCallback(() => setIsCreatePlayerOpen(true), []);
   const handleCloseCreatePlayer = useCallback(() => setIsCreatePlayerOpen(false), []);
-  const handleOpenComingSoon = useCallback(() => setIsComingSoonOpen(true), []);
-  const handleCloseComingSoon = useCallback(() => setIsComingSoonOpen(false), []);
 
   const handleSaveCustomPlayer = useCallback(
     (player: Player) => {
@@ -228,10 +224,6 @@ export default function Home() {
                 variant="less"
               />
             )}
-            <FeatureButton
-              label="DRAFT MODE"
-              onClick={handleOpenComingSoon}
-            />
           </div>
         </div>
       </div>
@@ -251,10 +243,6 @@ export default function Home() {
           onRemove={handleRemovePlayer}
           onToggleFavorite={handleToggleSelectedFavorite}
         />
-      )}
-
-      {isComingSoonOpen && (
-        <ComingSoon onClose={handleCloseComingSoon} />
       )}
 
       {isCreatePlayerOpen && (

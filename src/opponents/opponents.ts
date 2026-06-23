@@ -218,19 +218,26 @@ const TIER_FORMATIONS: Record<string, FormationKey[]> = {
   ],
 };
 
-const createRandomTeam = (
+export type OpponentTier = keyof typeof TIER_FORMATIONS;
+
+type CreateOpponentOptions = {
+  strictAverage?: boolean;
+};
+
+export const createRandomTeam = (
   id: string,
   name: string,
-  tier: keyof typeof TIER_FORMATIONS,
+  tier: OpponentTier,
   minOvrTarget: number,
-  maxOvrTarget: number
+  maxOvrTarget: number,
+  options: CreateOpponentOptions = {},
 ): OpponentTeam => {
   // Sorteia a formação dentro do tier
   const formationKey = pickRandom(TIER_FORMATIONS[tier]);
   const formation = FORMATIONS[formationKey];
 
   if (!formation) {
-    return createRandomTeam(id, name, tier, minOvrTarget, maxOvrTarget);
+    return createRandomTeam(id, name, tier, minOvrTarget, maxOvrTarget, options);
   }
 
   // Pool mais generoso: ±8 OVR em torno do alvo
@@ -245,7 +252,7 @@ const createRandomTeam = (
   let bestAttempt: Player[] = [];
   let bestDelta = Infinity;
   const targetMid = (minOvrTarget + maxOvrTarget) / 2;
-  const MAX_ATTEMPTS = 48;
+  const MAX_ATTEMPTS = options.strictAverage ? 160 : 48;
   const preferredPlayersByPosition = new Map<Position, Player[]>();
 
   formation.positions.forEach((position) => {
@@ -297,7 +304,11 @@ const createRandomTeam = (
       bestAttempt = currentTeam;
     }
 
-    if (avg >= acceptMin && avg <= acceptMax) {
+    const isAccepted = options.strictAverage
+      ? Math.round(avg) >= minOvrTarget && Math.round(avg) <= maxOvrTarget
+      : avg >= acceptMin && avg <= acceptMax;
+
+    if (isAccepted) {
       finalPlayers = currentTeam;
       break;
     }

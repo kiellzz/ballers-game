@@ -1,0 +1,21 @@
+.draft-lineup .draft-slot--filled {
+  cursor: grab;
+}
+
+.draft-lineup .draft-slot--filled:active {
+  cursor: grabbing;
+}
+
+.draft-lineup .draft-slot--empty {
+  cursor: pointer;
+}
+
+.draft-lineup .draft-slot--empty:hover .empty-card-img,
+.draft-lineup .bench-slot:has(.bench-slot__empty):hover .bench-slot__empty-img {
+  filter: brightness(1.18) drop-shadow(0 0 12px rgba(192, 132, 252, 0.68));
+}
+
+.draft-lineup__actions {
+  justify-content: flex-end;
+}
+
