@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Layers3, Sparkles, Trophy } from "lucide-react";
+import { Layers3, Sparkles } from "lucide-react";
 import "./WelcomePage.css";
 import Demo from "../components/demo/Demo";
 
@@ -7,13 +7,11 @@ export type GameMode = "draft" | "freestyle";
 
 interface WelcomePageProps {
   onStart: (mode: GameMode) => void;
-  onDraftChampionPreview?: () => void;
   openModeSelectOnMount?: boolean;
 }
 
 export default function WelcomePage({
   onStart,
-  onDraftChampionPreview,
   openModeSelectOnMount = false,
 }: WelcomePageProps) {
   const [isExiting, setIsExiting] = useState(false);
@@ -32,13 +30,6 @@ export default function WelcomePage({
     setTimeout(() => {
       onStart(mode);
     }, 900);
-  };
-
-  const handleDraftChampionPreview = () => {
-    if (!onDraftChampionPreview || isExiting) return;
-
-    setIsModeSelectOpen(false);
-    onDraftChampionPreview();
   };
 
   useEffect(() => {
@@ -174,16 +165,6 @@ export default function WelcomePage({
               </button>
             </div>
 
-            {onDraftChampionPreview ? (
-              <button
-                className="draft-champion-preview-shortcut"
-                type="button"
-                onClick={handleDraftChampionPreview}
-              >
-                <Trophy size={16} strokeWidth={1.8} aria-hidden="true" />
-                <span>TEST DRAFT CHAMPION</span>
-              </button>
-            ) : null}
           </section>
         </div>
       )}

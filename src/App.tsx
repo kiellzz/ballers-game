@@ -17,15 +17,9 @@ import DraftChampion from "./pages/DraftChampion";
 import DraftSummary from "./pages/DraftSummary";
 import type { GameMode } from "./pages/WelcomePage";
 import {
-  createDraftProgress,
   DRAFT_MATCH_RELOAD_PENDING_KEY,
   resetDraftProgress,
-  saveDraftProgress,
 } from "./features/draft/draftUtils";
-import {
-  completeDraftCampaign,
-  recordDraftMatch,
-} from "./features/draft/draftCampaign";
 
 function AppRoutes({
   onMatchFinished,
@@ -128,69 +122,6 @@ function AppContent() {
     navigate(mode === "draft" ? "/draft-lineup" : "/");
   }
 
-  function handleDraftChampionPreview() {
-    let progress = createDraftProgress();
-    let campaign = progress.campaign;
-    const previewMatches = [
-      {
-        round: 0 as const,
-        score: { user: 3, opponent: 1 },
-        performances: [
-          { playerId: 1, playerName: "Pele", rating: 8.7, goals: 2, assists: 0 },
-          { playerId: 3, playerName: "Lionel Messi", rating: 8.2, goals: 1, assists: 1 },
-          { playerId: 4, playerName: "Joshua Kimmich", rating: 7.8, goals: 0, assists: 1 },
-        ],
-      },
-      {
-        round: 1 as const,
-        score: { user: 2, opponent: 1 },
-        performances: [
-          { playerId: 1, playerName: "Pele", rating: 8.4, goals: 1, assists: 0 },
-          { playerId: 3, playerName: "Lionel Messi", rating: 8.8, goals: 1, assists: 1 },
-          { playerId: 4, playerName: "Joshua Kimmich", rating: 7.7, goals: 0, assists: 1 },
-        ],
-      },
-      {
-        round: 2 as const,
-        score: { user: 2, opponent: 0 },
-        performances: [
-          { playerId: 1, playerName: "Pele", rating: 9.1, goals: 1, assists: 1 },
-          { playerId: 3, playerName: "Lionel Messi", rating: 8.3, goals: 1, assists: 0 },
-          { playerId: 4, playerName: "Joshua Kimmich", rating: 8.1, goals: 0, assists: 1 },
-        ],
-      },
-      {
-        round: 3 as const,
-        score: { user: 3, opponent: 2 },
-        performances: [
-          { playerId: 1, playerName: "Pele", rating: 9.4, goals: 2, assists: 0 },
-          { playerId: 3, playerName: "Lionel Messi", rating: 8.9, goals: 1, assists: 1 },
-          { playerId: 4, playerName: "Joshua Kimmich", rating: 8.2, goals: 0, assists: 1 },
-        ],
-      },
-    ];
-
-    for (const match of previewMatches) {
-      campaign = recordDraftMatch({
-        campaign,
-        round: match.round,
-        performances: match.performances,
-        score: match.score,
-      });
-    }
-
-    progress = {
-      ...progress,
-      currentRound: 3,
-      campaign: completeDraftCampaign(campaign, { kind: "champion", round: 3 }),
-    };
-
-    saveDraftProgress(progress);
-    setOpenModeSelectOnWelcome(false);
-    setHasStarted(true);
-    navigate("/draft-champion");
-  }
-
   function handleReturnToModeSelect() {
     setOpenModeSelectOnWelcome(true);
     setHasStarted(false);
@@ -214,7 +145,6 @@ function AppContent() {
       {!hasStarted ? (
         <WelcomePage
           onStart={handleModeStart}
-          onDraftChampionPreview={handleDraftChampionPreview}
           openModeSelectOnMount={openModeSelectOnWelcome}
         />
       ) : (
