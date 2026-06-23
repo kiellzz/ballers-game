@@ -1,5 +1,5 @@
 import type { Player } from "../../types/PlayerTypes";
-import { useCallback } from "react";
+import { memo, useCallback } from "react";
 import { getCardTier } from "../../utils/getCardTier";
 import { getCardBackgroundImage } from "../../utils/getCardImage";
 import { getPlayerImage } from "../../utils/getPlayerImage";
@@ -15,7 +15,7 @@ type LineupCardProps = {
   onRemovePlayer?: () => void;
 };
 
-export default function LineupCard({
+function LineupCard({
   player,
   assignedPosition,
   className = "",
@@ -67,6 +67,9 @@ export default function LineupCard({
           alt={player.name}
           className="lineup-card__image"
           onError={handleImageError}
+          decoding="async"
+          draggable={false}
+          loading="lazy"
         />
       </div>
 
@@ -76,6 +79,9 @@ export default function LineupCard({
           src={getFlagUrl(player.nationality)}
           alt={player.nationality}
           className="lineup-card__flag"
+          decoding="async"
+          draggable={false}
+          loading="lazy"
         />
         <span className="lineup-card__position">
           {assignedPosition || player.position}
@@ -84,3 +90,5 @@ export default function LineupCard({
     </article>
   );
 }
+
+export default memo(LineupCard);

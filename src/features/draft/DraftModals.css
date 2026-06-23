@@ -9,8 +9,6 @@
   padding: 28px;
   overflow-y: auto;
   background: rgba(3, 1, 10, 0.84);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
   animation: draftBackdropIn 0.25s ease both;
 }
 
@@ -332,8 +330,7 @@
   height: 70%;
   border-radius: 50%;
   background: radial-gradient(ellipse, rgb(var(--accent)), transparent 70%);
-  filter: blur(44px);
-  opacity: 0.14;
+  opacity: 0.08;
   transition: opacity 0.28s ease;
   pointer-events: none;
 }
@@ -362,7 +359,7 @@
 
 .draft-player-option:hover::before,
 .draft-player-option:focus-visible::before {
-  opacity: 0.3;
+  opacity: 0.16;
 }
 
 .draft-player-option:hover,
@@ -485,6 +482,22 @@
 
   .draft-player-option__card-wrap {
     width: min(160px, 80%);
+  }
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .draft-player-option::before,
+  .draft-player-option::after,
+  .draft-formation-option::after {
+    display: none;
+  }
+
+  .draft-player-option:hover,
+  .draft-player-option:focus-visible,
+  .draft-formation-option:hover,
+  .draft-formation-option:focus-visible {
+    transform: none;
+    box-shadow: none;
   }
 }
 

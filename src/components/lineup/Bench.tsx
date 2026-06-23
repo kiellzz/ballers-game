@@ -1,7 +1,7 @@
 import BenchSlot from "./BenchSlot";
 import type { Player } from "../../types/PlayerTypes";
 import type { DragSource, DropTarget } from "../../hooks/useDragDrop";
-import type { TouchEvent } from "react";
+import { memo, type TouchEvent } from "react";
 import "./Bench.css";
 
 interface Props {
@@ -22,7 +22,7 @@ interface Props {
   onRemoveBenchPlayer?: (benchIndex: number) => void;
 }
 
-export default function Bench({
+function Bench({
   benchPlayers,
   dragSource,
   onDragStart,
@@ -62,3 +62,5 @@ export default function Bench({
     </div>
   );
 }
+
+export default memo(Bench);

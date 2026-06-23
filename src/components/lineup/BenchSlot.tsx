@@ -1,6 +1,6 @@
 import type { Player } from "../../types/PlayerTypes";
 import type { DragSource, DropTarget } from "../../hooks/useDragDrop";
-import { useCallback, type TouchEvent } from "react";
+import { memo, useCallback, type TouchEvent } from "react";
 import { getCardTier } from "../../utils/getCardTier";
 import { getCardBackgroundImage } from "../../utils/getCardImage";
 import { getPlayerImage } from "../../utils/getPlayerImage";
@@ -27,7 +27,7 @@ type BenchSlotProps = {
   onRemovePlayer?: (index: number) => void;
 };
 
-export default function BenchSlot({
+function BenchSlot({
   index,
   player,
   isDragging,
@@ -61,7 +61,11 @@ export default function BenchSlot({
 
   return (
     <div
-      className={`bench-slot ${isDragging ? "bench-slot--dragging" : ""}`}
+      className={[
+        "bench-slot",
+        player ? "bench-slot--filled" : "bench-slot--empty",
+        isDragging ? "bench-slot--dragging" : "",
+      ].filter(Boolean).join(" ")}
       data-lineup-drop-zone="bench"
       data-lineup-drop-index={index}
       onDragOver={(e) => e.preventDefault()}
@@ -113,6 +117,9 @@ export default function BenchSlot({
                 alt={player.name}
                 className="bench-slot__image"
                 onError={handleImageError}
+                decoding="async"
+                draggable={false}
+                loading="lazy"
               />
             </div>
 
@@ -122,6 +129,9 @@ export default function BenchSlot({
                 src={getFlagUrl(player.nationality)}
                 alt={player.nationality}
                 className="bench-slot__flag"
+                decoding="async"
+                draggable={false}
+                loading="lazy"
               />
               <span className="bench-slot__position">{player.position}</span>
             </div>
@@ -132,6 +142,9 @@ export default function BenchSlot({
               src="/images/cards/emptycard.png"
               alt="Empty Slot"
               className="bench-slot__empty-img"
+              decoding="async"
+              draggable={false}
+              loading="lazy"
             />
             <span className="bench-slot__empty-label">SUB</span>
           </div>
@@ -140,3 +153,5 @@ export default function BenchSlot({
     </div>
   );
 }
+
+export default memo(BenchSlot);

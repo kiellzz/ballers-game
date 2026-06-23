@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Bench from "../components/lineup/Bench";
 import LineupCard from "../components/lineup/LineupCard";
@@ -77,8 +77,8 @@ export default function DraftLineup({ onReturnToModeSelect }: DraftLineupProps) 
   const { toasts, addToast, removeToast } = useToast();
 
   const formation = draft.formation ? FORMATIONS[draft.formation] : null;
-  const slotPositions = formation?.positions ?? [];
-  const slotLayout = formation?.layout ?? [];
+  const slotPositions = useMemo(() => formation?.positions ?? [], [formation]);
+  const slotLayout = useMemo(() => formation?.layout ?? [], [formation]);
   const pitchPlayers = useMemo(
     () => draft.pitchPlayerIds.map(resolvePlayer),
     [draft.pitchPlayerIds],
@@ -111,13 +111,13 @@ export default function DraftLineup({ onReturnToModeSelect }: DraftLineupProps) 
     saveDraftProgress(draft);
   }, [draft]);
 
-  const handleFormationSelect = (selectedFormation: FormationKey) => {
+  const handleFormationSelect = useCallback((selectedFormation: FormationKey) => {
     if (draft.formation || !draft.formationChoices.includes(selectedFormation)) return;
     playSelect(0.5);
     setDraft((current) => ({ ...current, formation: selectedFormation }));
-  };
+  }, [draft.formation, draft.formationChoices]);
 
-  const openPlayerPick = (zone: "pitch" | "bench", index: number) => {
+  const openPlayerPick = useCallback((zone: "pitch" | "bench", index: number) => {
     if (!formation || draft.activePick) return;
     const currentPlayer = zone === "pitch" ? pitchPlayers[index] : benchPlayers[index];
     if (currentPlayer) return;
@@ -153,9 +153,17 @@ export default function DraftLineup({ onReturnToModeSelect }: DraftLineupProps) 
         optionIds: options.map((player) => player.id),
       },
     }));
-  };
+  }, [
+    addToast,
+    benchPlayers,
+    draft.activePick,
+    formation,
+    pitchPlayers,
+    selectedPlayers,
+    slotPositions,
+  ]);
 
-  const handlePitchSlotClick = (index: number) => {
+  const handlePitchSlotClick = useCallback((index: number) => {
     const player = pitchPlayers[index];
     if (player) {
       setInspectedPlayer(player);
@@ -163,9 +171,9 @@ export default function DraftLineup({ onReturnToModeSelect }: DraftLineupProps) 
     }
 
     openPlayerPick("pitch", index);
-  };
+  }, [openPlayerPick, pitchPlayers]);
 
-  const handleBenchSlotClick = (index: number) => {
+  const handleBenchSlotClick = useCallback((index: number) => {
     const player = benchPlayers[index];
     if (player) {
       setInspectedPlayer(player);
@@ -173,9 +181,9 @@ export default function DraftLineup({ onReturnToModeSelect }: DraftLineupProps) 
     }
 
     openPlayerPick("bench", index);
-  };
+  }, [benchPlayers, openPlayerPick]);
 
-  const handlePlayerSelect = (player: Player) => {
+  const handlePlayerSelect = useCallback((player: Player) => {
     const activePick = draft.activePick;
     if (!activePick || !activePick.optionIds.includes(player.id)) return;
     if (isPlayerAlreadySelected(player, selectedPlayers)) return;
@@ -198,9 +206,9 @@ export default function DraftLineup({ onReturnToModeSelect }: DraftLineupProps) 
       nextBench[current.activePick.index] = player.id;
       return { ...current, benchPlayerIds: nextBench, activePick: null };
     });
-  };
+  }, [draft.activePick, selectedPlayers]);
 
-  const handleDropToPitch = (targetPitchIndex: number, sourceOverride?: DragSource) => {
+  const handleDropToPitch = useCallback((targetPitchIndex: number, sourceOverride?: DragSource) => {
     const source = sourceOverride ?? dragSource;
     if (!source || !formation) return;
     const newPitch = [...draft.pitchPlayerIds];
@@ -248,9 +256,17 @@ export default function DraftLineup({ onReturnToModeSelect }: DraftLineupProps) 
       benchPlayerIds: newBench,
     }));
     onDragEnd();
-  };
+  }, [
+    addToast,
+    draft.benchPlayerIds,
+    draft.pitchPlayerIds,
+    dragSource,
+    formation,
+    onDragEnd,
+    slotPositions,
+  ]);
 
-  const handleDropToBench = (targetBenchIndex: number, sourceOverride?: DragSource) => {
+  const handleDropToBench = useCallback((targetBenchIndex: number, sourceOverride?: DragSource) => {
     const source = sourceOverride ?? dragSource;
     if (!source || !formation) return;
     const newPitch = [...draft.pitchPlayerIds];
@@ -293,18 +309,26 @@ export default function DraftLineup({ onReturnToModeSelect }: DraftLineupProps) 
       benchPlayerIds: newBench,
     }));
     onDragEnd();
-  };
+  }, [
+    addToast,
+    draft.benchPlayerIds,
+    draft.pitchPlayerIds,
+    dragSource,
+    formation,
+    onDragEnd,
+    slotPositions,
+  ]);
 
-  const handleTouchDrop = (target: DropTarget, source: DragSource) => {
+  const handleTouchDrop = useCallback((target: DropTarget, source: DragSource) => {
     if (target.zone === "pitch") {
       handleDropToPitch(target.index, source);
       return;
     }
 
     handleDropToBench(target.index, source);
-  };
+  }, [handleDropToBench, handleDropToPitch]);
 
-  const handleReady = () => {
+  const handleReady = useCallback(() => {
     if (!draft.formation || !isTeamComplete) return;
 
     localStorage.setItem(
@@ -318,7 +342,7 @@ export default function DraftLineup({ onReturnToModeSelect }: DraftLineupProps) 
     );
     playSelect(0.8);
     navigate("/draft-prematch");
-  };
+  }, [benchPlayers, draft.formation, isTeamComplete, navigate, pitchPlayers]);
 
   return (
     <div className="lineup draft-lineup">
@@ -390,7 +414,14 @@ export default function DraftLineup({ onReturnToModeSelect }: DraftLineupProps) 
                   <LineupCard player={player} assignedPosition={slotPositions[index]} />
                 ) : (
                   <div className="player-slot__empty">
-                    <img src="/images/cards/emptycard.png" alt="Empty Slot" className="empty-card-img" />
+                    <img
+                      src="/images/cards/emptycard.png"
+                      alt="Empty Slot"
+                      className="empty-card-img"
+                      decoding="async"
+                      draggable={false}
+                      loading="lazy"
+                    />
                     <span className="slot-pos-label">{slotPositions[index]}</span>
                   </div>
                 )}

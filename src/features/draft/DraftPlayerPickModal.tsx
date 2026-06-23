@@ -17,14 +17,12 @@ const playerOptionVariants: Variants = {
     x: index % 2 === 0 ? -86 : 86,
     y: 16,
     scale: 0.94,
-    filter: "blur(8px)",
   }),
   visible: (index: number) => ({
     opacity: 1,
     x: 0,
     y: 0,
     scale: 1,
-    filter: "blur(0px)",
     transition: {
       delay: 0.12 + index * 0.24,
       type: "spring",

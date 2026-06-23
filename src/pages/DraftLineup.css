@@ -1,3 +1,63 @@
+.draft-lineup .lineup__pitch {
+  animation: none;
+  box-shadow:
+    0 18px 44px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.draft-lineup .lineup-bg-backdrop,
+.draft-lineup .lineup-bg-noise {
+  display: none;
+}
+
+.draft-lineup .lineup-bg-effects::before {
+  filter: none;
+  opacity: 0.45;
+  transform: none;
+}
+
+.draft-lineup .lineup-bg-effects::after {
+  filter: none;
+  opacity: 0.06;
+  transform: none;
+}
+
+.draft-lineup .lineup__particles {
+  animation: none;
+  filter: none;
+  opacity: 0.22;
+}
+
+.draft-lineup .player-slot {
+  filter: none;
+  transition: transform 0.15s ease;
+  will-change: transform;
+}
+
+.draft-lineup .player-slot:hover {
+  filter: none;
+  transform: translate(-50%, -50%) scale(1.06);
+}
+
+.draft-lineup .lineup-card,
+.draft-lineup .lineup-card:hover,
+.draft-lineup .bench-slot,
+.draft-lineup .bench-slot:hover,
+.draft-lineup .bench-slot__card {
+  filter: none;
+}
+
+.draft-lineup .lineup-card::after,
+.draft-lineup .bench-slot__card::after {
+  filter: none;
+  opacity: 0.48;
+}
+
+.draft-lineup .lineup-card__image,
+.draft-lineup .bench-slot__image {
+  filter: none;
+}
+
 .draft-lineup .draft-slot--filled {
   cursor: grab;
 }
@@ -11,11 +71,18 @@
 }
 
 .draft-lineup .draft-slot--empty:hover .empty-card-img,
-.draft-lineup .bench-slot:has(.bench-slot__empty):hover .bench-slot__empty-img {
-  filter: brightness(1.18) drop-shadow(0 0 12px rgba(192, 132, 252, 0.68));
+.draft-lineup .bench-slot--empty:hover .bench-slot__empty-img {
+  filter: brightness(1.14);
 }
 
 .draft-lineup__actions {
   justify-content: flex-end;
 }
 
+@media (max-width: 640px) {
+  .draft-lineup .lineup-bg-effects::before,
+  .draft-lineup .lineup-bg-effects::after,
+  .draft-lineup .lineup__particles {
+    display: none;
+  }
+}

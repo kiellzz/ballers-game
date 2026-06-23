@@ -63,6 +63,8 @@ async function playBuffer(buffer: AudioBuffer, volume: number) {
 // ─── Cache hover.mp3 ───────────────────────────────────────────────────────
 let hoverBuffer: AudioBuffer | null = null;
 let hoverLoading = false;
+let lastHoverPlayedAt = 0;
+const HOVER_COOLDOWN_MS = 90;
 
 async function getHoverBuffer(): Promise<AudioBuffer | null> {
   if (hoverBuffer) return hoverBuffer;
@@ -83,6 +85,10 @@ async function getHoverBuffer(): Promise<AudioBuffer | null> {
 getHoverBuffer();
 
 export async function playHover(volume = 0.45) {
+  const now = performance.now();
+  if (now - lastHoverPlayedAt < HOVER_COOLDOWN_MS) return;
+  lastHoverPlayedAt = now;
+
   const buffer = await getHoverBuffer();
   if (!buffer) return;
   await playBuffer(buffer, volume);
