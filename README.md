@@ -4,7 +4,7 @@
 
 # ⚽ Ballers • Interactive Football Experience
 
-> ✨ **[NEW] World Cup Event** — Exclusive **World Cup player cards** with themed design now available in packs. Fresh **World Cup-inspired theme** with updated visual style transforms the entire interface experience.
+> **[NEW] Draft Mode** — Build a squad through randomized formation and player picks, then survive a four-round knockout campaign. **World Cup player cards** are also available as special card variants in packs.
 
 <p align="center">
   A browser-based football game combining **squad building**, **dynamic pack opening**, and a **custom-built interactive match engine** where you control every moment.
@@ -39,6 +39,7 @@ npm run dev
 
 ### 🎴 Pack Opening System
 - **Tier-based cards** (Legend, Gold, Silver, Bronze)
+- **Special World Cup cards** available as packable card variants
 - **Weighted probability** algorithms
 - Animated reveals with visual feedback
 
@@ -48,6 +49,16 @@ npm run dev
 - **Random Fill button** to auto-populate the squad respecting positions
 - **Favorites system** for quick player access
 - **Real-time validation** of player positions
+
+### Draft Mode
+- **Three randomized formation choices** at the start of each draft
+- **Position-locked player picks** with four drawn options per empty slot
+- **Weighted player draw logic** that makes top-tier pulls rarer
+- **Full XI + 5-player bench** assembled before entering matches
+- **Four-round knockout campaign**: Round of 16, Quarterfinal, Semifinal, Final
+- **Draft opponents scale by round strength**
+- **Campaign tracking** for match results, MVP, top scorer, and top assister
+- **Draft summary and champion screens** at the end of the campaign
 
 ### ✏️ Custom Player Creation
 - Multi-step modal (Info → Stats → Preview)
@@ -100,6 +111,9 @@ npm run dev
 
 ## 🚀 Recent Updates
 
+* **Draft Mode** - Randomized squad building, locked formations, knockout rounds, campaign awards, and champion flow
+* **Penalty Shootout Flow** - Drawn matches can be decided from the spot with dedicated shootout UI
+* **World Cup Cards** - Special card variants available in packs
 * 📊 **Random Fill Squad Button** - Auto-populate entire squad (pitch + bench) with random players respecting formations
 * 🟥 **Full Disciplinary System** - Two yellows = red, GK protection (max one yellow), sent-off player tracking
 * ⚖️ **Symmetric Foul Logic** - Mirrored situations use identical probabilities
@@ -214,7 +228,7 @@ Live: https://ballers-game.vercel.app/
 - [x] ✏️ Custom Player Creation (crop, overall weights, squad protection)
 - [x] 🔄 Substitution System
 - [x] 📊 Player match stats
-- [ ] 🎮 Draft Mode
+- [x] 🎮 Draft Mode
 
 ---
 
