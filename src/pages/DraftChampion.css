@@ -1,0 +1,141 @@
+.draft-summary--champion {
+  background:
+    linear-gradient(180deg, rgba(7, 5, 14, 0.7), rgba(3, 1, 9, 0.95)),
+    url("/images/welcomebackground.jpg") center / cover no-repeat;
+}
+
+.draft-summary--champion::before {
+  background:
+    radial-gradient(circle at 50% 21%, rgba(250, 204, 21, 0.18), transparent 30%),
+    radial-gradient(circle at 50% 58%, rgba(124, 58, 237, 0.12), transparent 38%),
+    linear-gradient(90deg, rgba(2, 1, 8, 0.46), transparent 28% 72%, rgba(2, 1, 8, 0.46));
+}
+
+.draft-summary--champion .draft-summary__glow {
+  background: rgba(202, 138, 4, 0.12);
+}
+
+.draft-summary--champion .draft-summary__panel {
+  border-color: rgba(252, 211, 77, 0.22);
+  box-shadow:
+    0 32px 90px rgba(0, 0, 0, 0.46),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 0 72px rgba(202, 138, 4, 0.08);
+}
+
+.draft-summary--champion .draft-summary__kicker,
+.draft-summary--champion .draft-summary__matches {
+  color: #fde68a;
+}
+
+.draft-summary--champion .draft-summary__icon-wrap {
+  border-color: rgba(252, 211, 77, 0.42);
+  background: radial-gradient(circle, rgba(250, 204, 21, 0.18), rgba(38, 20, 3, 0.58));
+  box-shadow: 0 0 34px rgba(250, 204, 21, 0.22);
+}
+
+.draft-summary--champion .draft-summary__icon {
+  color: #fcd34d;
+  filter: drop-shadow(0 0 14px rgba(250, 204, 21, 0.48));
+}
+
+.draft-summary--champion .draft-summary__icon-ring,
+.draft-summary--champion .draft-summary__icon-ring::after {
+  border-color: rgba(253, 230, 138, 0.18);
+}
+
+.draft-summary--champion h1 {
+  background: none;
+  color: #fff;
+  text-shadow:
+    0 0 8px rgba(255, 255, 255, 0.95),
+    0 0 22px rgba(255, 255, 255, 0.7),
+    0 0 48px rgba(253, 230, 138, 0.52),
+    0 10px 34px rgba(250, 204, 21, 0.28);
+  filter: drop-shadow(0 0 18px rgba(255, 255, 255, 0.3));
+}
+
+.draft-summary--champion .draft-summary__result strong {
+  color: #fde68a;
+}
+
+.draft-summary--champion .draft-summary__journey-track {
+  background: linear-gradient(
+    90deg,
+    rgba(74, 222, 128, 0.52) 0%,
+    rgba(74, 222, 128, 0.52) 66.666%,
+    rgba(168, 85, 247, 0.72) 66.666%,
+    rgba(168, 85, 247, 0.72) 100%
+  );
+}
+
+.draft-summary--champion .draft-summary__round--completed .draft-summary__round-dot {
+  border-color: rgba(74, 222, 128, 0.62);
+  background: rgba(20, 83, 45, 0.92);
+  color: #bbf7d0;
+  box-shadow: 0 0 16px rgba(34, 197, 94, 0.3);
+}
+
+.draft-summary--champion .draft-summary__round--completed .draft-summary__round-sub {
+  color: #86efac;
+}
+
+.draft-summary--champion .draft-summary__round--final .draft-summary__round-dot {
+  border-color: rgba(216, 180, 254, 0.88);
+  background: radial-gradient(circle, rgba(126, 34, 206, 0.95), rgba(76, 29, 149, 0.95));
+  color: #fff;
+  box-shadow:
+    0 0 18px rgba(168, 85, 247, 0.5),
+    0 0 44px rgba(124, 58, 237, 0.28);
+  animation: draftChampionFinalPulse 1.65s ease-in-out infinite;
+}
+
+.draft-summary--champion .draft-summary__round--final .draft-summary__round-label {
+  color: #ddd6fe;
+}
+
+.draft-summary--champion .draft-summary__round--final .draft-summary__round-sub,
+.draft-summary--champion .draft-summary__round--final .draft-summary__round-score small {
+  color: #c4b5fd;
+}
+
+.draft-summary--champion .draft-summary__round-score {
+  color: #fff;
+  text-shadow: 0 0 12px rgba(253, 230, 138, 0.38);
+}
+
+.draft-summary--champion .draft-summary__section-heading div {
+  background: linear-gradient(90deg, rgba(252, 211, 77, 0.28), transparent);
+}
+
+.draft-champion__continue {
+  border-color: rgba(253, 230, 138, 0.44);
+  background: linear-gradient(135deg, #ca8a04, #7c3aed);
+  box-shadow: 0 12px 32px rgba(161, 98, 7, 0.28);
+}
+
+.draft-champion__continue:hover {
+  box-shadow: 0 16px 40px rgba(202, 138, 4, 0.36);
+}
+
+@keyframes draftChampionFinalPulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow:
+      0 0 18px rgba(168, 85, 247, 0.45),
+      0 0 44px rgba(124, 58, 237, 0.24);
+  }
+
+  50% {
+    transform: scale(1.08);
+    box-shadow:
+      0 0 26px rgba(216, 180, 254, 0.72),
+      0 0 62px rgba(168, 85, 247, 0.38);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .draft-summary--champion .draft-summary__round--final .draft-summary__round-dot {
+    animation: none;
+  }
+}

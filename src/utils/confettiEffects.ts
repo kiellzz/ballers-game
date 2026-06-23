@@ -152,3 +152,99 @@ export function triggerGoalConfetti() {
     });
   }, 120);
 }
+
+export function triggerDraftChampionConfetti() {
+  if (typeof document === "undefined") return;
+
+  const duration = 2800;
+  const end = Date.now() + duration;
+  const canvas = document.createElement("canvas");
+
+  canvas.style.position = "fixed";
+  canvas.style.inset = "0";
+  canvas.style.width = "100vw";
+  canvas.style.height = "100vh";
+  canvas.style.pointerEvents = "none";
+  canvas.style.zIndex = "10070";
+
+  document.body.appendChild(canvas);
+
+  const championConfetti = confetti.create(canvas, {
+    resize: true,
+    useWorker: true,
+  });
+
+  const colors = ["#22c55e", "#86efac", "#7c3aed", "#a855f7", "#d8b4fe", "#facc15", "#ffffff"];
+
+  function removeCanvas() {
+    setTimeout(() => {
+      canvas.remove();
+    }, 2600);
+  }
+
+  (function frame() {
+    championConfetti({
+      particleCount: 5,
+      angle: 58,
+      spread: 70,
+      origin: { x: 0, y: 0.62 },
+      colors,
+      ticks: 120,
+      gravity: 0.82,
+      decay: 0.91,
+      startVelocity: 40,
+      scalar: 1.05,
+      disableForReducedMotion: true,
+    });
+
+    championConfetti({
+      particleCount: 5,
+      angle: 122,
+      spread: 70,
+      origin: { x: 1, y: 0.62 },
+      colors,
+      ticks: 120,
+      gravity: 0.82,
+      decay: 0.91,
+      startVelocity: 40,
+      scalar: 1.05,
+      disableForReducedMotion: true,
+    });
+
+    if (Date.now() < end) {
+      requestAnimationFrame(frame);
+    } else {
+      removeCanvas();
+    }
+  })();
+
+  setTimeout(() => {
+    championConfetti({
+      particleCount: 120,
+      spread: 115,
+      origin: { x: 0.5, y: 0.42 },
+      colors,
+      ticks: 155,
+      gravity: 0.72,
+      decay: 0.9,
+      startVelocity: 48,
+      scalar: 1.18,
+      disableForReducedMotion: true,
+    });
+  }, 140);
+
+  setTimeout(() => {
+    championConfetti({
+      particleCount: 70,
+      spread: 80,
+      origin: { x: 0.5, y: 0.18 },
+      colors: ["#a855f7", "#d8b4fe", "#facc15", "#ffffff"],
+      ticks: 140,
+      gravity: 0.65,
+      decay: 0.9,
+      startVelocity: 34,
+      scalar: 0.9,
+      disableForReducedMotion: true,
+    });
+  }, 520);
+}

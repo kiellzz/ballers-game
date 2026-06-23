@@ -214,10 +214,10 @@ function pickDefendingSupport(params: {
   }
 }
 
-function pickBestPenaltyTaker(
+export function pickBestPenaltyTaker(
   team: MatchTeam,
   unavailablePlayerIds: Set<number>,
-  random: () => number
+  random: () => number = Math.random
 ): OutfieldPlayer {
   const players = getOutfieldPlayers(team, unavailablePlayerIds);
 

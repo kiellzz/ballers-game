@@ -1,10 +1,10 @@
 import { useCallback, useDeferredValue, useMemo, useState } from "react";
+import { ArrowLeft } from "lucide-react";
 import Header from "../components/home/Header";
 import PlayerGrid from "../components/home/PlayerGrid";
 import FeatureButton from "../components/feature-button/FeatureButton";
 import FilterModal from "../components/filter-modal/FilterModal";
 import PlayerCardModal from "../components/player-card/PlayerCardModal";
-import ComingSoon from "../components/home/ComingSoon";
 import CreatePlayerModal from "../components/home/CreatePlayerModal";
 import { playersData } from "../data/PlayersData";
 import { getCardTier } from "../utils/getCardTier";
@@ -22,6 +22,10 @@ const PAGE_SIZE = 15;
 const WORLD_CUP_THEME_CLASS = "theme-world-cup";
 const RESERVED_PLAYER_NAMES = playersData.map((player) => player.name);
 const normalizedPlayerNames = new WeakMap<Player, string>();
+
+type HomeProps = {
+  onReturnToWelcome?: () => void;
+};
 
 function getNormalizedPlayerName(player: Player): string {
   const cachedName = normalizedPlayerNames.get(player);
@@ -45,13 +49,12 @@ function hasActiveHomeFilters(filters: FilterState, search: string): boolean {
   );
 }
 
-export default function Home() {
+export default function Home({ onReturnToWelcome }: HomeProps) {
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [search, setSearch] = useState("");
   const [filters, setFilters] = useState<FilterState>(defaultFilters);
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
-  const [isComingSoonOpen, setIsComingSoonOpen] = useState(false);
   const [isCreatePlayerOpen, setIsCreatePlayerOpen] = useState(false);
 
   const { favorites, toggleFavorite } = useFavorites();
@@ -69,7 +72,7 @@ export default function Home() {
     const selectedNationalities = new Set(filters.nationalities);
     const selectedTiers = new Set(filters.tiers);
     const shouldPrioritizeWorldCupCards =
-      activeThemeClass === WORLD_CUP_THEME_CLASS &&
+      String(activeThemeClass) === WORLD_CUP_THEME_CLASS &&
       !hasActiveHomeFilters(filters, deferredSearch);
 
     const result = allPlayers.filter(player => {
@@ -170,8 +173,6 @@ export default function Home() {
   const handleCloseFilters = useCallback(() => setIsFilterModalOpen(false), []);
   const handleOpenCreatePlayer = useCallback(() => setIsCreatePlayerOpen(true), []);
   const handleCloseCreatePlayer = useCallback(() => setIsCreatePlayerOpen(false), []);
-  const handleOpenComingSoon = useCallback(() => setIsComingSoonOpen(true), []);
-  const handleCloseComingSoon = useCallback(() => setIsComingSoonOpen(false), []);
 
   const handleSaveCustomPlayer = useCallback(
     (player: Player) => {
@@ -190,6 +191,17 @@ export default function Home() {
       <div className="home__overlay" />
 
       <div className="home__container">
+        {onReturnToWelcome ? (
+          <button
+            className="home__return-btn"
+            type="button"
+            onClick={onReturnToWelcome}
+          >
+            <ArrowLeft size={18} strokeWidth={2.5} aria-hidden="true" />
+            <span>RETURN</span>
+          </button>
+        ) : null}
+
         <img
           src="/images/headerart.png"
           alt=""
@@ -228,10 +240,6 @@ export default function Home() {
                 variant="less"
               />
             )}
-            <FeatureButton
-              label="DRAFT MODE"
-              onClick={handleOpenComingSoon}
-            />
           </div>
         </div>
       </div>
@@ -251,10 +259,6 @@ export default function Home() {
           onRemove={handleRemovePlayer}
           onToggleFavorite={handleToggleSelectedFavorite}
         />
-      )}
-
-      {isComingSoonOpen && (
-        <ComingSoon onClose={handleCloseComingSoon} />
       )}
 
       {isCreatePlayerOpen && (

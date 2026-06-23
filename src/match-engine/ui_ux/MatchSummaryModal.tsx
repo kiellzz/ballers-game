@@ -24,6 +24,8 @@ interface MatchSummaryModalProps {
   onOpen?: () => void;
   userScore: number;
   opponentScore: number;
+  decidedResult?: MatchResult;
+  penaltyShootoutScore?: { user: number; opponent: number };
   opponentName: string;
   playerMatchStats: PlayerMatchStats;
   userPlayers: Player[];
@@ -32,6 +34,7 @@ interface MatchSummaryModalProps {
   // ── posições dos slots (mesmas que o MatchLineup recebe) ──
   userPositions: string[];
   opponentPositions: string[];
+  onContinue?: (result: MatchResult) => void;
 }
 
 export type MatchResult = "win" | "draw" | "loss";
@@ -295,6 +298,8 @@ export default function MatchSummaryModal({
   onOpen,
   userScore,
   opponentScore,
+  decidedResult,
+  penaltyShootoutScore,
   opponentName,
   playerMatchStats,
   userPlayers,
@@ -302,10 +307,16 @@ export default function MatchSummaryModal({
   history,
   userPositions,
   opponentPositions,
+  onContinue,
 }: MatchSummaryModalProps) {
   const navigate = useNavigate();
-  const result = getResult(userScore, opponentScore);
+  const result = decidedResult ?? getResult(userScore, opponentScore);
   const config = getResultConfig(result);
+  const subtitle = penaltyShootoutScore
+    ? result === "win"
+      ? `Won ${penaltyShootoutScore.user}–${penaltyShootoutScore.opponent} on penalties.`
+      : `Lost ${penaltyShootoutScore.user}–${penaltyShootoutScore.opponent} on penalties.`
+    : config.subtitle;
 
   const userEvents = useMemo(() => buildSummaryEntries("user", history), [history]);
   const opponentEvents = useMemo(
@@ -350,7 +361,7 @@ export default function MatchSummaryModal({
       size="default"
       eyebrow="FULL TIME"
       title={config.label}
-      subtitle={config.subtitle}
+      subtitle={subtitle}
       className={`summary-modal ${config.className}`}
       headerContent={
         <div className="summary-header-content">
@@ -366,6 +377,11 @@ export default function MatchSummaryModal({
               <span className="summary-score-sep">–</span>
               <span className="summary-score-digit">{opponentScore}</span>
             </div>
+            {penaltyShootoutScore ? (
+              <div className="summary-penalty-score">
+                Penalties {penaltyShootoutScore.user}–{penaltyShootoutScore.opponent}
+              </div>
+            ) : null}
             <div className="summary-team-label summary-team-label--opp">
               {opponentName}
             </div>
@@ -401,7 +417,7 @@ export default function MatchSummaryModal({
         <button
           type="button"
           className={`summary-btn-return ${config.badgeClass}`}
-          onClick={() => navigate("/PreMatch")}
+          onClick={() => onContinue ? onContinue(result) : navigate("/PreMatch")}
           autoFocus
         >
           Continue

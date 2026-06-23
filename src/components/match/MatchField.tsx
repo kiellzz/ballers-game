@@ -19,6 +19,7 @@ interface MatchFieldProps {
   opponentGK: Player | null;
   options?: readonly ActionType[];
   onAction: (action: ActionType) => void;
+  actionsLocked?: boolean;
   phase: MatchFieldPhase;
   isUserAttacking?: boolean;
   zone: Zone | null;
@@ -89,6 +90,7 @@ export const MatchField = ({
   opponentGK,
   options = [],
   onAction,
+  actionsLocked = false,
   phase,
   isUserAttacking = true,
   zone,
@@ -243,7 +245,7 @@ export const MatchField = ({
             <MatchOption
               key={action}
               label={getActionDefinition(action).label}
-              disabled={false}
+              disabled={actionsLocked}
               onClick={() => onAction(action)}
             />
           ))

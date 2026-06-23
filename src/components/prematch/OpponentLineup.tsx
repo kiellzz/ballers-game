@@ -8,6 +8,8 @@ interface OpponentLineupProps {
   opponent: OpponentTeam;
   onStart: () => void;
   onClose: () => void;
+  tag?: string;
+  startLabel?: string;
 }
 
 type PosGroup = 'gk' | 'def' | 'mid' | 'att';
@@ -23,6 +25,8 @@ export const OpponentLineup: React.FC<OpponentLineupProps> = memo(({
   opponent,
   onStart,
   onClose,
+  tag = 'Opponent Found',
+  startLabel = 'Start Match',
 }) => {
   const averageOvr = Math.round(
     opponent.players.reduce((acc, p) => acc + p.overall, 0) / opponent.players.length
@@ -37,7 +41,7 @@ export const OpponentLineup: React.FC<OpponentLineupProps> = memo(({
           <button className="opp-modal__close" onClick={onClose} aria-label="Fechar">
             ✕
           </button>
-          <span className="opp-modal__tag">Opponent Found</span>
+          <span className="opp-modal__tag">{tag}</span>
           <h2 className="opp-modal__name">{opponent.name}</h2>
           <div className="opp-modal__stats">
             <div className="opp-stat-badge">
@@ -116,7 +120,7 @@ export const OpponentLineup: React.FC<OpponentLineupProps> = memo(({
               onStart();
             }}
           >
-            Start Match
+            {startLabel}
           </button>
         </div>
       </div>

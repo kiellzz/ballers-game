@@ -8,7 +8,7 @@ import ToastContainer from '../components/toast/ToastContainer';
 import Bench from '../components/lineup/Bench';
 import FeatureButton from '../components/feature-button/FeatureButton';
 import { useToast } from '../hooks/useToast';
-import { useDragDrop } from '../hooks/useDragDrop';
+import { useDragDrop, type DragSource, type DropTarget } from '../hooks/useDragDrop';
 import { useSquad } from '../hooks/useSquad';
 import { useCustomPlayers } from '../hooks/useCustomPlayers';
 import { playersData } from '../data/PlayersData';
@@ -83,7 +83,16 @@ export default function Lineup() {
   const [filters, setFilters] = useState<FilterState>(INITIAL_FILTERS);
 
   const { toasts, addToast, removeToast } = useToast();
-  const { dragSource, onDragStart, onDragEnd } = useDragDrop();
+  const {
+    dragSource,
+    onDragStart,
+    onDragEnd,
+    onTouchDragStart,
+    onTouchDragMove,
+    onTouchDragEnd,
+    onTouchDragCancel,
+    shouldSuppressClick,
+  } = useDragDrop();
   const { customPlayers } = useCustomPlayers();
 
   const { isTeamComplete, saveProgress, saveAndPlay } = useSquad(pitchPlayers, benchPlayers);
@@ -204,12 +213,13 @@ export default function Lineup() {
     addToast("Random Fill", "__randomfill__", "success");
   };
 
-  const handleDropToPitch = (targetPitchIndex: number) => {
-    if (!dragSource) return;
+  const handleDropToPitch = (targetPitchIndex: number, sourceOverride?: DragSource) => {
+    const source = sourceOverride ?? dragSource;
+    if (!source) return;
     const targetPos = slotPositions[targetPitchIndex];
     const newPitch = [...pitchPlayers];
     const newBench = [...benchPlayers];
-    const draggedPlayer = dragSource.zone === 'pitch' ? newPitch[dragSource.index] : newBench[dragSource.index];
+    const draggedPlayer = source.zone === 'pitch' ? newPitch[source.index] : newBench[source.index];
 
     if (!draggedPlayer) { onDragEnd(); return; }
     if (!canPlayerPlayInPosition(draggedPlayer, targetPos)) {
@@ -217,8 +227,8 @@ export default function Lineup() {
       onDragEnd();
       return;
     }
-    if (dragSource.zone === 'pitch') {
-      const srcIndex = dragSource.index;
+    if (source.zone === 'pitch') {
+      const srcIndex = source.index;
       if (srcIndex === targetPitchIndex) { onDragEnd(); return; }
       const targetPlayer = newPitch[targetPitchIndex];
       if (targetPlayer && !canPlayerPlayInPosition(targetPlayer, slotPositions[srcIndex])) {
@@ -230,31 +240,32 @@ export default function Lineup() {
       newPitch[srcIndex] = targetPlayer;
     } else {
       newPitch[targetPitchIndex] = draggedPlayer;
-      newBench[dragSource.index] = pitchPlayers[targetPitchIndex];
+      newBench[source.index] = pitchPlayers[targetPitchIndex];
     }
     setPitchPlayers(newPitch);
     setBenchPlayers(newBench);
     onDragEnd();
   };
 
-  const handleDropToBench = (targetBenchIndex: number) => {
-    if (!dragSource) return;
+  const handleDropToBench = (targetBenchIndex: number, sourceOverride?: DragSource) => {
+    const source = sourceOverride ?? dragSource;
+    if (!source) return;
     const newPitch = [...pitchPlayers];
     const newBench = [...benchPlayers];
-    const draggedPlayer = dragSource.zone === 'pitch' ? newPitch[dragSource.index] : newBench[dragSource.index];
+    const draggedPlayer = source.zone === 'pitch' ? newPitch[source.index] : newBench[source.index];
     if (!draggedPlayer) { onDragEnd(); return; }
 
-    if (dragSource.zone === 'pitch') {
+    if (source.zone === 'pitch') {
       const targetBenchPlayer = newBench[targetBenchIndex];
-      if (targetBenchPlayer && !canPlayerPlayInPosition(targetBenchPlayer, slotPositions[dragSource.index])) {
-        addToast(targetBenchPlayer.name, slotPositions[dragSource.index]);
+      if (targetBenchPlayer && !canPlayerPlayInPosition(targetBenchPlayer, slotPositions[source.index])) {
+        addToast(targetBenchPlayer.name, slotPositions[source.index]);
         onDragEnd();
         return;
       }
       newBench[targetBenchIndex] = draggedPlayer;
-      newPitch[dragSource.index] = targetBenchPlayer;
+      newPitch[source.index] = targetBenchPlayer;
     } else {
-      const srcIndex = dragSource.index;
+      const srcIndex = source.index;
       if (srcIndex === targetBenchIndex) { onDragEnd(); return; }
       const targetBenchPlayer = newBench[targetBenchIndex];
       newBench[srcIndex] = targetBenchPlayer;
@@ -263,6 +274,15 @@ export default function Lineup() {
     setPitchPlayers(newPitch);
     setBenchPlayers(newBench);
     onDragEnd();
+  };
+
+  const handleTouchDrop = (target: DropTarget, source: DragSource) => {
+    if (target.zone === 'pitch') {
+      handleDropToPitch(target.index, source);
+      return;
+    }
+
+    handleDropToBench(target.index, source);
   };
 
   const handleFormationChange = (newFormation: FormationKey) => {
@@ -379,20 +399,31 @@ export default function Lineup() {
           <div
             key={`pitch-slot-${index}`}
             className={`player-slot ${dragSource ? 'player-slot--droppable' : ''}`}
+            data-lineup-drop-zone="pitch"
+            data-lineup-drop-index={index}
             style={{
               bottom: slotLayout[index].bottom,
               left: slotLayout[index].left,
             }}
             onDragOver={e => e.preventDefault()}
             onDrop={(e) => { e.preventDefault(); handleDropToPitch(index); }}
-            onClick={() => !dragSource && handlePitchSlotClick(index)}
+            onClick={() => {
+              if (shouldSuppressClick()) return;
+              if (!dragSource) handlePitchSlotClick(index);
+            }}
           >
             <div
               draggable={!!player}
               onDragStart={(e) => { if (player) onDragStart({ zone: 'pitch', index }); else e.preventDefault(); }}
               onDragEnd={onDragEnd}
+              onTouchStart={(event) => {
+                if (player) onTouchDragStart({ zone: 'pitch', index }, event);
+              }}
+              onTouchMove={onTouchDragMove}
+              onTouchEnd={(event) => onTouchDragEnd(event, handleTouchDrop)}
+              onTouchCancel={onTouchDragCancel}
               className="draggable-wrapper"
-              style={{ width: '100%', height: '100%' }}
+              style={{ width: '100%', height: '100%', touchAction: player ? 'none' : 'manipulation' }}
             >
               {player ? (
                 <LineupCard 
@@ -416,8 +447,16 @@ export default function Lineup() {
         dragSource={dragSource}
         onDragStart={onDragStart}
         onDragEnd={onDragEnd}
+        onTouchDragStart={onTouchDragStart}
+        onTouchDragMove={onTouchDragMove}
+        onTouchDragEnd={onTouchDragEnd}
+        onTouchDragCancel={onTouchDragCancel}
+        onTouchDrop={handleTouchDrop}
         onDropToBench={handleDropToBench}
-        onBenchSlotClick={handleBenchSlotClick}
+        onBenchSlotClick={(index) => {
+          if (shouldSuppressClick()) return;
+          if (!dragSource) handleBenchSlotClick(index);
+        }}
         onRemoveBenchPlayer={handleRemoveBenchPlayer}
       />
 
