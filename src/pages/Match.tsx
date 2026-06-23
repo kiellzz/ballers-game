@@ -68,7 +68,10 @@ import { matchSound } from "../match-engine/sounds/matchSound";
 import "./Match.css";
 import { MatchMapTip } from "../components/match/MatchMapTip";
 import {
+  DRAFT_MATCH_RELOAD_PENDING_KEY,
+  DRAFT_MATCH_RELOAD_WARNING_MESSAGE,
   loadDraftProgress,
+  resetDraftProgress,
   saveDraftProgress,
 } from "../features/draft/draftUtils";
 import {
@@ -128,6 +131,8 @@ interface EventLogBuildContext {
   userAssignedPositions: Map<string, string>;
   userPlayers: Player[];
 }
+
+const MATCH_ACTION_COOLDOWN_MS = 300;
 
 const historyEventLogCache = new WeakMap<
   MatchHistoryEntry,
@@ -328,6 +333,112 @@ export default function Match({ isMuted, onMatchFinished, onReturnToModeSelect }
   const userSquad = routeState?.userSquad ?? null;
   const opponent = routeState?.opponent ?? null;
   const isDraftMatch = routeState?.gameMode === "draft";
+  const allowDraftMatchUnloadRef = useRef(false);
+  const draftReloadMarkerTimeoutRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (!isDraftMatch) return;
+
+    const returnToModeSelectIfDraftWasReset = () => {
+      if (loadDraftProgress()) return;
+
+      allowDraftMatchUnloadRef.current = true;
+      resetDraftProgress();
+
+      if (onReturnToModeSelect) {
+        onReturnToModeSelect();
+        return;
+      }
+
+      navigate("/", { replace: true });
+    };
+
+    returnToModeSelectIfDraftWasReset();
+    window.addEventListener("pageshow", returnToModeSelectIfDraftWasReset);
+
+    return () => {
+      window.removeEventListener("pageshow", returnToModeSelectIfDraftWasReset);
+    };
+  }, [isDraftMatch, navigate, onReturnToModeSelect]);
+
+  useEffect(() => {
+    if (!isDraftMatch) return;
+
+    const clearDraftReloadMarker = () => {
+      try {
+        sessionStorage.removeItem(DRAFT_MATCH_RELOAD_PENDING_KEY);
+      } catch {
+        // sessionStorage can be blocked by browser privacy settings.
+      }
+
+      draftReloadMarkerTimeoutRef.current = null;
+    };
+
+    const markDraftReloadPending = () => {
+      try {
+        sessionStorage.setItem(DRAFT_MATCH_RELOAD_PENDING_KEY, "1");
+      } catch {
+        // The keyboard shortcut path still resets immediately before reload.
+      }
+
+      if (draftReloadMarkerTimeoutRef.current !== null) {
+        window.clearTimeout(draftReloadMarkerTimeoutRef.current);
+      }
+
+      draftReloadMarkerTimeoutRef.current = window.setTimeout(
+        clearDraftReloadMarker,
+        1000
+      );
+    };
+
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      if (allowDraftMatchUnloadRef.current) return;
+
+      markDraftReloadPending();
+      event.preventDefault();
+      event.returnValue = DRAFT_MATCH_RELOAD_WARNING_MESSAGE;
+
+      return DRAFT_MATCH_RELOAD_WARNING_MESSAGE;
+    };
+
+    const handleReloadShortcut = (event: KeyboardEvent) => {
+      const isReloadShortcut =
+        event.key === "F5" ||
+        ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "r");
+
+      if (!isReloadShortcut) return;
+
+      event.preventDefault();
+
+      if (!window.confirm(DRAFT_MATCH_RELOAD_WARNING_MESSAGE)) {
+        return;
+      }
+
+      allowDraftMatchUnloadRef.current = true;
+
+      if (draftReloadMarkerTimeoutRef.current !== null) {
+        window.clearTimeout(draftReloadMarkerTimeoutRef.current);
+        draftReloadMarkerTimeoutRef.current = null;
+      }
+
+      try {
+        sessionStorage.removeItem(DRAFT_MATCH_RELOAD_PENDING_KEY);
+      } catch {
+        // no-op
+      }
+
+      resetDraftProgress();
+      window.location.reload();
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    window.addEventListener("keydown", handleReloadShortcut);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      window.removeEventListener("keydown", handleReloadShortcut);
+    };
+  }, [isDraftMatch]);
 
   const allUserPlayers = useMemo(
     () =>
@@ -377,6 +488,34 @@ export default function Match({ isMuted, onMatchFinished, onReturnToModeSelect }
       bench: [],
     },
   });
+
+  const actionCooldownTimeoutRef = useRef<number | null>(null);
+  const [areActionButtonsLocked, setAreActionButtonsLocked] = useState(false);
+
+  useEffect(() => {
+    return () => {
+      if (actionCooldownTimeoutRef.current !== null) {
+        window.clearTimeout(actionCooldownTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const handleMatchAction = useCallback(
+    (action: ActionType) => {
+      if (actionCooldownTimeoutRef.current !== null) {
+        return;
+      }
+
+      setAreActionButtonsLocked(true);
+      actionCooldownTimeoutRef.current = window.setTimeout(() => {
+        actionCooldownTimeoutRef.current = null;
+        setAreActionButtonsLocked(false);
+      }, MATCH_ACTION_COOLDOWN_MS);
+
+      chooseAction(action);
+    },
+    [chooseAction]
+  );
 
   const activeUserPlayers = useMemo(
     () =>
@@ -852,6 +991,40 @@ export default function Match({ isMuted, onMatchFinished, onReturnToModeSelect }
     [allUserPlayers, userMatchParticipants]
   );
 
+  const summaryOpponentParticipants = useMemo(() => {
+    const seenPlayerIds = new Set<number>();
+    const participants = [
+      ...displayedOpponentStarters,
+      ...matchState.substitutionState.completedOpponentSubstitutions.flatMap(
+        ({ outPlayer, inPlayer }) => [outPlayer, inPlayer]
+      ),
+    ];
+
+    return participants.flatMap((player) => {
+      if (seenPlayerIds.has(player.id)) {
+        return [];
+      }
+
+      seenPlayerIds.add(player.id);
+
+      const resolvedPlayer = findPlayerById(allOpponentPlayers, player.id);
+      if (!resolvedPlayer) {
+        return [];
+      }
+
+      return [
+        {
+          player: resolvedPlayer,
+          position: player.lineupPosition ?? player.position,
+        },
+      ];
+    });
+  }, [
+    allOpponentPlayers,
+    displayedOpponentStarters,
+    matchState.substitutionState.completedOpponentSubstitutions,
+  ]);
+
   const matchMvp = useMemo(() => {
     if (!matchState.isFinished && !isShootoutTestMode) {
       return null;
@@ -859,10 +1032,10 @@ export default function Match({ isMuted, onMatchFinished, onReturnToModeSelect }
 
     const playersWithRatings = buildPlayersWithRatings(
       summaryUserParticipants.map(({ player }) => player),
-      allOpponentPlayers,
+      summaryOpponentParticipants.map(({ player }) => player),
       matchState.playerMatchStats,
       summaryUserParticipants.map(({ position }) => position),
-      oppPositions
+      summaryOpponentParticipants.map(({ position }) => position)
     );
 
     return getMatchMVP(
@@ -870,14 +1043,13 @@ export default function Match({ isMuted, onMatchFinished, onReturnToModeSelect }
       decidedShootoutResult ?? getResult(score.user, score.opponent)
     );
   }, [
-    allOpponentPlayers,
     decidedShootoutResult,
     isShootoutTestMode,
     matchState.isFinished,
     matchState.playerMatchStats,
-    oppPositions,
     score.opponent,
     score.user,
+    summaryOpponentParticipants,
     summaryUserParticipants,
   ]);
 
@@ -1001,6 +1173,16 @@ export default function Match({ isMuted, onMatchFinished, onReturnToModeSelect }
   const summaryUserPositions = useMemo(
     () => summaryUserParticipants.map(({ position }) => position),
     [summaryUserParticipants]
+  );
+
+  const summaryOpponentPlayers = useMemo(
+    () => summaryOpponentParticipants.map(({ player }) => player),
+    [summaryOpponentParticipants]
+  );
+
+  const summaryOpponentPositions = useMemo(
+    () => summaryOpponentParticipants.map(({ position }) => position),
+    [summaryOpponentParticipants]
   );
 
   const handleSummaryContinue = (result: MatchResult) => {
@@ -1686,7 +1868,8 @@ export default function Match({ isMuted, onMatchFinished, onReturnToModeSelect }
           userGK={userGK}
           opponentGK={opponentGK}
           options={interactiveSetPiece ? [] : availableActions}
-          onAction={chooseAction}
+          onAction={handleMatchAction}
+          actionsLocked={areActionButtonsLocked}
           phase={phase}
           isUserAttacking={isUserAttacking}
           zone={displayZone}
@@ -1908,11 +2091,11 @@ export default function Match({ isMuted, onMatchFinished, onReturnToModeSelect }
           opponentName={opponent.name}
           playerMatchStats={matchState.playerMatchStats}
           userPlayers={summaryUserPlayers}
-          opponentPlayers={allOpponentPlayers}
+          opponentPlayers={summaryOpponentPlayers}
           history={history}
           onOpen={() => onMatchFinished?.()}
           userPositions={summaryUserPositions}
-          opponentPositions={oppPositions}
+          opponentPositions={summaryOpponentPositions}
           onContinue={handleSummaryContinue}
         />
       ) : null}

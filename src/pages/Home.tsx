@@ -1,4 +1,5 @@
 import { useCallback, useDeferredValue, useMemo, useState } from "react";
+import { ArrowLeft } from "lucide-react";
 import Header from "../components/home/Header";
 import PlayerGrid from "../components/home/PlayerGrid";
 import FeatureButton from "../components/feature-button/FeatureButton";
@@ -22,6 +23,10 @@ const WORLD_CUP_THEME_CLASS = "theme-world-cup";
 const RESERVED_PLAYER_NAMES = playersData.map((player) => player.name);
 const normalizedPlayerNames = new WeakMap<Player, string>();
 
+type HomeProps = {
+  onReturnToWelcome?: () => void;
+};
+
 function getNormalizedPlayerName(player: Player): string {
   const cachedName = normalizedPlayerNames.get(player);
   if (cachedName) return cachedName;
@@ -44,7 +49,7 @@ function hasActiveHomeFilters(filters: FilterState, search: string): boolean {
   );
 }
 
-export default function Home() {
+export default function Home({ onReturnToWelcome }: HomeProps) {
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [search, setSearch] = useState("");
   const [filters, setFilters] = useState<FilterState>(defaultFilters);
@@ -186,6 +191,17 @@ export default function Home() {
       <div className="home__overlay" />
 
       <div className="home__container">
+        {onReturnToWelcome ? (
+          <button
+            className="home__return-btn"
+            type="button"
+            onClick={onReturnToWelcome}
+          >
+            <ArrowLeft size={18} strokeWidth={2.5} aria-hidden="true" />
+            <span>RETURN</span>
+          </button>
+        ) : null}
+
         <img
           src="/images/headerart.png"
           alt=""

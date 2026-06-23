@@ -18,7 +18,7 @@ import {
   saveDraftProgress,
 } from "../features/draft/draftUtils";
 import type { DraftProgress } from "../features/draft/draftUtils";
-import { useDragDrop } from "../hooks/useDragDrop";
+import { useDragDrop, type DragSource, type DropTarget } from "../hooks/useDragDrop";
 import { useToast } from "../hooks/useToast";
 import { playersData } from "../data/PlayersData";
 import { FORMATIONS } from "../utils/formations";
@@ -64,7 +64,16 @@ export default function DraftLineup({ onReturnToModeSelect }: DraftLineupProps) 
   const navigate = useNavigate();
   const [draft, setDraft] = useState<DraftProgress>(loadInitialDraft);
   const [inspectedPlayer, setInspectedPlayer] = useState<Player | null>(null);
-  const { dragSource, onDragStart, onDragEnd } = useDragDrop();
+  const {
+    dragSource,
+    onDragStart,
+    onDragEnd,
+    onTouchDragStart,
+    onTouchDragMove,
+    onTouchDragEnd,
+    onTouchDragCancel,
+    shouldSuppressClick,
+  } = useDragDrop();
   const { toasts, addToast, removeToast } = useToast();
 
   const formation = draft.formation ? FORMATIONS[draft.formation] : null;
@@ -191,13 +200,14 @@ export default function DraftLineup({ onReturnToModeSelect }: DraftLineupProps) 
     });
   };
 
-  const handleDropToPitch = (targetPitchIndex: number) => {
-    if (!dragSource || !formation) return;
+  const handleDropToPitch = (targetPitchIndex: number, sourceOverride?: DragSource) => {
+    const source = sourceOverride ?? dragSource;
+    if (!source || !formation) return;
     const newPitch = [...draft.pitchPlayerIds];
     const newBench = [...draft.benchPlayerIds];
-    const draggedId = dragSource.zone === "pitch"
-      ? newPitch[dragSource.index]
-      : newBench[dragSource.index];
+    const draggedId = source.zone === "pitch"
+      ? newPitch[source.index]
+      : newBench[source.index];
     const draggedPlayer = resolvePlayer(draggedId);
 
     if (!draggedPlayer) {
@@ -211,25 +221,25 @@ export default function DraftLineup({ onReturnToModeSelect }: DraftLineupProps) 
       return;
     }
 
-    if (dragSource.zone === "pitch") {
-      if (dragSource.index === targetPitchIndex) {
+    if (source.zone === "pitch") {
+      if (source.index === targetPitchIndex) {
         onDragEnd();
         return;
       }
 
       const targetId = newPitch[targetPitchIndex];
       const targetPlayer = resolvePlayer(targetId);
-      if (targetPlayer && !canPlayerPlayInPosition(targetPlayer, slotPositions[dragSource.index])) {
-        addToast(targetPlayer.name, slotPositions[dragSource.index]);
+      if (targetPlayer && !canPlayerPlayInPosition(targetPlayer, slotPositions[source.index])) {
+        addToast(targetPlayer.name, slotPositions[source.index]);
         onDragEnd();
         return;
       }
 
       newPitch[targetPitchIndex] = draggedId;
-      newPitch[dragSource.index] = targetId;
+      newPitch[source.index] = targetId;
     } else {
       newPitch[targetPitchIndex] = draggedId;
-      newBench[dragSource.index] = draft.pitchPlayerIds[targetPitchIndex];
+      newBench[source.index] = draft.pitchPlayerIds[targetPitchIndex];
     }
 
     setDraft((current) => ({
@@ -240,13 +250,14 @@ export default function DraftLineup({ onReturnToModeSelect }: DraftLineupProps) 
     onDragEnd();
   };
 
-  const handleDropToBench = (targetBenchIndex: number) => {
-    if (!dragSource || !formation) return;
+  const handleDropToBench = (targetBenchIndex: number, sourceOverride?: DragSource) => {
+    const source = sourceOverride ?? dragSource;
+    if (!source || !formation) return;
     const newPitch = [...draft.pitchPlayerIds];
     const newBench = [...draft.benchPlayerIds];
-    const draggedId = dragSource.zone === "pitch"
-      ? newPitch[dragSource.index]
-      : newBench[dragSource.index];
+    const draggedId = source.zone === "pitch"
+      ? newPitch[source.index]
+      : newBench[source.index];
     const draggedPlayer = resolvePlayer(draggedId);
 
     if (!draggedPlayer) {
@@ -254,26 +265,26 @@ export default function DraftLineup({ onReturnToModeSelect }: DraftLineupProps) 
       return;
     }
 
-    if (dragSource.zone === "pitch") {
+    if (source.zone === "pitch") {
       const targetId = newBench[targetBenchIndex];
       const targetPlayer = resolvePlayer(targetId);
-      if (targetPlayer && !canPlayerPlayInPosition(targetPlayer, slotPositions[dragSource.index])) {
-        addToast(targetPlayer.name, slotPositions[dragSource.index]);
+      if (targetPlayer && !canPlayerPlayInPosition(targetPlayer, slotPositions[source.index])) {
+        addToast(targetPlayer.name, slotPositions[source.index]);
         onDragEnd();
         return;
       }
 
       newBench[targetBenchIndex] = draggedId;
-      newPitch[dragSource.index] = targetId;
+      newPitch[source.index] = targetId;
     } else {
-      if (dragSource.index === targetBenchIndex) {
+      if (source.index === targetBenchIndex) {
         onDragEnd();
         return;
       }
 
       const targetId = newBench[targetBenchIndex];
       newBench[targetBenchIndex] = draggedId;
-      newBench[dragSource.index] = targetId;
+      newBench[source.index] = targetId;
     }
 
     setDraft((current) => ({
@@ -282,6 +293,15 @@ export default function DraftLineup({ onReturnToModeSelect }: DraftLineupProps) 
       benchPlayerIds: newBench,
     }));
     onDragEnd();
+  };
+
+  const handleTouchDrop = (target: DropTarget, source: DragSource) => {
+    if (target.zone === "pitch") {
+      handleDropToPitch(target.index, source);
+      return;
+    }
+
+    handleDropToBench(target.index, source);
   };
 
   const handleReady = () => {
@@ -334,6 +354,8 @@ export default function DraftLineup({ onReturnToModeSelect }: DraftLineupProps) 
             <div
               key={`draft-pitch-slot-${index}`}
               className={`player-slot ${dragSource ? "player-slot--droppable" : ""} ${player ? "draft-slot--filled" : "draft-slot--empty"}`}
+              data-lineup-drop-zone="pitch"
+              data-lineup-drop-index={index}
               style={{
                 bottom: slotLayout[index].bottom,
                 left: slotLayout[index].left,
@@ -343,7 +365,10 @@ export default function DraftLineup({ onReturnToModeSelect }: DraftLineupProps) 
                 event.preventDefault();
                 handleDropToPitch(index);
               }}
-              onClick={() => !dragSource && handlePitchSlotClick(index)}
+              onClick={() => {
+                if (shouldSuppressClick()) return;
+                if (!dragSource) handlePitchSlotClick(index);
+              }}
             >
               <div
                 draggable={Boolean(player)}
@@ -352,8 +377,14 @@ export default function DraftLineup({ onReturnToModeSelect }: DraftLineupProps) 
                   else event.preventDefault();
                 }}
                 onDragEnd={onDragEnd}
+                onTouchStart={(event) => {
+                  if (player) onTouchDragStart({ zone: "pitch", index }, event);
+                }}
+                onTouchMove={onTouchDragMove}
+                onTouchEnd={(event) => onTouchDragEnd(event, handleTouchDrop)}
+                onTouchCancel={onTouchDragCancel}
                 className="draggable-wrapper"
-                style={{ width: "100%", height: "100%" }}
+                style={{ width: "100%", height: "100%", touchAction: player ? "none" : "manipulation" }}
               >
                 {player ? (
                   <LineupCard player={player} assignedPosition={slotPositions[index]} />
@@ -375,8 +406,16 @@ export default function DraftLineup({ onReturnToModeSelect }: DraftLineupProps) 
           dragSource={dragSource}
           onDragStart={onDragStart}
           onDragEnd={onDragEnd}
+          onTouchDragStart={onTouchDragStart}
+          onTouchDragMove={onTouchDragMove}
+          onTouchDragEnd={onTouchDragEnd}
+          onTouchDragCancel={onTouchDragCancel}
+          onTouchDrop={handleTouchDrop}
           onDropToBench={handleDropToBench}
-          onBenchSlotClick={(index) => !dragSource && handleBenchSlotClick(index)}
+          onBenchSlotClick={(index) => {
+            if (shouldSuppressClick()) return;
+            if (!dragSource) handleBenchSlotClick(index);
+          }}
         />
       )}
 

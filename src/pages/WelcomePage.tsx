@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Layers3, Sparkles } from "lucide-react";
+import { Layers3, Sparkles, Trophy } from "lucide-react";
 import "./WelcomePage.css";
 import Demo from "../components/demo/Demo";
 
@@ -7,16 +7,18 @@ export type GameMode = "draft" | "freestyle";
 
 interface WelcomePageProps {
   onStart: (mode: GameMode) => void;
+  onDraftChampionPreview?: () => void;
   openModeSelectOnMount?: boolean;
 }
 
 export default function WelcomePage({
   onStart,
+  onDraftChampionPreview,
   openModeSelectOnMount = false,
 }: WelcomePageProps) {
   const [isExiting, setIsExiting] = useState(false);
   const [isModeSelectOpen, setIsModeSelectOpen] = useState(openModeSelectOnMount);
-  const freestyleButtonRef = useRef<HTMLButtonElement>(null);
+  const draftButtonRef = useRef<HTMLButtonElement>(null);
 
   const handleStart = () => {
     setIsModeSelectOpen(true);
@@ -32,13 +34,20 @@ export default function WelcomePage({
     }, 900);
   };
 
+  const handleDraftChampionPreview = () => {
+    if (!onDraftChampionPreview || isExiting) return;
+
+    setIsModeSelectOpen(false);
+    onDraftChampionPreview();
+  };
+
   useEffect(() => {
     if (!isModeSelectOpen) return;
 
     const previousOverflow = document.body.style.overflow;
     const previouslyFocused = document.activeElement as HTMLElement | null;
     document.body.style.overflow = "hidden";
-    freestyleButtonRef.current?.focus();
+    draftButtonRef.current?.focus();
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") setIsModeSelectOpen(false);
@@ -115,15 +124,17 @@ export default function WelcomePage({
             </div>
 
             <div className="game-mode-modal__options">
+              {/* ── Draft ── */}
               <button
-                className="game-mode-card game-mode-card--active"
+                ref={draftButtonRef}
+                className="game-mode-card game-mode-card--draft"
                 type="button"
                 onClick={() => handleModeStart("draft")}
                 aria-describedby="draft-mode-description"
               >
-                <span className="game-mode-card__badge game-mode-card__badge--active">AVAILABLE</span>
+                <span className="game-mode-card__badge">RECOMMENDED</span>
                 <span className="game-mode-card__icon" aria-hidden="true">
-                  <Layers3 size={32} strokeWidth={1.7} />
+                  <Layers3 size={30} strokeWidth={1.6} />
                 </span>
                 <span className="game-mode-card__title">DRAFT MODE</span>
                 <span id="draft-mode-description" className="game-mode-card__description">
@@ -131,33 +142,48 @@ export default function WelcomePage({
                 </span>
                 <span className="game-mode-card__action">
                   START DRAFT
-                  <span aria-hidden="true">→</span>
+                  <span className="game-mode-card__action-arrow" aria-hidden="true">→</span>
                 </span>
               </button>
 
+              {/* ── Divider ── */}
+              <div className="game-mode-modal__divider" aria-hidden="true">
+                <span>OR</span>
+              </div>
+
+              {/* ── Freestyle ── */}
               <button
-                ref={freestyleButtonRef}
-                className="game-mode-card game-mode-card--active"
+                className="game-mode-card game-mode-card--freestyle"
                 type="button"
                 onClick={() => handleModeStart("freestyle")}
                 aria-describedby="freestyle-mode-description"
               >
-                <span className="game-mode-card__badge game-mode-card__badge--active">
-                  AVAILABLE
-                </span>
                 <span className="game-mode-card__icon" aria-hidden="true">
-                  <Sparkles size={32} strokeWidth={1.7} />
+                  <Sparkles size={22} strokeWidth={1.6} />
                 </span>
-                <span className="game-mode-card__title">FREESTYLE MODE</span>
-                <span id="freestyle-mode-description" className="game-mode-card__description">
-                  Browse every player, create custom cards and build your dream squad.
+                <span className="game-mode-card__freestyle-text">
+                  <span className="game-mode-card__title">FREESTYLE MODE</span>
+                  <span id="freestyle-mode-description" className="game-mode-card__description">
+                    Browse every player, create custom cards and build your dream squad.
+                  </span>
                 </span>
                 <span className="game-mode-card__action">
                   PLAY NOW
-                  <span aria-hidden="true">→</span>
+                  <span className="game-mode-card__action-arrow" aria-hidden="true">→</span>
                 </span>
               </button>
             </div>
+
+            {onDraftChampionPreview ? (
+              <button
+                className="draft-champion-preview-shortcut"
+                type="button"
+                onClick={handleDraftChampionPreview}
+              >
+                <Trophy size={16} strokeWidth={1.8} aria-hidden="true" />
+                <span>TEST DRAFT CHAMPION</span>
+              </button>
+            ) : null}
           </section>
         </div>
       )}

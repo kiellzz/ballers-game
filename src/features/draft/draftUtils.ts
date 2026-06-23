@@ -18,6 +18,9 @@ import {
 
 export const DRAFT_PROGRESS_STORAGE_KEY = "ballers_draft_progress";
 export const DRAFT_ACTIVE_SQUAD_STORAGE_KEY = "ballers_draft_active_squad";
+export const DRAFT_MATCH_RELOAD_PENDING_KEY = "ballers_draft_match_reload_pending";
+export const DRAFT_MATCH_RELOAD_WARNING_MESSAGE =
+  "If you reload the page, all draft campaign progress will be lost. Do you still want to reload?";
 export const DRAFT_BENCH_SIZE = 5;
 export const DRAFT_PLAYER_OPTION_COUNT = 4;
 export const DRAFT_FORMATION_OPTION_COUNT = 3;

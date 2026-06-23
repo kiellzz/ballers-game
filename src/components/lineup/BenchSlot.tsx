@@ -1,6 +1,6 @@
 import type { Player } from "../../types/PlayerTypes";
-import type { DragSource } from "../../hooks/useDragDrop";
-import { useCallback } from "react";
+import type { DragSource, DropTarget } from "../../hooks/useDragDrop";
+import { useCallback, type TouchEvent } from "react";
 import { getCardTier } from "../../utils/getCardTier";
 import { getCardBackgroundImage } from "../../utils/getCardImage";
 import { getPlayerImage } from "../../utils/getPlayerImage";
@@ -14,6 +14,14 @@ type BenchSlotProps = {
   isDragging: boolean;
   onDragStart: (source: DragSource) => void;
   onDragEnd: () => void;
+  onTouchDragStart: (source: DragSource, event: TouchEvent) => void;
+  onTouchDragMove: (event: TouchEvent) => void;
+  onTouchDragEnd: (
+    event: TouchEvent,
+    onDrop: (target: DropTarget, source: DragSource) => void,
+  ) => void;
+  onTouchDragCancel: () => void;
+  onTouchDrop: (target: DropTarget, source: DragSource) => void;
   onDrop: (targetIndex: number) => void;
   onClick: (index: number) => void;
   onRemovePlayer?: (index: number) => void;
@@ -25,6 +33,11 @@ export default function BenchSlot({
   isDragging,
   onDragStart,
   onDragEnd,
+  onTouchDragStart,
+  onTouchDragMove,
+  onTouchDragEnd,
+  onTouchDragCancel,
+  onTouchDrop,
   onDrop,
   onClick,
   onRemovePlayer,
@@ -49,6 +62,8 @@ export default function BenchSlot({
   return (
     <div
       className={`bench-slot ${isDragging ? "bench-slot--dragging" : ""}`}
+      data-lineup-drop-zone="bench"
+      data-lineup-drop-index={index}
       onDragOver={(e) => e.preventDefault()}
       onDrop={(e) => {
         e.preventDefault();
@@ -67,7 +82,13 @@ export default function BenchSlot({
           }
         }}
         onDragEnd={onDragEnd}
-        style={{ width: "100%", height: "100%" }}
+        onTouchStart={(event) => {
+          if (player) onTouchDragStart({ zone: "bench", index }, event);
+        }}
+        onTouchMove={onTouchDragMove}
+        onTouchEnd={(event) => onTouchDragEnd(event, onTouchDrop)}
+        onTouchCancel={onTouchDragCancel}
+        style={{ width: "100%", height: "100%", touchAction: player ? "none" : "manipulation" }}
       >
         {player ? (
           <article

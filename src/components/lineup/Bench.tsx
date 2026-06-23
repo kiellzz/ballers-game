@@ -1,6 +1,7 @@
 import BenchSlot from "./BenchSlot";
 import type { Player } from "../../types/PlayerTypes";
-import type { DragSource } from "../../hooks/useDragDrop";
+import type { DragSource, DropTarget } from "../../hooks/useDragDrop";
+import type { TouchEvent } from "react";
 import "./Bench.css";
 
 interface Props {
@@ -8,6 +9,14 @@ interface Props {
   dragSource: DragSource | null;
   onDragStart: (source: DragSource) => void;
   onDragEnd: () => void;
+  onTouchDragStart: (source: DragSource, event: TouchEvent) => void;
+  onTouchDragMove: (event: TouchEvent) => void;
+  onTouchDragEnd: (
+    event: TouchEvent,
+    onDrop: (target: DropTarget, source: DragSource) => void,
+  ) => void;
+  onTouchDragCancel: () => void;
+  onTouchDrop: (target: DropTarget, source: DragSource) => void;
   onDropToBench: (targetBenchIndex: number) => void;
   onBenchSlotClick: (benchIndex: number) => void;
   onRemoveBenchPlayer?: (benchIndex: number) => void;
@@ -18,6 +27,11 @@ export default function Bench({
   dragSource,
   onDragStart,
   onDragEnd,
+  onTouchDragStart,
+  onTouchDragMove,
+  onTouchDragEnd,
+  onTouchDragCancel,
+  onTouchDrop,
   onDropToBench,
   onBenchSlotClick,
   onRemoveBenchPlayer,
@@ -34,6 +48,11 @@ export default function Bench({
             isDragging={dragSource?.zone === "bench" && dragSource.index === index}
             onDragStart={onDragStart}
             onDragEnd={onDragEnd}
+            onTouchDragStart={onTouchDragStart}
+            onTouchDragMove={onTouchDragMove}
+            onTouchDragEnd={onTouchDragEnd}
+            onTouchDragCancel={onTouchDragCancel}
+            onTouchDrop={onTouchDrop}
             onDrop={onDropToBench}
             onClick={onBenchSlotClick}
             onRemovePlayer={onRemoveBenchPlayer}

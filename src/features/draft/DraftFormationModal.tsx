@@ -47,7 +47,7 @@ export default function DraftFormationModal({ choices, onSelect }: DraftFormatio
         </header>
 
         <div className="draft-formation-modal__grid">
-          {choices.map((formationKey) => {
+          {choices.map((formationKey, index) => {
             const formation = FORMATIONS[formationKey];
 
             return (
@@ -57,20 +57,29 @@ export default function DraftFormationModal({ choices, onSelect }: DraftFormatio
                 type="button"
                 onClick={() => onSelect(formationKey)}
               >
+                <span className="draft-formation-option__index" aria-hidden="true">
+                  {String(index + 1).padStart(2, "0")}
+                </span>
+
                 <span className="draft-formation-option__pitch" aria-hidden="true">
                   <span className="draft-formation-option__halfway" />
-                  {formation.layout.map((slot, index) => (
+                  {formation.layout.map((slot, slotIndex) => (
                     <span
-                      key={`${formationKey}-${index}`}
+                      key={`${formationKey}-${slotIndex}`}
                       className="draft-formation-option__player"
                       style={getPreviewPosition(slot)}
                     />
                   ))}
                 </span>
+
                 <strong>{formation.label}</strong>
+
                 <span className="draft-formation-option__positions">
-                  {formation.positions.join(" · ")}
+                  {formation.positions.map((position, positionIndex) => (
+                    <span key={`${formationKey}-pos-${positionIndex}`}>{position}</span>
+                  ))}
                 </span>
+
                 <span className="draft-formation-option__select">
                   SELECT FORMATION
                   <LockKeyhole size={14} aria-hidden="true" />
