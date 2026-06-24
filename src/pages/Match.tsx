@@ -76,6 +76,7 @@ import {
 } from "../features/draft/draftUtils";
 import {
   resolveDraftMatch,
+  type DraftMatchResolution,
   type DraftRoundIndex,
 } from "../opponents/draftOpponents";
 import { getSentOffPlayerIds } from "../match-engine/fouls/disciplineState";
@@ -123,6 +124,12 @@ interface ShootoutKickResolution {
   side: PossessionSide;
   takerId: number;
   resolution: ResolvePenOutput;
+}
+
+interface DraftMatchFinalization {
+  round: DraftRoundIndex;
+  result: MatchResult;
+  resolution: DraftMatchResolution;
 }
 
 interface EventLogBuildContext {
@@ -335,6 +342,7 @@ export default function Match({ isMuted, onMatchFinished, onReturnToModeSelect }
   const isDraftMatch = routeState?.gameMode === "draft";
   const allowDraftMatchUnloadRef = useRef(false);
   const draftReloadMarkerTimeoutRef = useRef<number | null>(null);
+  const draftMatchFinalizationRef = useRef<DraftMatchFinalization | null>(null);
 
   useEffect(() => {
     if (!isDraftMatch) return;
@@ -1185,6 +1193,120 @@ export default function Match({ isMuted, onMatchFinished, onReturnToModeSelect }
     [summaryOpponentParticipants]
   );
 
+  const finalizeDraftMatch = useCallback(
+    (result: MatchResult): DraftMatchResolution | null => {
+      if (!isDraftMatch || isShootoutTestMode) return null;
+
+      const progress = loadDraftProgress();
+      if (!progress) {
+        onReturnToModeSelect?.();
+        return null;
+      }
+
+      const round = routeState?.draftRound ?? progress.currentRound;
+      const previousFinalization = draftMatchFinalizationRef.current;
+
+      if (
+        previousFinalization &&
+        previousFinalization.round === round &&
+        previousFinalization.result === result
+      ) {
+        return previousFinalization.resolution;
+      }
+
+      const campaign = recordDraftMatch({
+        campaign: progress.campaign,
+        round,
+        score: {
+          user: score.user,
+          opponent: score.opponent,
+        },
+        penaltyShootoutScore: penaltyShootout?.winner
+          ? getPenaltyShootoutScore(penaltyShootout)
+          : null,
+        performances: summaryUserParticipants.map(({ player, position }) => {
+          const stats =
+            matchState.playerMatchStats[`user:${player.id}`] ?? emptyStatLine();
+
+          return {
+            playerId: player.id,
+            playerName: player.name,
+            rating: calculatePlayerRating(stats, position),
+            goals: stats.goals,
+            assists: stats.assists,
+          };
+        }),
+      });
+      const progressWithCampaign = { ...progress, campaign };
+      const resolution = resolveDraftMatch(round, result);
+
+      if (resolution.kind === "eliminated") {
+        saveDraftProgress({
+          ...progressWithCampaign,
+          campaign: completeDraftCampaign(campaign, {
+            kind: "eliminated",
+            round,
+          }),
+        });
+      } else if (resolution.kind === "champion") {
+        saveDraftProgress({
+          ...progressWithCampaign,
+          campaign: completeDraftCampaign(campaign, {
+            kind: "champion",
+            round,
+          }),
+        });
+      } else if (resolution.kind === "advance") {
+        saveDraftProgress({
+          ...progressWithCampaign,
+          currentRound: resolution.nextRound,
+        });
+      } else {
+        saveDraftProgress(progressWithCampaign);
+      }
+
+      allowDraftMatchUnloadRef.current = true;
+      draftMatchFinalizationRef.current = { round, result, resolution };
+
+      return resolution;
+    },
+    [
+      isDraftMatch,
+      isShootoutTestMode,
+      matchState.playerMatchStats,
+      onReturnToModeSelect,
+      penaltyShootout,
+      routeState?.draftRound,
+      score.opponent,
+      score.user,
+      summaryUserParticipants,
+    ]
+  );
+
+  useEffect(() => {
+    if (!isDraftMatch || isShootoutTestMode || !matchState.isFinished) return;
+
+    const decidedResult = penaltyShootout?.winner
+      ? penaltyShootout.winner === "user"
+        ? "win"
+        : "loss"
+      : score.user === score.opponent
+        ? null
+        : getResult(score.user, score.opponent);
+
+    if (!decidedResult) return;
+
+    finalizeDraftMatch(decidedResult);
+  }, [
+    finalizeDraftMatch,
+    isDraftMatch,
+    isShootoutTestMode,
+    matchState.isFinished,
+    penaltyShootout?.winner,
+    score.opponent,
+    score.user,
+  ]);
+
   const handleSummaryContinue = (result: MatchResult) => {
     if (isShootoutTestMode) {
       navigate("/draft-prematch");
@@ -1196,46 +1318,10 @@ export default function Match({ isMuted, onMatchFinished, onReturnToModeSelect }
       return;
     }
 
-    const progress = loadDraftProgress();
-    if (!progress) {
-      onReturnToModeSelect?.();
-      return;
-    }
-
-    const campaign = recordDraftMatch({
-      campaign: progress.campaign,
-      round: progress.currentRound,
-      score: {
-        user: score.user,
-        opponent: score.opponent,
-      },
-      penaltyShootoutScore: penaltyShootout?.winner
-        ? getPenaltyShootoutScore(penaltyShootout)
-        : null,
-      performances: summaryUserParticipants.map(({ player, position }) => {
-        const stats =
-          matchState.playerMatchStats[`user:${player.id}`] ?? emptyStatLine();
-
-        return {
-          playerId: player.id,
-          playerName: player.name,
-          rating: calculatePlayerRating(stats, position),
-          goals: stats.goals,
-          assists: stats.assists,
-        };
-      }),
-    });
-    const progressWithCampaign = { ...progress, campaign };
-    const resolution = resolveDraftMatch(progress.currentRound, result);
+    const resolution = finalizeDraftMatch(result);
+    if (!resolution) return;
 
     if (resolution.kind === "eliminated") {
-      saveDraftProgress({
-        ...progressWithCampaign,
-        campaign: completeDraftCampaign(campaign, {
-          kind: "eliminated",
-          round: progress.currentRound,
-        }),
-      });
       navigate("/draft-summary");
       return;
     }
@@ -1246,21 +1332,10 @@ export default function Match({ isMuted, onMatchFinished, onReturnToModeSelect }
     }
 
     if (resolution.kind === "champion") {
-      saveDraftProgress({
-        ...progressWithCampaign,
-        campaign: completeDraftCampaign(campaign, {
-          kind: "champion",
-          round: progress.currentRound,
-        }),
-      });
       navigate("/draft-champion");
       return;
     }
 
-    saveDraftProgress({
-      ...progressWithCampaign,
-      currentRound: resolution.nextRound,
-    });
     navigate("/draft-prematch");
   };
 
